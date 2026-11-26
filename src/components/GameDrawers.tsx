@@ -19,15 +19,7 @@ import {
 } from '../types/game';
 import { SingaporeClock } from '../utils/sgClock';
 import { sfx } from '../utils/sound';
-import {
-  ChopeTissueIcon,
-  EzLinkCardIcon,
-  FieldNotesIcon,
-  KopiDabaoIcon,
-  PlayerSpritePreview,
-  ReceiptIcon,
-  ShieldEmblemIcon,
-} from './PixelIcons';
+import { PlayerSpritePreview, ShieldEmblemIcon, UiIcon } from './PixelIcons';
 
 interface GameDrawersProps {
   activeDrawer: DrawerType;
@@ -57,13 +49,14 @@ const HEADINGS: Record<Exclude<DrawerType, null>, [eyebrow: string, title: strin
   shield: ['Your adventure', 'Guardians'],
 };
 
-const ITEM_ICONS: Record<InventoryItem['icon'], React.ReactNode> = {
-  ezlink: <EzLinkCardIcon size={40} />,
-  chope: <ChopeTissueIcon size={36} />,
-  kopi: <KopiDabaoIcon size={36} />,
-  receipt: <ReceiptIcon size={36} />,
-  notes: <FieldNotesIcon size={36} />,
-  badge: <FieldNotesIcon size={36} />,
+// PixelLab item art in public/assets/ui/item-<name>.png
+const ITEM_ICON_FILE: Record<InventoryItem['icon'], string> = {
+  ezlink: 'item-ezlink',
+  chope: 'item-chope',
+  kopi: 'item-kopi',
+  receipt: 'item-receipt',
+  notes: 'item-notes',
+  badge: 'item-notes',
 };
 
 const HAIR_STYLES: AvatarConfig['hairStyle'][] = ['short', 'spiky', 'bob', 'ponytail'];
@@ -147,8 +140,8 @@ const PackPanel: React.FC<GameDrawersProps> = ({ inventory }) => {
             className="cream-card"
             style={{ display: 'flex', gap: 12, alignItems: 'center', opacity: item.collected ? 1 : 0.55 }}
           >
-            <div className="sprite-tile" style={{ width: 56, height: 56, flexShrink: 0 }}>
-              {ITEM_ICONS[item.icon]}
+            <div className="sprite-tile" style={{ width: 72, height: 72, flexShrink: 0 }}>
+              <UiIcon name={ITEM_ICON_FILE[item.icon]} size={64} />
             </div>
             <div>
               <div style={{ fontWeight: 700, fontSize: 15 }}>{item.name}</div>

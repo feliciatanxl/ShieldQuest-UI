@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ShieldLetter, ShieldSkillState } from '../types/game';
 import { sfx } from '../utils/sound';
 
@@ -19,6 +19,13 @@ export const LookoutDilemmaModal: React.FC<LookoutDilemmaModalProps> = ({
 }) => {
   const [stepIdx, setStepIdx] = useState(0);
   const [feedback, setFeedback] = useState<string | null>(null);
+
+  // Esc exits, like every other panel
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
 
   // S — Spot the Risk (checkbox multi-select: factual clues vs assumptions)
   const [sChecked, setSChecked] = useState<string[]>([]);

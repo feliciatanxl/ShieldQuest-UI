@@ -11,6 +11,9 @@ interface LandingScreenProps {
   clock: SingaporeClock;
   squadCode: string;
   setSquadCode: (code: string) => void;
+  /** A previous game exists and will be replaced when this one starts. */
+  hasSave: boolean;
+  onBack: () => void;
   onStartGame: () => void;
 }
 
@@ -58,6 +61,8 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
   clock,
   squadCode,
   setSquadCode,
+  hasSave,
+  onBack,
   onStartGame,
 }) => {
   const [showSquadInput, setShowSquadInput] = useState(false);
@@ -76,11 +81,22 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
         <UiIcon name={evening ? 'night-cloud' : 'sun'} size={32} />
       </div>
 
+      <button
+        type="button"
+        className="px-wood landing-back"
+        onClick={() => {
+          sfx.click();
+          onBack();
+        }}
+      >
+        ← Back
+      </button>
+
       <div className="landing-content">
         <header style={{ textAlign: 'center' }}>
           <h1 className="landing-title">SHIELDQUEST</h1>
           <div className="pixel-wood-panel landing-subtitle">
-            A cosy heartland adventure · Block 260, Singapore
+            New game · Create your hero
           </div>
         </header>
 
@@ -199,7 +215,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
                 onStartGame();
               }}
             >
-              START GAME
+              START ADVENTURE
             </button>
             <button
               type="button"
@@ -224,7 +240,11 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
           </div>
         </main>
 
-        <footer className="landing-hint">WASD / arrows or click to walk · Shift to run</footer>
+        <footer className="landing-hint">
+          {hasSave
+            ? 'Starting a new adventure replaces your saved game in this browser.'
+            : 'WASD / arrows or click to walk · Shift to run'}
+        </footer>
       </div>
 
       {showBriefModal && (

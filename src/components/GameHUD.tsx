@@ -15,6 +15,7 @@ interface GameHUDProps {
 }
 
 const BUTTONS: [Exclude<DrawerType, null>, string, string][] = [
+  ['shield', 'shield', 'Guardians'],
   ['backpack', 'backpack', 'Pack'],
   ['wardrobe', 'wardrobe', 'Wardrobe'],
   ['map', 'map', 'Map'],
@@ -54,24 +55,13 @@ export const GameHUD: React.FC<GameHUDProps> = ({
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 9, paddingTop: 2 }}>
           <div className="px-text hud-name">{avatar.name.trim() || 'Player'}</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
-              <div className="px-bar is-red hud-bar" title="Confidence" aria-label={`Confidence ${confidencePct}%`}>
-                <span style={{ width: clampPct(confidencePct) }} />
-              </div>
-              <div className="px-bar is-teal hud-bar" title="Energy" aria-label={`Energy ${energyPct}%`}>
-                <span style={{ width: clampPct(energyPct) }} />
-              </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+            <div className="px-bar is-red hud-bar" title="Confidence" aria-label={`Confidence ${confidencePct}%`}>
+              <span style={{ width: clampPct(confidencePct) }} />
             </div>
-            <button
-              type="button"
-              className="hud-plain-btn"
-              onClick={() => toggleDrawer('shield')}
-              title="Guardians"
-              aria-label="Open Guardians"
-            >
-              <UiIcon name="shield" size={48} />
-            </button>
+            <div className="px-bar is-teal hud-bar" title="Energy" aria-label={`Energy ${energyPct}%`}>
+              <span style={{ width: clampPct(energyPct) }} />
+            </div>
           </div>
         </div>
       </div>

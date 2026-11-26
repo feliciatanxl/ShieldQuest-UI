@@ -23,6 +23,7 @@ import {
   ShieldLetter,
   ShieldSkillState,
 } from '../types/game';
+import { WorldSave } from '../utils/save';
 import { SingaporeClock } from '../utils/sgClock';
 import { sfx } from '../utils/sound';
 import { GameDrawers } from './GameDrawers';
@@ -38,6 +39,9 @@ interface GameWorldProps {
   skills: Record<ShieldLetter, ShieldSkillState>;
   onCompleteSkill: (letter: ShieldLetter, passed: boolean, score: number) => void;
   squadCode: string;
+  /** Saved progress to resume from (null = fresh game). */
+  initialWorld: WorldSave | null;
+  onWorldChange: (world: WorldSave) => void;
   onReturnToTitle: () => void;
 }
 
@@ -80,27 +84,30 @@ export const GameWorld: React.FC<GameWorldProps> = ({
   skills,
   onCompleteSkill,
   squadCode,
+  initialWorld,
+  onWorldChange,
   onReturnToTitle,
 }) => {
+  const start = initialWorld;
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const [activeDrawer, setActiveDrawer] = useState<DrawerType>(null);
-  const [questId, setQuestId] = useState<QuestId>('ezlink');
-  const [ezLinkPickedUp, setEzLinkPickedUp] = useState(false);
-  const [ezLinkReturned, setEzLinkReturned] = useState(false);
-  const [kopiPickedUp, setKopiPickedUp] = useState(false);
-  const [chopePickedUp, setChopePickedUp] = useState(false);
+  const [questId, setQuestId] = useState<QuestId>(start?.questId ?? 'ezlink');
+  const [ezLinkPickedUp, setEzLinkPickedUp] = useState(start?.ezLinkPickedUp ?? false);
+  const [ezLinkReturned, setEzLinkReturned] = useState(start?.ezLinkReturned ?? false);
+  const [kopiPickedUp, setKopiPickedUp] = useState(start?.kopiPickedUp ?? false);
+  const [chopePickedUp, setChopePickedUp] = useState(start?.chopePickedUp ?? false);
   const [showLookoutModal, setShowLookoutModal] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [soundEnabled, setSoundEnabled] = useState(sfx.enabled);
-  const [confidencePct, setConfidencePct] = useState(78);
-  const [energyPct, setEnergyPct] = useState(66);
+  const [confidencePct, setConfidencePct] = useState(start?.confidencePct ?? 78);
+  const [energyPct, setEnergyPct] = useState(start?.energyPct ?? 66);
   const [cursor, setCursor] = useState<'pointer' | 'default'>('default');
 
   // Mutable simulation refs for smooth 60fps loop without re-renders
   const keysPressed = useRef<Set<string>>(new Set());
   const playerRef = useRef({
-    ...PLAYER_START,
+    ...(start && isWalkable(start.player.x, start.player.y) ? start.player : PLAYER_START),
     dir: 'north-east' as Direction,
     isMoving: false,
     walkPhase: 0,
@@ -108,11 +115,11 @@ export const GameWorld: React.FC<GameWorldProps> = ({
   });
   const walkMarkerRef = useRef<(Pt & { createdAt: number }) | null>(null);
   const hoveredTargetRef = useRef<string | null>(null);
-  const speechBubbleRef = useRef<RenderState['speech']>({
-    npcId: 'uncle',
-    text: 'Eh boy, did you see my bus card?',
-    icon: 'ezlink',
-  });
+  const speechBubbleRef = useRef<RenderState['speech']>(
+    start?.ezLinkReturned
+      ? { npcId: 'uncle', text: 'Thanks again! Go check Sunshine Minimart!', icon: 'shop' }
+      : { npcId: 'uncle', text: 'Eh boy, did you see my bus card?', icon: 'ezlink' }
+  );
   const simTimeRef = useRef(0);
   const cameraRef = useRef({ x: 0.5, y: 0.5, ready: false, view: [0, CANVAS_W] as [number, number] });
   const minimartCooldownRef = useRef(-10);
@@ -133,6 +140,31 @@ export const GameWorld: React.FC<GameWorldProps> = ({
     kopiPickedUp,
     chopePickedUp,
   };
+
+  // Autosave: on any progress change, every few seconds (player position) and when leaving.
+  const worldSnapshot = useRef<() => WorldSave>(() => ({} as WorldSave));
+  worldSnapshot.current = () => ({
+    questId,
+    ezLinkPickedUp,
+    ezLinkReturned,
+    kopiPickedUp,
+    chopePickedUp,
+    confidencePct,
+    energyPct,
+    player: { x: Math.round(playerRef.current.x), y: Math.round(playerRef.current.y) },
+  });
+  const onWorldChangeRef = useRef(onWorldChange);
+  onWorldChangeRef.current = onWorldChange;
+  useEffect(() => {
+    onWorldChangeRef.current(worldSnapshot.current());
+  }, [questId, ezLinkPickedUp, ezLinkReturned, kopiPickedUp, chopePickedUp, confidencePct, energyPct]);
+  useEffect(() => {
+    const id = setInterval(() => onWorldChangeRef.current(worldSnapshot.current()), 3000);
+    return () => {
+      clearInterval(id);
+      onWorldChangeRef.current(worldSnapshot.current());
+    };
+  }, []);
 
   const showToast = useCallback((msg: string) => {
     setToastMsg(msg);

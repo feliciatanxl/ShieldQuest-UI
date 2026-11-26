@@ -169,7 +169,8 @@ ShieldQuest-UI/
 │   │   ├── GameDrawers.tsx              # Backpack, Wardrobe, Singapore Map, Quests, S.H.I.E.L.D. & Menu modals
 │   │   ├── GameHUD.tsx                  # Exact 4-corner isometric game HUD overlay
 │   │   ├── GameWorld.tsx                # 60fps simulation, controls, collision bounds & quest triggers
-│   │   ├── LandingScreen.tsx            # Start screen with town-overview art & animated hero preview
+│   │   ├── TitleScreen.tsx              # Title screen: Start New Game / Continue (saved progress)
+│   │   ├── LandingScreen.tsx            # New-game hero creator with animated sprite preview
 │   │   ├── LookoutDilemmaModal.tsx      # 6-step non-overlapping S.H.I.E.L.D. anchor mission UI
 │   │   └── PixelIcons.tsx               # Sprite-based portraits, HUD button icons, badges & weather icons
 │   ├── data/
@@ -178,10 +179,13 @@ ShieldQuest-UI/
 │   │   ├── sceneRenderer.ts             # Street scene: background art, walkable map, depth-sorted sprites, bubbles
 │   │   └── sprites.ts                   # Sprite sheet loader, walk-cycle drawing & avatar recolouring
 │   ├── styles/
-│   │   └── pixel-ui.css                 # Wooden pixel bevels, charcoal quest box & theme variables
+│   │   ├── pixel-ui.css                 # Theme variables, HUD pixel frames, landing & layout
+│   │   └── pixel-panels.css             # Pixel wood/parchment in-game panels & title screen
 │   ├── types/
 │   │   └── game.ts                      # TypeScript interfaces for avatar, NPCs, quests & S.H.I.E.L.D. state
 │   ├── utils/
+│   │   ├── save.ts                      # Browser save/load (localStorage, validated on read)
+│   │   ├── sgClock.ts                   # Live Singapore time → day/night
 │   │   └── sound.ts                     # Zero-dependency Web Audio retro SFX helper
 │   ├── App.tsx                          # Top-level Landing <-> Game state orchestrator
 │   └── main.tsx                         # React entry point

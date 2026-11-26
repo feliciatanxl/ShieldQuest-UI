@@ -881,13 +881,6 @@ button.px-wood.is-active {
   width: 150px;
 }
 
-.hud-plain-btn {
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  filter: drop-shadow(0 3px 0 rgba(20, 12, 8, 0.45));
-}
 
 .hud-clock {
   position: absolute;
@@ -974,10 +967,6 @@ button.px-wood.is-active {
   .hud-top-left > div > div,
   .hud-top-left > div > div > div {
     gap: 6px !important;
-  }
-  .hud-plain-btn .px-icon {
-    width: 32px;
-    height: 32px;
   }
   .hud-clock {
     top: 10px;
