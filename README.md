@@ -42,7 +42,7 @@ npm install
 npm run dev
 ```
 
-Open the local URL printed by Vite (e.g. `http://localhost:5173` or `http://localhost:5175`).
+Open the local URL printed by Vite (e.g. `http://localhost:5173`). The public website is at `/` and the game is at `/play/`.
 
 ### Build & Preview
 
@@ -194,7 +194,8 @@ ShieldQuest-UI/
 ├── LICENSE
 ├── README.md
 ├── SECURITY.md
-├── index.html
+├── index.html                           # Public website (/), styles in src/site/site.css
+├── play/index.html                      # Game entry (/play/)
 ├── package.json
 ├── tsconfig.json
 └── vite.config.ts

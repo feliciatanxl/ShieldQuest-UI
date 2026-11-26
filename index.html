@@ -2,24 +2,345 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="theme-color" content="#1e222d" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#1e1a24" />
     <meta
       name="description"
-      content="ShieldQuest — A cosy 2D Habbo-style isometric pixel-art Singapore heartland adventure by Project SHIELD."
+      content="ShieldQuest is a free pixel-art browser game that helps Singapore youths practise safe choices under peer pressure, starting with shop theft. Choose Right. Protect Together."
     />
+    <meta property="og:title" content="ShieldQuest: Choose Right. Protect Together." />
+    <meta
+      property="og:description"
+      content="A pixel-art Singapore neighbourhood adventure that trains youths to spot risk, resist peer pressure and get the right help."
+    />
+    <meta property="og:image" content="/assets/site/hero-youths.png" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="manifest" href="/manifest.webmanifest" />
-    <title>ShieldQuest — Cosy Singapore Heartland Adventure</title>
+    <title>ShieldQuest: Choose Right. Protect Together.</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Silkscreen:wght@400;700&family=VT323&display=swap"
       rel="stylesheet"
     />
+    <link rel="stylesheet" href="/src/site/site.css" />
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <a class="skip" href="#main">Skip to content</a>
+
+    <header class="nav">
+      <a class="brand" href="#top" aria-label="ShieldQuest home">
+        <img src="/assets/ui/shield.png" width="32" height="32" alt="" />
+        <span>ShieldQuest</span>
+      </a>
+      <nav aria-label="Sections">
+        <a href="#why">Why</a>
+        <a href="#different">What's different</a>
+        <a href="#shield">S.H.I.E.L.D.</a>
+        <a href="#impact">Impact</a>
+        <a href="#roadmap">Roadmap</a>
+      </nav>
+      <a class="btn btn-teal btn-small" href="/play/">▶ Play</a>
+    </header>
+
+    <main id="main">
+      <!-- HERO -->
+      <section class="hero" id="top">
+        <div class="wrap hero-grid">
+          <div class="hero-copy">
+            <p class="eyebrow">✦ A Project SHIELD game · Delta Challenge 2026 ✦</p>
+            <h1>Choose Right.<br /><span class="gold">Protect Together.</span></h1>
+            <p class="lead">
+              ShieldQuest is a pixel-art adventure set in a Singapore HDB neighbourhood. Youths
+              explore, investigate and make the call, practising what to do when a friend asks
+              them to cross the line.
+            </p>
+            <div class="actions">
+              <a class="btn btn-teal" href="/play/">▶ Play the prototype</a>
+              <a class="btn btn-wood" href="#how">How it works</a>
+            </div>
+            <ul class="facts" aria-label="Quick facts">
+              <li><strong>Ages 10–24</strong></li>
+              <li><strong>Free</strong> · in the browser</li>
+              <li><strong>Pilot focus:</strong> shop theft</li>
+            </ul>
+          </div>
+          <figure class="frame hero-art">
+            <img
+              src="/assets/site/hero-youths.png"
+              width="688"
+              height="384"
+              alt="Pixel-art scene of four Singapore teens chatting at an HDB void deck beside the Sunshine Minimart."
+            />
+          </figure>
+        </div>
+      </section>
+
+      <!-- WHY -->
+      <section class="section" id="why">
+        <div class="wrap">
+          <p class="eyebrow">Why we're building this</p>
+          <h2>Knowing it's wrong isn't the hard part.</h2>
+          <p class="sub">Making the right call when friends are watching is.</p>
+
+          <div class="why-grid">
+            <div class="card stat">
+              <span class="stat-number">4,109</span>
+              <span class="stat-label">shop theft cases recorded in 2025</span>
+              <p>One of the top offences among youths arrested.</p>
+              <small>Source: Singapore Police Force, Annual Crime Brief 2025</small>
+            </div>
+            <div class="card">
+              <img class="icon" src="/assets/site/icon-talk.png" width="64" height="64" alt="" />
+              <h3>Peer pressure, not ignorance</h3>
+              <p>Youths often get pulled in as the lookout or the friend who "just watched". That is still involvement.</p>
+            </div>
+            <div class="card">
+              <img class="icon" src="/assets/site/icon-school.png" width="64" height="64" alt="" />
+              <h3>One-off talks fade</h3>
+              <p>Most crime-prevention messages are a single assembly. Skills stick when youths practise them.</p>
+            </div>
+          </div>
+
+          <figure class="frame dilemma">
+            <img
+              src="/assets/site/lookout-minimart.png"
+              width="458"
+              height="256"
+              alt="Pixel-art minimart: one teen by the snack rack, another hesitating at the entrance."
+            />
+            <figcaption>
+              <span class="tag">The Lookout Dilemma</span>
+              Your friend slips a snack into their bag and asks you to watch the door.
+              <strong>What do you do?</strong>
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <!-- DIFFERENT / USP -->
+      <section class="section section-parch" id="different">
+        <div class="wrap">
+          <p class="eyebrow">What makes ShieldQuest different</p>
+          <h2>Learning by choosing, not by listening.</h2>
+          <div class="usp-grid">
+            <article class="card">
+              <img class="icon" src="/assets/site/icon-controller.png" width="64" height="64" alt="" />
+              <h3>Play, not a lecture</h3>
+              <p>Every decision is the lesson. No slides, no quiz sheets.</p>
+            </article>
+            <article class="card">
+              <img class="icon" src="/assets/site/icon-hdb.png" width="64" height="64" alt="" />
+              <h3>Set where youths live</h3>
+              <p>Void decks, minimarts and bus stops they pass every day.</p>
+            </article>
+            <article class="card">
+              <img class="icon" src="/assets/site/icon-magnifier.png" width="64" height="64" alt="" />
+              <h3>Facts before assumptions</h3>
+              <p>Players learn to separate what they saw from what they guessed.</p>
+            </article>
+            <article class="card">
+              <img class="icon" src="/assets/site/icon-handshake.png" width="64" height="64" alt="" />
+              <h3>Safe, not vigilante</h3>
+              <p>No confronting or accusing. Youths set a boundary and get trusted help.</p>
+            </article>
+            <article class="card">
+              <img class="icon" src="/assets/site/icon-chart.png" width="64" height="64" alt="" />
+              <h3>Measured skill by skill</h3>
+              <p>Each S.H.I.E.L.D. skill is scored on its own, before and after play.</p>
+            </article>
+            <article class="card">
+              <img class="icon" src="/assets/site/icon-people.png" width="64" height="64" alt="" />
+              <h3>Better together <span class="soon">soon</span></h3>
+              <p>Co-op missions where sharing clues is the only way through.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- HOW IT WORKS -->
+      <section class="section" id="how">
+        <div class="wrap">
+          <p class="eyebrow">How it works</p>
+          <h2>Explore. Decide. Grow.</h2>
+          <!-- Annotated map: callouts 1 and 2 are wired to pins on the picture; Grow sits underneath -->
+          <div class="how-map">
+            <div class="card callout callout-explore">
+              <span class="step-no">1</span>
+              <h3>Explore</h3>
+              <p>Walk Block 260, chat with neighbours and pick up clues.</p>
+            </div>
+
+            <figure class="frame game-shot">
+              <img
+                src="/assets/scenes/street-day.png"
+                width="640"
+                height="360"
+                alt="ShieldQuest gameplay area: a bus stop, HDB void deck and the Sunshine Minimart."
+              />
+              <!-- Positions are % of the 640x360 art: bus stop/void deck, and the minimart -->
+              <span class="lead-line lead-left" style="top: 50%; width: calc(44% + var(--reach))" aria-hidden="true"></span>
+              <span class="lead-line lead-right" style="top: 54%; left: 87%" aria-hidden="true"></span>
+              <span class="pin" style="left: 44%; top: 50%" aria-hidden="true"><span class="step-no">1</span></span>
+              <span class="pin" style="left: 87%; top: 54%" aria-hidden="true"><span class="step-no">2</span></span>
+            </figure>
+
+            <div class="card callout callout-decide">
+              <span class="step-no">2</span>
+              <h3>Decide</h3>
+              <p>Face the Lookout Dilemma at Sunshine Minimart, one choice at a time.</p>
+            </div>
+
+            <div class="card callout callout-grow">
+              <span class="step-no">3</span>
+              <div>
+                <h3>Grow</h3>
+                <p>See where your choices lead and earn a Guardian for every skill you show.</p>
+              </div>
+              <div class="grow-guardians" aria-hidden="true">
+                <img src="/assets/guardians/cluepaw.png" width="64" height="64" alt="" />
+                <img src="/assets/guardians/shieldfin.png" width="64" height="64" alt="" />
+                <img src="/assets/guardians/bytebuddy.png" width="64" height="64" alt="" />
+                <img src="/assets/guardians/verifox.png" width="64" height="64" alt="" />
+                <img src="/assets/guardians/echo.png" width="64" height="64" alt="" />
+                <img src="/assets/guardians/beacon.png" width="64" height="64" alt="" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- S.H.I.E.L.D. -->
+      <section class="section section-parch" id="shield">
+        <div class="wrap">
+          <p class="eyebrow">The S.H.I.E.L.D. framework</p>
+          <h2>Six skills. Each one practised and scored.</h2>
+          <div class="shield-grid">
+            <article class="card skill">
+              <img src="/assets/guardians/cluepaw.png" width="64" height="64" alt="Cluepaw, a kitten with a magnifying glass" />
+              <span class="letter">S</span>
+              <h3>Spot the Risk</h3>
+              <p>Notice the facts. Don't jump to conclusions.</p>
+            </article>
+            <article class="card skill">
+              <img src="/assets/guardians/shieldfin.png" width="64" height="64" alt="Shieldfin, a teal manta ray" />
+              <span class="letter">H</span>
+              <h3>Hold Before Acting</h3>
+              <p>Pause and set a safe boundary.</p>
+            </article>
+            <article class="card skill">
+              <img src="/assets/guardians/bytebuddy.png" width="64" height="64" alt="ByteBuddy, a small robot" />
+              <span class="letter">I</span>
+              <h3>Identify the Influence</h3>
+              <p>Name the pressure, and the role you're being pushed into.</p>
+            </article>
+            <article class="card skill">
+              <img src="/assets/guardians/verifox.png" width="64" height="64" alt="VeriFox, a red fox" />
+              <span class="letter">E</span>
+              <h3>Evaluate Consequences</h3>
+              <p>See the fallout now and later.</p>
+            </article>
+            <article class="card skill">
+              <img src="/assets/guardians/echo.png" width="64" height="64" alt="Echo, a purple otter" />
+              <span class="letter">L</span>
+              <h3>Lead the Right Choice</h3>
+              <p>Steer a friend somewhere safer, respectfully.</p>
+            </article>
+            <article class="card skill">
+              <img src="/assets/guardians/beacon.png" width="64" height="64" alt="Beacon, a glowing bee" />
+              <span class="letter">D</span>
+              <h3>Defend Your Community</h3>
+              <p>Get the right help with clear, honest facts.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- IMPACT -->
+      <section class="section" id="impact">
+        <div class="wrap">
+          <p class="eyebrow">How we help youths</p>
+          <h2>Skills they can use outside the game.</h2>
+          <p class="sub">
+            We test with fresh scenarios before and after play, so we measure real understanding,
+            not memorised answers.
+          </p>
+          <p class="eyebrow" style="margin-top: 32px">Our pilot targets</p>
+          <div class="impact-grid" style="margin-top: 14px">
+            <div class="card big">
+              <span class="stat-number">20<span class="pct">%</span></span>
+              <span class="stat-label">higher S.H.I.E.L.D. scores after playing</span>
+            </div>
+            <div class="card big">
+              <span class="stat-number">85<span class="pct">%</span></span>
+              <span class="stat-label">of players finish the mission</span>
+            </div>
+            <div class="card big">
+              <span class="stat-number">80<span class="pct">%</span></span>
+              <span class="stat-label">positive player feedback</span>
+            </div>
+            <div class="card big">
+              <span class="stat-number">70<span class="pct">%</span></span>
+              <span class="stat-label">still meet the bar 2–4 weeks later</span>
+            </div>
+          </div>
+          <p class="note">Targets, not results yet. We'll share real numbers after the pilot sessions.</p>
+        </div>
+      </section>
+
+      <!-- ROADMAP -->
+      <section class="section section-parch" id="roadmap">
+        <div class="wrap">
+          <p class="eyebrow">Roadmap</p>
+          <h2>Where we're heading.</h2>
+          <ol class="roadmap">
+            <li class="card now">
+              <span class="tag">Now</span>
+              <h3>Playable prototype</h3>
+              <p>Singapore neighbourhood, character creator, the minimart mission and all six S.H.I.E.L.D. challenges.</p>
+            </li>
+            <li class="card">
+              <span class="tag">Next</span>
+              <h3>Youth pilots</h3>
+              <p>90-minute facilitated workshops with youth groups, Nov 2026 – Apr 2027.</p>
+            </li>
+            <li class="card">
+              <span class="tag">Later</span>
+              <h3>Squads &amp; more stories</h3>
+              <p>Co-op escape-room missions and new everyday scenarios.</p>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- CTA -->
+      <section class="cta">
+        <div class="wrap cta-inner">
+          <img src="/assets/site/icon-play.png" width="64" height="64" alt="" />
+          <div>
+            <h2>Step into Block 260.</h2>
+            <p>Plays on phone or laptop. Your progress saves on your device.</p>
+          </div>
+          <a class="btn btn-teal" href="/play/">▶ Play the prototype</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="wrap">
+        <p><strong>ShieldQuest</strong> · Project SHIELD by Team SecurePi</p>
+      </div>
+    </footer>
+
+    <a class="to-top" href="#top" aria-label="Back to top">
+      <span aria-hidden="true">▲</span>
+      Top
+    </a>
+    <script>
+      // Show the back-to-top button once the hero is scrolled past.
+      const toTop = document.querySelector('.to-top');
+      const onScroll = () => toTop.classList.toggle('is-visible', window.scrollY > 600);
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+    </script>
   </body>
 </html>
