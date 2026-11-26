@@ -1,0 +1,45 @@
+{
+  "character": {
+    "id": "bfccfca0-fd66-49b8-b654-0aaf57a7b992",
+    "name": "Idle",
+    "prompt": "Singaporean teenage boy, black messy hair, teal green t-shirt, dark grey jeans, sneakers, cosy cartoon pixel art",
+    "size": {
+      "width": 64,
+      "height": 64
+    },
+    "directions": 8,
+    "view": "high top-down"
+  },
+  "spritesheet": {
+    "path": "jun.png",
+    "cell_size": {
+      "width": 64,
+      "height": 64
+    },
+    "sheet_size": {
+      "width": 512,
+      "height": 64
+    },
+    "columns": 8,
+    "pivot": "cell-center",
+    "rows": [
+      {
+        "row": 0,
+        "type": "rotations",
+        "frame_count": 8,
+        "directions": [
+          "south",
+          "south-east",
+          "east",
+          "north-east",
+          "north",
+          "north-west",
+          "west",
+          "south-west"
+        ]
+      }
+    ]
+  },
+  "export_version": "1.0",
+  "export_date": "2026-11-26T15:13:39.363280+00:00"
+}

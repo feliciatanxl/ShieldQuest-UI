@@ -1,11 +1,18 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  AUNTIE_PATH,
   CANVAS_H,
   CANVAS_W,
-  isoToScreen,
-  renderIsometricWorld,
-  screenToIso,
-} from '../game/isometricRenderer';
+  directionFor,
+  isWalkable,
+  ITEM_POS,
+  MINIMART_ZONE,
+  PLAYER_START,
+  Pt,
+  renderScene,
+  RenderState,
+  UNCLE_POS,
+} from '../game/sceneRenderer';
 import {
   AvatarConfig,
   Direction,
@@ -35,46 +42,34 @@ interface GameWorldProps {
   onReturnToTitle: () => void;
 }
 
-function isWalkable(gx: number, gy: number): boolean {
-  // Main Footpath & Kopi Corner patio
-  const onFootpath = gx >= -1.1 && gx <= 20.3 && gy >= 4.95 && gy <= 9.65;
-  // Sheltered walkway
-  const onWalkway = gx >= 1.6 && gx <= 4.2 && gy >= -1.6 && gy <= 5.1;
-  // Void deck interior
-  const inVoidDeck = gx >= 6.65 && gx <= 13.8 && gy >= 2.25 && gy <= 5.1;
-  // Sunshine Minimart aisle
-  const inMinimart = gx >= 14.6 && gx <= 19.8 && gy >= 2.95 && gy <= 5.1;
+const WALK_SPEED = 170; // canvas px per second
+const RUN_SPEED = 280;
 
-  if (!onFootpath && !onWalkway && !inVoidDeck && !inMinimart) return false;
-
-  // Obstacle: Kopitiam outdoor round tables
-  if (Math.hypot(gx - -0.2, gy - 6.4) < 0.85) return false;
-  if (Math.hypot(gx - 0.4, gy - 8.3) < 0.85) return false;
-  // Obstacle: Bus stop bench & timetable
-  if (gx >= 1.9 && gx <= 3.7 && gy >= 8.9 && gy <= 9.75) return false;
-  // Obstacle: Green Recycling Bins
-  if (Math.hypot(gx - 5.5, gy - 5.7) < 0.72) return false;
-  if (Math.hypot(gx - 2.3, gy - 4.8) < 0.68) return false;
-  // Obstacle: HDB Mosaic Pillars
-  if (Math.hypot(gx - 6.0, gy - 4.8) < 0.65) return false;
-  if (Math.hypot(gx - 14.2, gy - 4.8) < 0.65) return false;
-  if (Math.hypot(gx - 20.8, gy - 4.8) < 0.65) return false;
-  // Obstacle: Void deck stone Xiangqi table & stools
-  if (Math.hypot(gx - 9.8, gy - 3.0) < 1.25) return false;
-  // Obstacle: Minimart crates & snack rack
-  if (gx >= 14.3 && gx <= 15.4 && gy >= 3.0 && gy <= 4.1) return false;
-  if (gx >= 17.1 && gx <= 19.3 && gy >= 3.1 && gy <= 4.1) return false;
-
-  return true;
+/** Auntie Mei paces the footpath between the two AUNTIE_PATH points. */
+function auntieAt(t: number): NPCEntity {
+  const k = (Math.sin(t * 0.32) + 1) / 2;
+  const [a, b] = AUNTIE_PATH;
+  return {
+    id: 'auntie',
+    name: 'Auntie Mei',
+    role: 'FairMart Shopper',
+    x: a.x + (b.x - a.x) * k,
+    y: a.y + (b.y - a.y) * k,
+    dir: Math.cos(t * 0.32) >= 0 ? 'south-east' : 'north-west',
+    walking: true,
+  };
 }
 
-function computeIsoDirection(dgx: number, dgy: number): Direction {
-  const dsx = dgx - dgy;
-  const dsy = dgx + dgy;
-  if (dsx >= 0 && dsy >= 0) return 'SE';
-  if (dsx < 0 && dsy >= 0) return 'SW';
-  if (dsx >= 0 && dsy < 0) return 'NE';
-  return 'NW';
+const STATIC_NPCS: NPCEntity[] = [
+  { id: 'uncle', name: 'Uncle Tan', role: 'Heartland Elder', ...UNCLE_POS, dir: 'south-west' },
+  { id: 'student', name: 'Wei Ming (Student)', role: 'Secondary Student', x: 335, y: 372, dir: 'south-east' },
+  { id: 'cashier', name: 'Mr Lim (Cashier)', role: 'Sunshine Minimart Staff', x: 1238, y: 598, dir: 'south-west' },
+  { id: 'jun', name: 'Jun (Friend)', role: 'Classmate', x: 1160, y: 618, dir: 'south-west' },
+];
+
+/** Hit box for clicking a character: roughly the 2x sprite's body. */
+function hitsCharacter(pt: Pt, c: Pt) {
+  return Math.abs(pt.x - c.x) < 32 && pt.y < c.y + 6 && pt.y > c.y - 120;
 }
 
 export const GameWorld: React.FC<GameWorldProps> = ({
@@ -102,31 +97,26 @@ export const GameWorld: React.FC<GameWorldProps> = ({
   const [soundEnabled, setSoundEnabled] = useState(sfx.enabled);
   const [confidencePct, setConfidencePct] = useState(78);
   const [energyPct, setEnergyPct] = useState(66);
+  const [cursor, setCursor] = useState<'pointer' | 'default'>('default');
 
   // Mutable simulation refs for smooth 60fps loop without re-renders
   const keysPressed = useRef<Set<string>>(new Set());
   const playerRef = useRef({
-    gx: 4.0,
-    gy: 7.9,
-    dir: 'NE' as Direction,
+    ...PLAYER_START,
+    dir: 'north-east' as Direction,
     isMoving: false,
     walkPhase: 0,
-    targetGx: null as number | null,
-    targetGy: null as number | null,
+    target: null as Pt | null,
   });
-  const walkMarkerRef = useRef<{ gx: number; gy: number; createdAt: number } | null>(null);
+  const walkMarkerRef = useRef<(Pt & { createdAt: number }) | null>(null);
   const hoveredTargetRef = useRef<string | null>(null);
-  const speechBubbleRef = useRef<{
-    npcId: string;
-    text: string;
-    icon?: 'ezlink' | 'alert' | 'shop';
-  }>({
+  const speechBubbleRef = useRef<RenderState['speech']>({
     npcId: 'uncle',
     text: 'Eh boy, did you see my bus card?',
     icon: 'ezlink',
   });
   const simTimeRef = useRef(0);
-  const minimartCooldownRef = useRef(0);
+  const minimartCooldownRef = useRef(-10);
 
   const stateSyncRef = useRef({
     avatar,
@@ -135,7 +125,6 @@ export const GameWorld: React.FC<GameWorldProps> = ({
     ezLinkReturned,
     kopiPickedUp,
     chopePickedUp,
-    questId,
   });
   stateSyncRef.current = {
     avatar,
@@ -144,7 +133,6 @@ export const GameWorld: React.FC<GameWorldProps> = ({
     ezLinkReturned,
     kopiPickedUp,
     chopePickedUp,
-    questId,
   };
 
   const showToast = useCallback((msg: string) => {
@@ -205,11 +193,8 @@ export const GameWorld: React.FC<GameWorldProps> = ({
       const k = e.key.toLowerCase();
       if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'shift'].includes(k)) {
         keysPressed.current.add(k);
-        // Cancel click-to-walk target when manual keys pressed
-        if (k !== 'shift') {
-          playerRef.current.targetGx = null;
-          playerRef.current.targetGy = null;
-        }
+        // Manual keys cancel click-to-walk
+        if (k !== 'shift') playerRef.current.target = null;
       }
     };
     const onKeyUp = (e: KeyboardEvent) => {
@@ -237,207 +222,92 @@ export const GameWorld: React.FC<GameWorldProps> = ({
       const p = playerRef.current;
       const keys = keysPressed.current;
       const running = keys.has('shift');
-      const speed = running ? 4.4 : 2.7;
+      const speed = running ? RUN_SPEED : WALK_SPEED;
 
-      // Keyboard isometric screen-aligned movement
-      let screenDx = 0;
-      let screenDy = 0;
-      if (keys.has('w') || keys.has('arrowup')) screenDy -= 1;
-      if (keys.has('s') || keys.has('arrowdown')) screenDy += 1;
-      if (keys.has('a') || keys.has('arrowleft')) screenDx -= 1;
-      if (keys.has('d') || keys.has('arrowright')) screenDx += 1;
+      let dx = 0;
+      let dy = 0;
+      if (keys.has('w') || keys.has('arrowup')) dy -= 1;
+      if (keys.has('s') || keys.has('arrowdown')) dy += 1;
+      if (keys.has('a') || keys.has('arrowleft')) dx -= 1;
+      if (keys.has('d') || keys.has('arrowright')) dx += 1;
 
-      let moveGx = 0;
-      let moveGy = 0;
-
-      if (screenDx !== 0 || screenDy !== 0) {
-        // Convert screen direction to iso grid delta
-        moveGx = screenDx * 0.7 + screenDy * 0.7;
-        moveGy = -screenDx * 0.7 + screenDy * 0.7;
-        const len = Math.hypot(moveGx, moveGy);
-        moveGx = (moveGx / len) * speed * dt;
-        moveGy = (moveGy / len) * speed * dt;
-      } else if (p.targetGx !== null && p.targetGy !== null) {
-        const dgx = p.targetGx - p.gx;
-        const dgy = p.targetGy - p.gy;
-        const dist = Math.hypot(dgx, dgy);
-        if (dist < 0.14) {
-          p.targetGx = null;
-          p.targetGy = null;
-        } else {
-          moveGx = (dgx / dist) * speed * dt;
-          moveGy = (dgy / dist) * speed * dt;
+      if (dx === 0 && dy === 0 && p.target) {
+        dx = p.target.x - p.x;
+        dy = p.target.y - p.y;
+        if (Math.hypot(dx, dy) < 6) {
+          p.target = null;
+          dx = dy = 0;
         }
       }
 
-      if (moveGx !== 0 || moveGy !== 0) {
+      if (dx !== 0 || dy !== 0) {
+        const len = Math.hypot(dx, dy);
+        const mx = (dx / len) * speed * dt;
+        const my = (dy / len) * speed * dt;
         p.isMoving = true;
-        p.walkPhase += dt * (running ? 14 : 9);
-        p.dir = computeIsoDirection(moveGx, moveGy);
+        p.walkPhase += dt * (running ? 14 : 10);
+        p.dir = directionFor(dx, dy);
 
-        const nx = p.gx + moveGx;
-        const ny = p.gy + moveGy;
-        if (isWalkable(nx, ny)) {
-          p.gx = nx;
-          p.gy = ny;
-        } else if (isWalkable(nx, p.gy)) {
-          p.gx = nx;
-        } else if (isWalkable(p.gx, ny)) {
-          p.gy = ny;
+        // Blocked? Steer up to 90° either side so we slide around pillars and tables.
+        const step = [0, 0.5, -0.5, 1, -1, 1.5, -1.5]
+          .map((turn) => {
+            const c = Math.cos(turn);
+            const s = Math.sin(turn);
+            return { x: mx * c - my * s, y: mx * s + my * c };
+          })
+          .find((v) => isWalkable(p.x + v.x, p.y + v.y));
+        if (step) {
+          p.x += step.x;
+          p.y += step.y;
         } else {
-          p.targetGx = null;
-          p.targetGy = null;
+          p.target = null;
+          p.isMoving = false;
         }
       } else {
         p.isMoving = false;
       }
 
-      // Check auto-pickup EZ-Link card near Void Deck stone table (8.6, 3.8)
-      if (!stateSyncRef.current.ezLinkPickedUp && Math.hypot(p.gx - 8.6, p.gy - 3.8) < 1.1) {
-        pickupEzLink();
-      }
-      // Check auto-pickup Kopi-O Dabao & Chope Tissue Pack
-      if (!stateSyncRef.current.kopiPickedUp && Math.hypot(p.gx - -0.6, p.gy - 7.2) < 1.0) {
-        pickupSideItem('kopi', 'Kopi-O Dabao Packet');
-      }
-      if (!stateSyncRef.current.chopePickedUp && Math.hypot(p.gx - 9.8, p.gy - 4.2) < 1.0) {
+      const near = (q: Pt, r: number) => Math.hypot(p.x - q.x, p.y - q.y) < r;
+      const sync = stateSyncRef.current;
+      if (!sync.ezLinkPickedUp && near(ITEM_POS.ezlink, 44)) pickupEzLink();
+      if (!sync.kopiPickedUp && near(ITEM_POS.kopi, 40)) pickupSideItem('kopi', 'Kopi-O Dabao Packet');
+      if (!sync.chopePickedUp && near(ITEM_POS.chope, 40)) {
         pickupSideItem('chope', 'Pocket Tissue ("Chope" Pack)');
       }
+      if (sync.ezLinkPickedUp && !sync.ezLinkReturned && near(UNCLE_POS, 70)) returnEzLinkToUncle();
 
-      // Check returning EZ-Link to Uncle Tan (4.9, 6.3)
+      const z = MINIMART_ZONE;
       if (
-        stateSyncRef.current.ezLinkPickedUp &&
-        !stateSyncRef.current.ezLinkReturned &&
-        Math.hypot(p.gx - 4.9, p.gy - 6.3) < 1.35
-      ) {
-        returnEzLinkToUncle();
-      }
-
-      // Trigger Lookout Dilemma if player walks inside Sunshine Minimart
-      if (
-        p.gx >= 15.3 &&
-        p.gy <= 4.9 &&
+        p.x >= z.x0 &&
+        p.x <= z.x1 &&
+        p.y >= z.y0 &&
+        p.y <= z.y1 &&
         t - minimartCooldownRef.current > 4 &&
         !showLookoutModal &&
         !activeDrawer
       ) {
         minimartCooldownRef.current = t;
+        p.target = null;
         setShowLookoutModal(true);
       }
 
-      // Auntie Mei pushing FairMart trolley along mid-right footpath
-      const auntieGx = 10.6 + Math.sin(t * 0.32) * 1.8;
-      const auntieDir: Direction = Math.cos(t * 0.32) >= 0 ? 'SE' : 'NW';
+      const items: RenderState['items'] = [];
+      if (!sync.ezLinkPickedUp) items.push({ kind: 'ezlink' });
+      if (!sync.kopiPickedUp) items.push({ kind: 'kopi' });
+      if (!sync.chopePickedUp) items.push({ kind: 'chope' });
 
-      const npcs: NPCEntity[] = [
-        {
-          id: 'uncle',
-          name: 'Uncle Tan',
-          role: 'Heartland Elder',
-          gx: 4.9,
-          gy: 6.3,
-          dir: 'SW',
-          shirtColor: '#c9d4db',
-          pantsColor: '#8c7258',
-          hairColor: '#c8cdd4',
-          skinTone: '#d49d78',
-          pattern: 'plaid',
-          isBald: true,
-        },
-        {
-          id: 'auntie',
-          name: 'Auntie Mei',
-          role: 'FairMart Shopper',
-          gx: auntieGx,
-          gy: 8.5,
-          dir: auntieDir,
-          shirtColor: '#d97b74',
-          pantsColor: '#48454f',
-          hairColor: '#2d2930',
-          skinTone: '#d6a07b',
-          pattern: 'floral',
-          hasTrolley: true,
-        },
-        {
-          id: 'hawker',
-          name: 'Kopi Uncle',
-          role: 'Kopi Corner Stallholder',
-          gx: -1.0,
-          gy: 6.6,
-          dir: 'SE',
-          shirtColor: '#f2e8cf',
-          pantsColor: '#3d4552',
-          hairColor: '#5c5856',
-          skinTone: '#d49d78',
-          hasApron: true,
-        },
-        {
-          id: 'student',
-          name: 'Wei Ming (Student)',
-          role: 'Secondary Student',
-          gx: 2.9,
-          gy: 8.85,
-          dir: 'SE',
-          shirtColor: '#ece9e1',
-          pantsColor: '#364d69',
-          hairColor: '#1f1d24',
-          skinTone: '#d9a47c',
-          pattern: 'pe',
-          hasBackpack: true,
-        },
-        {
-          id: 'cashier',
-          name: 'Mr Lim (Cashier)',
-          role: 'Sunshine Minimart Staff',
-          gx: 18.2,
-          gy: 4.4,
-          dir: 'SW',
-          shirtColor: '#698fb8',
-          pantsColor: '#353b47',
-          hairColor: '#48454a',
-          skinTone: '#d49d78',
-          pattern: 'stripe',
-          hasApron: true,
-        },
-        {
-          id: 'jun',
-          name: 'Jun (Friend)',
-          role: 'Classmate',
-          gx: 16.2,
-          gy: 4.3,
-          dir: 'SW',
-          shirtColor: '#6bb09e',
-          pantsColor: '#3b4252',
-          hairColor: '#1f1d24',
-          skinTone: '#d9a47c',
-        },
-      ];
-
-      const canvas = canvasRef.current;
-      if (canvas) {
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          renderIsometricWorld(ctx, {
-            time: t,
-            timeOfDay: stateSyncRef.current.timeOfDay,
-            player: {
-              gx: p.gx,
-              gy: p.gy,
-              dir: p.dir,
-              isMoving: p.isMoving,
-              walkPhase: p.walkPhase,
-              avatar: stateSyncRef.current.avatar,
-            },
-            npcs,
-            ezLinkFound: stateSyncRef.current.ezLinkPickedUp,
-            ezLinkPickedUp: stateSyncRef.current.ezLinkPickedUp,
-            kopiPickedUp: stateSyncRef.current.kopiPickedUp,
-            chopePickedUp: stateSyncRef.current.chopePickedUp,
-            hoveredTarget: hoveredTargetRef.current,
-            activeSpeechBubble: speechBubbleRef.current,
-            walkTargetMarker: walkMarkerRef.current,
-          });
-        }
+      const ctx = canvasRef.current?.getContext('2d');
+      if (ctx) {
+        renderScene(ctx, {
+          time: t,
+          timeOfDay: sync.timeOfDay,
+          player: { x: p.x, y: p.y, dir: p.dir, isMoving: p.isMoving, walkPhase: p.walkPhase, avatar: sync.avatar },
+          npcs: [...STATIC_NPCS, auntieAt(t)],
+          items,
+          hoveredTarget: hoveredTargetRef.current,
+          speech: speechBubbleRef.current,
+          walkTargetMarker: walkMarkerRef.current,
+        });
       }
 
       rafId = requestAnimationFrame(step);
@@ -447,20 +317,23 @@ export const GameWorld: React.FC<GameWorldProps> = ({
     return () => cancelAnimationFrame(rafId);
   }, [activeDrawer, pickupEzLink, pickupSideItem, returnEzLinkToUncle, showLookoutModal]);
 
-  // Convert DOM pointer position accurately into 1280x720 canvas coords (accounting for object-fit: cover)
-  const getCanvasPoint = (clientX: number, clientY: number) => {
+  // Convert DOM pointer position into 1280x720 canvas coords (accounting for object-fit: cover)
+  const getCanvasPoint = (clientX: number, clientY: number): Pt | null => {
     const canvas = canvasRef.current;
     if (!canvas) return null;
     const rect = canvas.getBoundingClientRect();
     const scale = Math.max(rect.width / CANVAS_W, rect.height / CANVAS_H);
-    const renderW = CANVAS_W * scale;
-    const renderH = CANVAS_H * scale;
-    const offsetX = (rect.width - renderW) / 2;
-    const offsetY = (rect.height - renderH) / 2;
+    const offsetX = (rect.width - CANVAS_W * scale) / 2;
+    const offsetY = (rect.height - CANVAS_H * scale) / 2;
     return {
-      cx: (clientX - rect.left - offsetX) / scale,
-      cy: (clientY - rect.top - offsetY) / scale,
+      x: (clientX - rect.left - offsetX) / scale,
+      y: (clientY - rect.top - offsetY) / scale,
     };
+  };
+
+  const walkTo = (target: Pt) => {
+    playerRef.current.target = target;
+    walkMarkerRef.current = { ...target, createdAt: simTimeRef.current };
   };
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -468,9 +341,7 @@ export const GameWorld: React.FC<GameWorldProps> = ({
     const pt = getCanvasPoint(e.clientX, e.clientY);
     if (!pt) return;
 
-    // 1. Check click on Uncle Tan
-    const uncleScreen = isoToScreen(4.9, 6.3, 28);
-    if (Math.hypot(pt.cx - uncleScreen.x, pt.cy - uncleScreen.y) < 38) {
+    if (hitsCharacter(pt, UNCLE_POS)) {
       sfx.click();
       if (ezLinkPickedUp && !ezLinkReturned) {
         returnEzLinkToUncle();
@@ -486,100 +357,64 @@ export const GameWorld: React.FC<GameWorldProps> = ({
           text: 'Eh boy, did you see my bus card?',
           icon: 'ezlink',
         };
-        showToast('Hint: Check near the stone table inside Block 260 Void Deck!');
+        showToast('Hint: Check near the stone table inside the Block 260 void deck!');
       }
       return;
     }
 
-    // 2. Check click on Auntie Mei
-    const auntieX = 10.6 + Math.sin(simTimeRef.current * 0.32) * 1.8;
-    const auntieScreen = isoToScreen(auntieX, 8.5, 26);
-    if (Math.hypot(pt.cx - auntieScreen.x, pt.cy - auntieScreen.y) < 34) {
+    if (hitsCharacter(pt, auntieAt(simTimeRef.current))) {
       sfx.click();
       showToast(
         ezLinkReturned
           ? 'Auntie Mei: "Steady lah! Remember S.H.I.E.L.D. inside Sunshine Minimart!"'
-          : 'Auntie Mei: "Aiya, Uncle Tan always drop his EZ-Link near the stone Xiangqi table!"'
+          : 'Auntie Mei: "Aiya, Uncle Tan always drop his EZ-Link near the stone table!"'
       );
       return;
     }
 
-    // 2b. Check click on Kopi Uncle
-    const hawkerScreen = isoToScreen(-1.0, 6.6, 26);
-    if (Math.hypot(pt.cx - hawkerScreen.x, pt.cy - hawkerScreen.y) < 38) {
+    const student = STATIC_NPCS.find((n) => n.id === 'student')!;
+    if (hitsCharacter(pt, student)) {
       sfx.click();
-      showToast('Kopi Uncle: "Kopi-O Kosong or Satay? Walk near the table to dabao one!"');
+      showToast('Wei Ming: "Waiting for ShieldBus 88. Someone left a kopi packet under the shelter!"');
       return;
     }
 
-    // 3. Check click on Bus Stop 26019 Pole
-    const busPoleScreen = isoToScreen(4.9, 10.0, 45);
-    if (Math.hypot(pt.cx - busPoleScreen.x, pt.cy - busPoleScreen.y) < 34) {
-      sfx.click();
-      showToast('Bus Stop 26019 — ShieldBus 88 toward Baycrest SkyDeck & Shiok Hawker Square.');
-      return;
-    }
-
-    // 4. Check click on Void Deck Stone Xiangqi Table / RC Notice Board
-    const tableScreen = isoToScreen(9.8, 3.0, 20);
-    if (Math.hypot(pt.cx - tableScreen.x, pt.cy - tableScreen.y) < 42) {
-      sfx.click();
-      showToast('Someone chope-d the stone Xiangqi table with a tissue packet! Look beside it!');
-      return;
-    }
-
-    // 5. Check click on Sunshine Minimart / Jun
-    const minimartScreen = isoToScreen(17.2, 4.0, 45);
-    if (Math.hypot(pt.cx - minimartScreen.x, pt.cy - minimartScreen.y) < 110) {
+    // Jun, Mr Lim or the shop front open the anchor mission
+    const shopPeople = STATIC_NPCS.filter((n) => n.id === 'jun' || n.id === 'cashier');
+    if (shopPeople.some((n) => hitsCharacter(pt, n)) || Math.hypot(pt.x - 1170, pt.y - 400) < 110) {
       sfx.click();
       setShowLookoutModal(true);
       return;
     }
 
-    // 3. Otherwise click-to-walk on isometric ground!
-    const iso = screenToIso(pt.cx, pt.cy);
-    if (isWalkable(iso.gx, iso.gy)) {
-      playerRef.current.targetGx = iso.gx;
-      playerRef.current.targetGy = iso.gy;
-      walkMarkerRef.current = {
-        gx: iso.gx,
-        gy: iso.gy,
-        createdAt: simTimeRef.current,
-      };
-    } else {
-      // Snap gently to nearest walkable spot if clicking near edge
-      const clampedGy = Math.max(2.0, Math.min(9.5, iso.gy));
-      const clampedGx = Math.max(0.5, Math.min(19.5, iso.gx));
-      if (isWalkable(clampedGx, clampedGy)) {
-        playerRef.current.targetGx = clampedGx;
-        playerRef.current.targetGy = clampedGy;
-        walkMarkerRef.current = {
-          gx: clampedGx,
-          gy: clampedGy,
-          createdAt: simTimeRef.current,
-        };
-      }
+    if (Math.hypot(pt.x - 930, pt.y - 280) < 75) {
+      sfx.click();
+      showToast('RC Notice Board: "Block 260 Neighbourhood Watch — look out for one another!"');
+      return;
     }
+
+    if (Math.hypot(pt.x - 875, pt.y - 430) < 60) {
+      sfx.click();
+      showToast('Someone chope-d the stone table with a tissue packet! Look beside it!');
+      return;
+    }
+
+    if (Math.hypot(pt.x - 380, pt.y - 680) < 80) {
+      sfx.click();
+      showToast('Bus Stop 26019 — ShieldBus 88 toward Baycrest SkyDeck & Shiok Hawker Square.');
+      return;
+    }
+
+    if (isWalkable(pt.x, pt.y)) walkTo(pt);
   };
 
   const handleCanvasMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const pt = getCanvasPoint(e.clientX, e.clientY);
     if (!pt) return;
-    const uncleScreen = isoToScreen(4.9, 6.3, 28);
-    const junScreen = isoToScreen(16.5, 4.2, 28);
-    if (Math.hypot(pt.cx - uncleScreen.x, pt.cy - uncleScreen.y) < 38) {
-      hoveredTargetRef.current = 'uncle';
-    } else if (Math.hypot(pt.cx - junScreen.x, pt.cy - junScreen.y) < 42) {
-      hoveredTargetRef.current = 'jun';
-    } else {
-      hoveredTargetRef.current = null;
-    }
-  };
-
-  const walkToLandmark = (gx: number, gy: number) => {
-    playerRef.current.targetGx = gx;
-    playerRef.current.targetGy = gy;
-    walkMarkerRef.current = { gx, gy, createdAt: simTimeRef.current };
+    const hovered =
+      [...STATIC_NPCS, auntieAt(simTimeRef.current)].find((n) => hitsCharacter(pt, n))?.id ?? null;
+    hoveredTargetRef.current = hovered;
+    setCursor(hovered ? 'pointer' : 'default');
   };
 
   const currentQuestTitle =
@@ -599,7 +434,7 @@ export const GameWorld: React.FC<GameWorldProps> = ({
         background: '#161a24',
       }}
     >
-      {/* Full-Viewport Isometric Pixel-Art Canvas */}
+      {/* Full-viewport pixel-art scene */}
       <canvas
         ref={canvasRef}
         width={CANVAS_W}
@@ -611,11 +446,11 @@ export const GameWorld: React.FC<GameWorldProps> = ({
           width: '100%',
           height: '100%',
           objectFit: 'cover',
-          cursor: hoveredTargetRef.current ? 'pointer' : 'default',
+          imageRendering: 'pixelated',
+          cursor,
         }}
       />
 
-      {/* Exact 4-Corner HUD Matching Screenshot */}
       <GameHUD
         avatar={avatar}
         timeOfDay={timeOfDay}
@@ -629,7 +464,6 @@ export const GameWorld: React.FC<GameWorldProps> = ({
         onSelectDrawer={setActiveDrawer}
       />
 
-      {/* Brief Auto-Fading Toast Notification (only when triggered) */}
       {toastMsg && (
         <div
           className="pixel-quest-box"
@@ -653,7 +487,6 @@ export const GameWorld: React.FC<GameWorldProps> = ({
         </div>
       )}
 
-      {/* HUD Drawers */}
       <GameDrawers
         activeDrawer={activeDrawer}
         onClose={() => setActiveDrawer(null)}
@@ -674,12 +507,11 @@ export const GameWorld: React.FC<GameWorldProps> = ({
           if (sfx.enabled) sfx.click();
         }}
         squadCode={squadCode}
-        onWalkToLandmark={walkToLandmark}
+        onWalkToLandmark={walkTo}
         onStartLookoutMission={() => setShowLookoutModal(true)}
         onReturnToTitle={onReturnToTitle}
       />
 
-      {/* Anchor S.H.I.E.L.D. Mission Modal */}
       {showLookoutModal && (
         <LookoutDilemmaModal
           skills={skills}

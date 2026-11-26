@@ -1,6 +1,14 @@
 export type TimeOfDay = 'afternoon' | 'evening';
 
-export type Direction = 'SE' | 'SW' | 'NE' | 'NW';
+export type Direction =
+  | 'south'
+  | 'south-east'
+  | 'east'
+  | 'north-east'
+  | 'north'
+  | 'north-west'
+  | 'west'
+  | 'south-west';
 
 export type QuestId = 'ezlink' | 'lookout' | 'completed';
 
@@ -46,46 +54,13 @@ export interface ShieldSkillState {
   guardianName: string;
 }
 
+/** A character placed in the street scene. x/y are feet position in 1280x720 canvas pixels. */
 export interface NPCEntity {
-  id: 'uncle' | 'auntie' | 'jun' | 'cashier' | 'hawker' | 'commuter' | 'student';
+  id: 'uncle' | 'auntie' | 'jun' | 'cashier' | 'student';
   name: string;
   role: string;
-  gx: number;
-  gy: number;
+  x: number;
+  y: number;
   dir: Direction;
-  shirtColor: string;
-  pantsColor: string;
-  hairColor: string;
-  skinTone: string;
-  hasBag?: boolean;
-  hasTrolley?: boolean;
-  hasApron?: boolean;
-  hasBackpack?: boolean;
-  pattern?: 'plaid' | 'floral' | 'stripe' | 'pe';
-  isBald?: boolean;
-  speechText?: string;
-  speechIcon?: 'ezlink' | 'alert' | 'shop';
-}
-
-export interface Hotspot {
-  id: string;
-  label: string;
-  subtitle: string;
-  gx: number;
-  gy: number;
-  radius: number;
-  category: 'quest' | 'landmark' | 'clue';
-}
-
-export interface DialogueState {
-  speakerId: string;
-  speakerName: string;
-  speakerRole: string;
-  text: string;
-  choices?: {
-    id: string;
-    label: string;
-    action: () => void;
-    tone?: 'safe' | 'neutral' | 'risky';
-  }[];
+  walking?: boolean;
 }

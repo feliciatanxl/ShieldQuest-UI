@@ -1,0 +1,45 @@
+{
+  "character": {
+    "id": "d22c2a3c-4946-4970-b280-7d00e376c6db",
+    "name": "Idle",
+    "prompt": "Singaporean secondary school student, neat black hair, white school shirt, navy blue shorts, dark blue backpack, black shoes, cosy cartoon pixel art",
+    "size": {
+      "width": 64,
+      "height": 64
+    },
+    "directions": 8,
+    "view": "high top-down"
+  },
+  "spritesheet": {
+    "path": "student.png",
+    "cell_size": {
+      "width": 64,
+      "height": 64
+    },
+    "sheet_size": {
+      "width": 512,
+      "height": 64
+    },
+    "columns": 8,
+    "pivot": "cell-center",
+    "rows": [
+      {
+        "row": 0,
+        "type": "rotations",
+        "frame_count": 8,
+        "directions": [
+          "south",
+          "south-east",
+          "east",
+          "north-east",
+          "north",
+          "north-west",
+          "west",
+          "south-west"
+        ]
+      }
+    ]
+  },
+  "export_version": "1.0",
+  "export_date": "2026-11-26T15:13:42.377060+00:00"
+}

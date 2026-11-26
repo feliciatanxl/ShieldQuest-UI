@@ -43,7 +43,7 @@ interface GameDrawersProps {
   soundEnabled: boolean;
   onToggleSound: () => void;
   squadCode: string;
-  onWalkToLandmark: (gx: number, gy: number) => void;
+  onWalkToLandmark: (target: { x: number; y: number }) => void;
   onStartLookoutMission: () => void;
   onReturnToTitle: () => void;
 }
@@ -547,7 +547,7 @@ export const GameDrawers: React.FC<GameDrawersProps> = ({
                   style={{ fontSize: 11, padding: '7px 11px', flexShrink: 0 }}
                   onClick={() => {
                     sfx.click();
-                    onWalkToLandmark(loc.gx, loc.gy);
+                    onWalkToLandmark(loc);
                     onClose();
                   }}
                 >
@@ -606,7 +606,7 @@ export const GameDrawers: React.FC<GameDrawersProps> = ({
                   className="pixel-secondary-btn"
                   onClick={() => {
                     sfx.click();
-                    onWalkToLandmark(ezLinkPickedUp ? 4.9 : 8.6, ezLinkPickedUp ? 7.0 : 4.2);
+                    onWalkToLandmark(ezLinkPickedUp ? { x: 600, y: 480 } : { x: 790, y: 478 });
                     onClose();
                   }}
                 >

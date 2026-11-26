@@ -158,6 +158,9 @@ Players unlock Guardians by demonstrating S.H.I.E.L.D. skills—never via random
 ```text
 ShieldQuest-UI/
 ├── public/
+│   ├── assets/
+│   │   ├── chars/                       # PixelLab character sprite sheets (PNG + row-map JSON)
+│   │   └── scenes/                      # PixelLab street scene (day/night) & town overview, 640x360 shown at 2x
 │   ├── favicon.svg                      # Pixel Shield icon
 │   └── manifest.webmanifest             # PWA manifest metadata
 ├── src/
@@ -165,13 +168,14 @@ ShieldQuest-UI/
 │   │   ├── GameDrawers.tsx              # Backpack, Wardrobe, Singapore Map, Quests, S.H.I.E.L.D. & Menu modals
 │   │   ├── GameHUD.tsx                  # Exact 4-corner isometric game HUD overlay
 │   │   ├── GameWorld.tsx                # 60fps simulation, controls, collision bounds & quest triggers
-│   │   ├── LandingScreen.tsx            # Start screen with live heartland backdrop & character setup
+│   │   ├── LandingScreen.tsx            # Start screen with town-overview art & animated hero preview
 │   │   ├── LookoutDilemmaModal.tsx      # 6-step non-overlapping S.H.I.E.L.D. anchor mission UI
-│   │   └── PixelIcons.tsx               # Crisp pixel-art SVG portraits, HUD buttons, badges & weather icons
+│   │   └── PixelIcons.tsx               # Sprite-based portraits, HUD button icons, badges & weather icons
 │   ├── data/
 │   │   └── gameData.ts                  # Avatar palettes, inventory items, S.H.I.E.L.D. skills & SG landmarks
 │   ├── game/
-│   │   └── isometricRenderer.ts         # 2:1 isometric Canvas2D Singapore skyline & Blk 260 world renderer
+│   │   ├── sceneRenderer.ts             # Street scene: background art, walkable map, depth-sorted sprites, bubbles
+│   │   └── sprites.ts                   # Sprite sheet loader, walk-cycle drawing & avatar recolouring
 │   ├── styles/
 │   │   └── pixel-ui.css                 # Wooden pixel bevels, charcoal quest box & theme variables
 │   ├── types/

@@ -1,0 +1,45 @@
+{
+  "character": {
+    "id": "b64b8146-3cfc-4e47-a288-05c08db10dff",
+    "name": "Idle",
+    "prompt": "Singaporean minimart cashier man, short greying hair, blue striped polo shirt with a dark green apron, dark trousers, cosy cartoon pixel art",
+    "size": {
+      "width": 64,
+      "height": 64
+    },
+    "directions": 8,
+    "view": "high top-down"
+  },
+  "spritesheet": {
+    "path": "cashier.png",
+    "cell_size": {
+      "width": 64,
+      "height": 64
+    },
+    "sheet_size": {
+      "width": 512,
+      "height": 64
+    },
+    "columns": 8,
+    "pivot": "cell-center",
+    "rows": [
+      {
+        "row": 0,
+        "type": "rotations",
+        "frame_count": 8,
+        "directions": [
+          "south",
+          "south-east",
+          "east",
+          "north-east",
+          "north",
+          "north-west",
+          "west",
+          "south-west"
+        ]
+      }
+    ]
+  },
+  "export_version": "1.0",
+  "export_date": "2026-11-26T15:13:40.842556+00:00"
+}

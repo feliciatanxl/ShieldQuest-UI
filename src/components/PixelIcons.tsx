@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { drawCharacter, getPlayerSheet, onSpritesLoaded } from '../game/sprites';
 import { AvatarConfig } from '../types/game';
 
 interface IconProps {
@@ -6,101 +7,59 @@ interface IconProps {
   className?: string;
 }
 
+/** Animated full-body preview of the player's sprite (walk cycle facing the viewer). */
+export const PlayerSpritePreview: React.FC<{ avatar: AvatarConfig; scale?: number }> = ({
+  avatar,
+  scale = 3,
+}) => {
+  const ref = useRef<HTMLCanvasElement | null>(null);
+  useEffect(() => {
+    let raf = 0;
+    const start = performance.now();
+    const frame = (now: number) => {
+      const ctx = ref.current?.getContext('2d');
+      const sheet = getPlayerSheet(avatar);
+      if (ctx && sheet) {
+        ctx.imageSmoothingEnabled = false;
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        const size = sheet.cell * scale;
+        drawCharacter(ctx, sheet, size / 2, size - 2 * scale, 'south', ((now - start) / 1000) * 8, scale);
+      }
+      raf = requestAnimationFrame(frame);
+    };
+    raf = requestAnimationFrame(frame);
+    return () => cancelAnimationFrame(raf);
+  }, [avatar, scale]);
+  return <canvas ref={ref} width={64 * scale} height={64 * scale} style={{ imageRendering: 'pixelated' }} />;
+};
+
+/** Head-and-shoulders crop of the player's sprite, used in the HUD and menus. */
 export const PlayerPortrait: React.FC<{
   avatar: AvatarConfig;
   size?: number;
 }> = ({ avatar, size = 64 }) => {
-  const { skinTone, hairColor, hairStyle, shirtColor } = avatar;
-
+  const ref = useRef<HTMLCanvasElement | null>(null);
+  const [, setLoaded] = useState(0);
+  useEffect(() => onSpritesLoaded(() => setLoaded((n) => n + 1)), []);
+  const sheet = getPlayerSheet(avatar);
+  useEffect(() => {
+    const ctx = ref.current?.getContext('2d');
+    if (!ctx || !sheet) return;
+    ctx.imageSmoothingEnabled = false;
+    ctx.fillStyle = '#cbb08b';
+    ctx.fillRect(0, 0, size, size);
+    // Head sits in the top ~half of the 64px south-facing cell.
+    const col = sheet.idle.south ?? 0;
+    ctx.drawImage(sheet.img, col * sheet.cell + 14, 0, 36, 36, 0, size * 0.04, size, size);
+  });
   return (
-    <svg
+    <canvas
+      ref={ref}
       width={size}
       height={size}
-      viewBox="0 0 32 32"
-      shapeRendering="crispEdges"
       aria-label="Player portrait"
-    >
-      {/* Warm cream/sand backdrop inside circular frame */}
-      <rect width="32" height="32" fill="#8b6948" />
-      <rect x="2" y="2" width="28" height="28" fill="#cbb08b" />
-
-      {/* Back hair for bob/ponytail */}
-      {hairStyle === 'bob' && (
-        <>
-          <rect x="8" y="10" width="16" height="14" fill="#231a16" />
-          <rect x="9" y="11" width="14" height="12" fill={hairColor} />
-        </>
-      )}
-      {hairStyle === 'ponytail' && (
-        <>
-          <rect x="21" y="11" width="5" height="11" fill="#231a16" />
-          <rect x="22" y="12" width="3" height="9" fill={hairColor} />
-        </>
-      )}
-
-      {/* Shoulders & T-shirt */}
-      <rect x="6" y="23" width="20" height="9" fill="#231a16" />
-      <rect x="7" y="24" width="18" height="8" fill={shirtColor} />
-      <rect x="12" y="23" width="8" height="3" fill="#231a16" />
-      <rect x="13" y="23" width="6" height="2" fill={skinTone} />
-      {/* Shirt collar highlight */}
-      <rect x="11" y="24" width="10" height="1" fill="rgba(255,255,255,0.35)" />
-
-      {/* Neck */}
-      <rect x="13" y="19" width="6" height="5" fill={skinTone} />
-
-      {/* Ears */}
-      <rect x="8" y="13" width="2" height="4" fill="#231a16" />
-      <rect x="9" y="14" width="1" height="2" fill={skinTone} />
-      <rect x="22" y="13" width="2" height="4" fill="#231a16" />
-      <rect x="22" y="14" width="1" height="2" fill={skinTone} />
-
-      {/* Head shape */}
-      <rect x="9" y="7" width="14" height="14" rx="2" fill="#231a16" />
-      <rect x="10" y="8" width="12" height="12" fill={skinTone} />
-
-      {/* Eyes & Brows */}
-      <rect x="12" y="12" width="2" height="1" fill="#231a16" />
-      <rect x="18" y="12" width="2" height="1" fill="#231a16" />
-      <rect x="12" y="14" width="2" height="2" fill="#231a16" />
-      <rect x="18" y="14" width="2" height="2" fill="#231a16" />
-      {/* Eye shine */}
-      <rect x="12" y="14" width="1" height="1" fill="#ffffff" />
-      <rect x="18" y="14" width="1" height="1" fill="#ffffff" />
-      {/* Soft mouth */}
-      <rect x="14" y="18" width="4" height="1" fill="#8f5b4a" />
-
-      {/* Hair top & bangs */}
-      <rect x="9" y="5" width="14" height="6" fill="#231a16" />
-      <rect x="10" y="6" width="12" height="5" fill={hairColor} />
-      {hairStyle === 'short' && (
-        <>
-          <rect x="10" y="9" width="12" height="2" fill={hairColor} />
-          <rect x="12" y="10" width="2" height="2" fill={hairColor} />
-          <rect x="16" y="10" width="3" height="2" fill={hairColor} />
-        </>
-      )}
-      {hairStyle === 'spiky' && (
-        <>
-          <rect x="11" y="4" width="3" height="3" fill={hairColor} />
-          <rect x="15" y="3" width="3" height="4" fill={hairColor} />
-          <rect x="19" y="5" width="3" height="3" fill={hairColor} />
-        </>
-      )}
-      {hairStyle === 'bob' && (
-        <>
-          <rect x="9" y="8" width="3" height="9" fill={hairColor} />
-          <rect x="20" y="8" width="3" height="9" fill={hairColor} />
-          <rect x="11" y="9" width="10" height="2" fill={hairColor} />
-        </>
-      )}
-      {hairStyle === 'ponytail' && (
-        <>
-          <rect x="10" y="9" width="12" height="2" fill={hairColor} />
-          <rect x="20" y="9" width="2" height="3" fill="#e0a94f" />
-        </>
-      )}
-    </svg>
+      style={{ display: 'block', imageRendering: 'pixelated' }}
+    />
   );
 };
 

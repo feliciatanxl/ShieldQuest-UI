@@ -1,0 +1,61 @@
+{
+  "character": {
+    "id": "13fe45cb-17e0-4928-8dfe-9b25e51dec7f",
+    "name": "Idle",
+    "prompt": "middle-aged Singaporean auntie, short black hair, pink floral blouse, dark green long trousers, sandals, holding a white plastic shopping bag, cosy cartoon pixel art",
+    "size": {
+      "width": 64,
+      "height": 64
+    },
+    "directions": 8,
+    "view": "high top-down"
+  },
+  "spritesheet": {
+    "path": "auntie.png",
+    "cell_size": {
+      "width": 64,
+      "height": 64
+    },
+    "sheet_size": {
+      "width": 512,
+      "height": 192
+    },
+    "columns": 8,
+    "pivot": "cell-center",
+    "rows": [
+      {
+        "row": 0,
+        "type": "rotations",
+        "frame_count": 8,
+        "directions": [
+          "south",
+          "south-east",
+          "east",
+          "north-east",
+          "north",
+          "north-west",
+          "west",
+          "south-west"
+        ]
+      },
+      {
+        "row": 1,
+        "type": "animation",
+        "frame_count": 8,
+        "animation": "walk",
+        "animation_group_id": "0b890e78-76bd-4a60-a6bf-f5eae00537b9",
+        "direction": "south-east"
+      },
+      {
+        "row": 2,
+        "type": "animation",
+        "frame_count": 8,
+        "animation": "walk",
+        "animation_group_id": "0b890e78-76bd-4a60-a6bf-f5eae00537b9",
+        "direction": "north-west"
+      }
+    ]
+  },
+  "export_version": "1.0",
+  "export_date": "2026-11-26T15:13:37.653053+00:00"
+}

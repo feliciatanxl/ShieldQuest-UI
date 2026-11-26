@@ -163,37 +163,30 @@ export const INITIAL_SHIELD_SKILLS: Record<ShieldLetter, ShieldSkillState> = {
   },
 };
 
+// x/y are walk targets in the 1280x720 street scene.
 export const MAP_LANDMARKS = [
-  {
-    id: 'kopitiam',
-    name: 'Kopi Corner & Sengkang Satay',
-    detail: 'Heartland hawker stalls, outdoor round tables, Kopi-O dabao & drink vending machine.',
-    gx: 0.4,
-    gy: 6.2,
-    color: '#e59254',
-  },
   {
     id: 'busstop',
     name: 'Blk 260 Bus Stop (Stop 26019)',
-    detail: 'ShieldBus 88 sheltered linkway — Uncle Tan is looking for his missing EZ-Link card.',
-    gx: 5.8,
-    gy: 7.4,
+    detail: 'Sheltered bus stop — Uncle Tan is looking for his missing EZ-Link card. Someone left a kopi packet here too.',
+    x: 520,
+    y: 380,
     color: '#6bb09e',
   },
   {
     id: 'voiddeck',
     name: 'Blk 260 Shield View Void Deck',
-    detail: 'RC Notice Board, stainless letterboxes, chope-d Xiangqi stone table & community cats.',
-    gx: 9.8,
-    gy: 4.5,
+    detail: 'RC Notice Board, letterboxes, chope-d stone table & community cats.',
+    x: 800,
+    y: 500,
     color: '#d89b52',
   },
   {
     id: 'minimart',
     name: 'Sunshine Minimart',
     detail: 'Anchor Quest: "The Lookout Dilemma" — practise all 6 S.H.I.E.L.D. choices.',
-    gx: 15.8,
-    gy: 4.5,
+    x: 1100,
+    y: 635,
     color: '#e6b84c',
   },
 ];

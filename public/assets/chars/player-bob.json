@@ -1,0 +1,109 @@
+{
+  "character": {
+    "id": "0516a290-47e3-4b01-8b9b-334260ce582e",
+    "name": "Idle",
+    "prompt": "cute young Singaporean girl, dark brown bob-cut hair with fringe, plain mustard-yellow t-shirt, navy blue shorts, white sneakers, small round wooden shield with a blue emblem strapped on her back, cosy cartoon pixel art",
+    "size": {
+      "width": 64,
+      "height": 64
+    },
+    "directions": 8,
+    "view": "high top-down"
+  },
+  "spritesheet": {
+    "path": "player-bob.png",
+    "cell_size": {
+      "width": 64,
+      "height": 64
+    },
+    "sheet_size": {
+      "width": 512,
+      "height": 576
+    },
+    "columns": 8,
+    "pivot": "cell-center",
+    "rows": [
+      {
+        "row": 0,
+        "type": "rotations",
+        "frame_count": 8,
+        "directions": [
+          "south",
+          "south-east",
+          "east",
+          "north-east",
+          "north",
+          "north-west",
+          "west",
+          "south-west"
+        ]
+      },
+      {
+        "row": 1,
+        "type": "animation",
+        "frame_count": 8,
+        "animation": "walk",
+        "animation_group_id": "9656d8e4-b8b4-4f3c-bcb0-678143c9f7ee",
+        "direction": "south"
+      },
+      {
+        "row": 2,
+        "type": "animation",
+        "frame_count": 8,
+        "animation": "walk",
+        "animation_group_id": "9656d8e4-b8b4-4f3c-bcb0-678143c9f7ee",
+        "direction": "south-east"
+      },
+      {
+        "row": 3,
+        "type": "animation",
+        "frame_count": 8,
+        "animation": "walk",
+        "animation_group_id": "9656d8e4-b8b4-4f3c-bcb0-678143c9f7ee",
+        "direction": "east"
+      },
+      {
+        "row": 4,
+        "type": "animation",
+        "frame_count": 8,
+        "animation": "walk",
+        "animation_group_id": "9656d8e4-b8b4-4f3c-bcb0-678143c9f7ee",
+        "direction": "north-east"
+      },
+      {
+        "row": 5,
+        "type": "animation",
+        "frame_count": 8,
+        "animation": "walk",
+        "animation_group_id": "9656d8e4-b8b4-4f3c-bcb0-678143c9f7ee",
+        "direction": "north"
+      },
+      {
+        "row": 6,
+        "type": "animation",
+        "frame_count": 8,
+        "animation": "walk",
+        "animation_group_id": "9656d8e4-b8b4-4f3c-bcb0-678143c9f7ee",
+        "direction": "north-west"
+      },
+      {
+        "row": 7,
+        "type": "animation",
+        "frame_count": 8,
+        "animation": "walk",
+        "animation_group_id": "9656d8e4-b8b4-4f3c-bcb0-678143c9f7ee",
+        "direction": "west"
+      },
+      {
+        "row": 8,
+        "type": "animation",
+        "frame_count": 8,
+        "animation": "walk",
+        "animation_group_id": "9656d8e4-b8b4-4f3c-bcb0-678143c9f7ee",
+        "direction": "south-west"
+      }
+    ]
+  },
+  "export_version": "1.0",
+  "export_date": "2026-11-26T15:21:36.127824+00:00"
+}
