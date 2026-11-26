@@ -3,13 +3,7 @@ import { DEFAULT_AVATAR, HAIR_COLORS, SHIRT_COLORS, SKIN_TONES } from '../data/g
 import { AvatarConfig } from '../types/game';
 import { SingaporeClock } from '../utils/sgClock';
 import { sfx } from '../utils/sound';
-import {
-  ClockIcon,
-  DayWeatherIcon,
-  MoonIcon,
-  NightWeatherIcon,
-  PlayerSpritePreview,
-} from './PixelIcons';
+import { PlayerSpritePreview, UiIcon } from './PixelIcons';
 
 interface LandingScreenProps {
   avatar: AvatarConfig;
@@ -76,10 +70,10 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
       <div className={`landing-art${evening ? ' is-evening' : ''}`} aria-hidden="true" />
       <div className="landing-shade" aria-hidden="true" />
 
-      <div className="pixel-wood-panel landing-time" title="Live Singapore time (SGT)">
-        {evening ? <MoonIcon size={26} /> : <ClockIcon size={26} />}
-        <span style={{ fontWeight: 700, fontSize: 18 }}>{clock.label}</span>
-        {evening ? <NightWeatherIcon size={26} /> : <DayWeatherIcon size={26} />}
+      <div className="px-wood hud-clock" title="Live Singapore time (SGT)" style={{ zIndex: 10 }}>
+        <UiIcon name={evening ? 'moon' : 'clock'} size={32} />
+        <span>{clock.label}</span>
+        <UiIcon name={evening ? 'night-cloud' : 'sun'} size={32} />
       </div>
 
       <div className="landing-content">

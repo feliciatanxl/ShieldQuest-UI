@@ -7,6 +7,11 @@ interface IconProps {
   className?: string;
 }
 
+/** PixelLab icon from public/assets/ui, drawn at a whole-number scale so pixels stay square. */
+export const UiIcon: React.FC<{ name: string; size: number }> = ({ name, size }) => (
+  <img className="px-icon" src={`/assets/ui/${name}.png`} width={size} height={size} alt="" draggable={false} />
+);
+
 /** Animated full-body preview of the player's sprite (walk cycle facing the viewer). */
 export const PlayerSpritePreview: React.FC<{ avatar: AvatarConfig; scale?: number }> = ({
   avatar,
@@ -48,9 +53,9 @@ export const PlayerPortrait: React.FC<{
     ctx.imageSmoothingEnabled = false;
     ctx.fillStyle = '#cbb08b';
     ctx.fillRect(0, 0, size, size);
-    // Head sits in the top ~half of the 64px south-facing cell.
+    // Head sits in the top half of the 64px south-facing cell; 32px crop keeps pixels square at 2x.
     const col = sheet.idle.south ?? 0;
-    ctx.drawImage(sheet.img, col * sheet.cell + 14, 0, 36, 36, 0, size * 0.04, size, size);
+    ctx.drawImage(sheet.img, col * sheet.cell + 16, 2, 32, 32, 0, 0, size, size);
   });
   return (
     <canvas
@@ -85,145 +90,6 @@ export const ShieldEmblemIcon: React.FC<IconProps & { accent?: string }> = ({
       fill="rgba(25,35,50,0.22)"
     />
     <rect x="7" y="6" width="3" height="2" fill="rgba(255,255,255,0.55)" />
-  </svg>
-);
-
-export const MiniShieldSlotIcon: React.FC<IconProps> = ({ size = 18 }) => (
-  <svg width={size} height={size} viewBox="0 0 16 16" shapeRendering="crispEdges">
-    <rect x="1" y="1" width="14" height="14" rx="2" fill="#231a16" />
-    <rect x="2" y="2" width="12" height="12" fill="#b48b60" />
-    <rect x="3" y="3" width="10" height="10" fill="#465266" />
-    <path d="M5 5h6v3c0 2-3 4-3 4S5 10 5 8V5z" fill="#e6c46d" />
-  </svg>
-);
-
-export const ClockIcon: React.FC<IconProps> = ({ size = 28 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" shapeRendering="crispEdges">
-    <circle cx="12" cy="12" r="11" fill="#231a16" />
-    <circle cx="12" cy="12" r="9" fill="#9fb6c9" />
-    <circle cx="12" cy="12" r="7.2" fill="#f7f4ec" />
-    <rect x="11" y="6" width="2" height="7" fill="#231a16" />
-    <rect x="11" y="11" width="2" height="6" transform="rotate(140 12 12)" fill="#231a16" />
-    <rect x="11" y="11" width="2" height="2" fill="#b84a39" />
-  </svg>
-);
-
-export const MoonIcon: React.FC<IconProps> = ({ size = 28 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" shapeRendering="crispEdges">
-    <circle cx="12" cy="12" r="11" fill="#231a16" />
-    <circle cx="12" cy="12" r="9" fill="#2c3e66" />
-    <path
-      d="M13 6a6 6 0 1 0 5 9.2A5 5 0 0 1 13 6z"
-      fill="#f5df86"
-    />
-    <rect x="15" y="7" width="2" height="2" fill="#f5df86" />
-    <rect x="17" y="10" width="1.5" height="1.5" fill="#fff5cc" />
-  </svg>
-);
-
-export const DayWeatherIcon: React.FC<IconProps> = ({ size = 28 }) => (
-  <svg width={size} height={size} viewBox="0 0 26 22" shapeRendering="crispEdges">
-    {/* Sun */}
-    <circle cx="16" cy="8" r="5" fill="#231a16" />
-    <circle cx="16" cy="8" r="4" fill="#f5c945" />
-    {/* Cloud */}
-    <path
-      d="M4 17h15a3 3 0 0 0 0-6h-1a4.5 4.5 0 0 0-8.5-1.5A3.5 3.5 0 0 0 4 13v4z"
-      fill="#231a16"
-    />
-    <path
-      d="M5 16h13.5a2.2 2.2 0 0 0 0-4.4H17a3.6 3.6 0 0 0-6.8-1.1A2.6 2.6 0 0 0 5 13v3z"
-      fill="#f4f8fc"
-    />
-  </svg>
-);
-
-export const NightWeatherIcon: React.FC<IconProps> = ({ size = 28 }) => (
-  <svg width={size} height={size} viewBox="0 0 26 22" shapeRendering="crispEdges">
-    {/* Little Moon & Stars */}
-    <circle cx="17" cy="7" r="4" fill="#f5d76e" />
-    <circle cx="19" cy="6" r="3" fill="#232a3e" />
-    <rect x="8" y="4" width="2" height="2" fill="#f5d76e" />
-    {/* Dark Cloud */}
-    <path
-      d="M4 17h15a3 3 0 0 0 0-6h-1a4.5 4.5 0 0 0-8.5-1.5A3.5 3.5 0 0 0 4 13v4z"
-      fill="#1b2030"
-    />
-    <path
-      d="M5 16h13.5a2.2 2.2 0 0 0 0-4.4H17a3.6 3.6 0 0 0-6.8-1.1A2.6 2.6 0 0 0 5 13v3z"
-      fill="#5b7299"
-    />
-  </svg>
-);
-
-export const BackpackIcon: React.FC<IconProps> = ({ size = 34 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" shapeRendering="crispEdges">
-    {/* Handle */}
-    <rect x="9" y="2" width="6" height="3" fill="#231a16" />
-    <rect x="10" y="3" width="4" height="2" fill="#9c6239" />
-    {/* Main Bag */}
-    <rect x="5" y="4" width="14" height="17" rx="3" fill="#231a16" />
-    <rect x="6" y="5" width="12" height="15" fill="#9e5a36" />
-    {/* Top Flap */}
-    <rect x="6" y="5" width="12" height="6" fill="#ba7147" />
-    <rect x="6" y="10" width="12" height="1" fill="#231a16" />
-    {/* Straps */}
-    <rect x="8" y="8" width="2" height="4" fill="#dfba8c" />
-    <rect x="14" y="8" width="2" height="4" fill="#dfba8c" />
-    {/* Front Pocket */}
-    <rect x="7" y="13" width="10" height="6" fill="#231a16" />
-    <rect x="8" y="14" width="8" height="4" fill="#7c4327" />
-    <rect x="11" y="14" width="2" height="1" fill="#e6c46d" />
-  </svg>
-);
-
-export const WardrobeIcon: React.FC<IconProps> = ({ size = 34 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" shapeRendering="crispEdges">
-    {/* Outer Cabinet */}
-    <rect x="4" y="2" width="16" height="20" fill="#231a16" />
-    <rect x="5" y="3" width="14" height="18" fill="#8f5936" />
-    {/* Top Trim */}
-    <rect x="5" y="3" width="14" height="2" fill="#b3754a" />
-    {/* Double Doors */}
-    <rect x="6" y="6" width="5.5" height="11" fill="#a86a42" />
-    <rect x="12.5" y="6" width="5.5" height="11" fill="#a86a42" />
-    <rect x="11.5" y="6" width="1" height="11" fill="#231a16" />
-    {/* Door handles */}
-    <rect x="10" y="10" width="1" height="2" fill="#e6c46d" />
-    <rect x="13" y="10" width="1" height="2" fill="#e6c46d" />
-    {/* Bottom Drawer */}
-    <rect x="6" y="18" width="12" height="2" fill="#704327" />
-    <rect x="11" y="18" width="2" height="1" fill="#e6c46d" />
-  </svg>
-);
-
-export const MapIcon: React.FC<IconProps> = ({ size = 34 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" shapeRendering="crispEdges">
-    {/* Folded Outline */}
-    <path d="M2 5l6-2 8 2 6-2v15l-6 2-8-2-6 2V5z" fill="#231a16" />
-    {/* Panel 1 */}
-    <path d="M3 6l5-1.5v12.8L3 19V6z" fill="#e5d7b8" />
-    {/* Panel 2 */}
-    <path d="M8 4.5l8 2v12.8l-8-2V4.5z" fill="#d0c09c" />
-    {/* Panel 3 */}
-    <path d="M16 6.5l5-1.8v12.8l-5 1.8V6.5z" fill="#e5d7b8" />
-    {/* Green patches & path */}
-    <rect x="4" y="8" width="3" height="5" fill="#79a861" />
-    <rect x="10" y="7" width="4" height="4" fill="#79a861" />
-    <rect x="17" y="10" width="3" height="5" fill="#79a861" />
-    <rect x="5" y="13" width="12" height="2" fill="#c98849" />
-    <rect x="12" y="11" width="2" height="2" fill="#d45550" />
-  </svg>
-);
-
-export const MenuHamburgerIcon: React.FC<IconProps> = ({ size = 34 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" shapeRendering="crispEdges">
-    <rect x="4" y="5" width="16" height="4" rx="1" fill="#231a16" />
-    <rect x="5" y="6" width="14" height="2" fill="#e8cba3" />
-    <rect x="4" y="10" width="16" height="4" rx="1" fill="#231a16" />
-    <rect x="5" y="11" width="14" height="2" fill="#e8cba3" />
-    <rect x="4" y="15" width="16" height="4" rx="1" fill="#231a16" />
-    <rect x="5" y="16" width="14" height="2" fill="#e8cba3" />
   </svg>
 );
 

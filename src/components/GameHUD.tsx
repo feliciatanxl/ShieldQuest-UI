@@ -1,21 +1,8 @@
 import React from 'react';
-import { SHIELD_STYLES } from '../data/gameData';
 import { AvatarConfig, DrawerType } from '../types/game';
 import { SingaporeClock } from '../utils/sgClock';
 import { sfx } from '../utils/sound';
-import {
-  BackpackIcon,
-  ClockIcon,
-  DayWeatherIcon,
-  MapIcon,
-  MenuHamburgerIcon,
-  MiniShieldSlotIcon,
-  MoonIcon,
-  NightWeatherIcon,
-  PlayerPortrait,
-  ShieldEmblemIcon,
-  WardrobeIcon,
-} from './PixelIcons';
+import { PlayerPortrait, UiIcon } from './PixelIcons';
 
 interface GameHUDProps {
   avatar: AvatarConfig;
@@ -27,6 +14,15 @@ interface GameHUDProps {
   onSelectDrawer: (drawer: DrawerType) => void;
 }
 
+const BUTTONS: [Exclude<DrawerType, null>, string, string][] = [
+  ['backpack', 'backpack', 'Pack'],
+  ['wardrobe', 'wardrobe', 'Wardrobe'],
+  ['map', 'map', 'Map'],
+  ['menu', 'menu', 'Settings'],
+];
+
+const clampPct = (v: number) => `${Math.max(8, Math.min(100, v))}%`;
+
 export const GameHUD: React.FC<GameHUDProps> = ({
   avatar,
   clock,
@@ -36,299 +32,80 @@ export const GameHUD: React.FC<GameHUDProps> = ({
   activeDrawer,
   onSelectDrawer,
 }) => {
-  const shieldAccent =
-    SHIELD_STYLES.find((s) => s.id === avatar.shieldStyle)?.accent || '#9ab0c4';
-
+  const night = clock.timeOfDay === 'evening';
   const toggleDrawer = (drawer: Exclude<DrawerType, null>) => {
     sfx.click();
     onSelectDrawer(activeDrawer === drawer ? null : drawer);
   };
 
   return (
-    <div
-      style={{
-        position: 'absolute',
-        inset: 0,
-        pointerEvents: 'none',
-        zIndex: 10,
-      }}
-    >
-      {/* ==================== TOP-LEFT HUD (Exact Match to Screenshot) ==================== */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 14,
-          left: 16,
-          display: 'flex',
-          alignItems: 'flex-start',
-          gap: 10,
-          pointerEvents: 'auto',
-        }}
-      >
-        {/* Circular Portrait Medallion */}
+    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 10 }}>
+      {/* Top-left: portrait, name, bars, guardians */}
+      <div className="hud-top-left">
         <button
           type="button"
+          className="px-wood hud-portrait"
           onClick={() => toggleDrawer('wardrobe')}
-          title="Open Character Wardrobe"
-          style={{
-            width: 78,
-            height: 78,
-            borderRadius: '50%',
-            padding: 0,
-            overflow: 'hidden',
-            border: '4px solid #231a16',
-            boxShadow: '0 0 0 3px #c3935e, 0 4px 0 rgba(20,14,12,0.55)',
-            background: '#cbb08b',
-            cursor: 'pointer',
-            flexShrink: 0,
-          }}
+          title="Wardrobe"
+          aria-label="Open wardrobe"
         >
-          <PlayerPortrait avatar={avatar} size={70} />
+          <PlayerPortrait avatar={avatar} size={64} />
         </button>
 
-        {/* Name + Red/Teal Bars + Silver Shield + Small Badge Slot */}
-        <div style={{ display: 'flex', flexDirection: 'column', paddingTop: 2 }}>
-          <div
-            className="text-outline"
-            style={{
-              fontFamily: 'var(--font-ui)',
-              fontWeight: 700,
-              fontSize: 18,
-              lineHeight: 1.1,
-              color: '#f8f5ef',
-              marginBottom: 4,
-            }}
-          >
-            {avatar.name.trim() || 'Player'}
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-              {/* Red Bar */}
-              <div
-                style={{
-                  width: 148,
-                  height: 14,
-                  background: '#3d332d',
-                  border: '2.5px solid #231a16',
-                  boxShadow: '0 0 0 1.5px #b98b5b',
-                  borderRadius: 4,
-                  overflow: 'hidden',
-                }}
-              >
-                <div
-                  style={{
-                    width: `${Math.max(10, Math.min(100, confidencePct))}%`,
-                    height: '100%',
-                    background: 'linear-gradient(180deg, #e56a64 0%, #c4443f 100%)',
-                    transition: 'width 0.3s ease',
-                  }}
-                />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 9, paddingTop: 2 }}>
+          <div className="px-text hud-name">{avatar.name.trim() || 'Player'}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+              <div className="px-bar is-red hud-bar" title="Confidence" aria-label={`Confidence ${confidencePct}%`}>
+                <span style={{ width: clampPct(confidencePct) }} />
               </div>
-
-              {/* Teal Bar */}
-              <div
-                style={{
-                  width: 148,
-                  height: 14,
-                  background: '#3d332d',
-                  border: '2.5px solid #231a16',
-                  boxShadow: '0 0 0 1.5px #b98b5b',
-                  borderRadius: 4,
-                  overflow: 'hidden',
-                }}
-              >
-                <div
-                  style={{
-                    width: `${Math.max(10, Math.min(100, energyPct))}%`,
-                    height: '100%',
-                    background: 'linear-gradient(180deg, #62cad4 0%, #3b96a0 100%)',
-                    transition: 'width 0.3s ease',
-                  }}
-                />
+              <div className="px-bar is-teal hud-bar" title="Energy" aria-label={`Energy ${energyPct}%`}>
+                <span style={{ width: clampPct(energyPct) }} />
               </div>
             </div>
-
-            {/* Silver Shield Emblem beside the bars */}
             <button
               type="button"
+              className="hud-plain-btn"
               onClick={() => toggleDrawer('shield')}
-              title="Open S.H.I.E.L.D. Skills & Guardians"
-              style={{
-                background: 'transparent',
-                border: 'none',
-                padding: 0,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-              }}
+              title="Guardians"
+              aria-label="Open Guardians"
             >
-              <ShieldEmblemIcon size={40} accent={shieldAccent} />
-            </button>
-          </div>
-
-          {/* Small square badge slot directly below teal bar */}
-          <div style={{ marginTop: 4 }}>
-            <button
-              type="button"
-              onClick={() => toggleDrawer('shield')}
-              title="Guardian Badge"
-              style={{
-                background: 'transparent',
-                border: 'none',
-                padding: 0,
-                cursor: 'pointer',
-                display: 'inline-flex',
-              }}
-            >
-              <MiniShieldSlotIcon size={20} />
+              <UiIcon name="shield" size={48} />
             </button>
           </div>
         </div>
       </div>
 
-      {/* ==================== TOP-RIGHT HUD (Exact Match to Screenshot) ==================== */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 14,
-          right: 16,
-          pointerEvents: 'auto',
-        }}
-      >
-        <div
-          className="pixel-wood-panel"
-          title="Live Singapore time (SGT)"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            padding: '6px 14px',
-            color: '#231a16',
-          }}
-        >
-          {clock.timeOfDay === 'evening' ? <MoonIcon size={28} /> : <ClockIcon size={28} />}
-          <span
-            style={{
-              fontFamily: 'var(--font-ui)',
-              fontWeight: 700,
-              fontSize: 20,
-              letterSpacing: '0.02em',
-              color: '#231a16',
-            }}
-          >
-            {clock.label}
-          </span>
-          {clock.timeOfDay === 'evening' ? (
-            <NightWeatherIcon size={28} />
-          ) : (
-            <DayWeatherIcon size={28} />
-          )}
-        </div>
+      {/* Top-right: live Singapore clock */}
+      <div className="px-wood hud-clock" title="Live Singapore time (SGT)">
+        <UiIcon name={night ? 'moon' : 'clock'} size={32} />
+        <span>{clock.label}</span>
+        <UiIcon name={night ? 'night-cloud' : 'sun'} size={32} />
       </div>
 
-      {/* ==================== BOTTOM-LEFT HUD (Exact Match to Screenshot) ==================== */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: 16,
-          left: 16,
-          pointerEvents: 'auto',
-        }}
-      >
-        <button
-          type="button"
-          onClick={() => toggleDrawer('quest')}
-          className="pixel-quest-box"
-          title="Click to view Quests"
-          style={{
-            textAlign: 'left',
-            padding: '11px 18px',
-            minWidth: 245,
-            cursor: 'pointer',
-          }}
-        >
-          <div
-            style={{
-              fontFamily: 'var(--font-ui)',
-              fontWeight: 700,
-              fontSize: 16,
-              color: '#f3c46b',
-              lineHeight: 1.2,
-            }}
+      {/* Bottom-left: current quest */}
+      <button type="button" className="px-dark hud-quest" onClick={() => toggleDrawer('quest')} title="Quests">
+        <UiIcon name="quest" size={32} />
+        <span>
+          <span className="hud-quest-label">Current Quest</span>
+          <span className="hud-quest-title">{currentQuestTitle}</span>
+        </span>
+      </button>
+
+      {/* Bottom-right: drawer buttons */}
+      <div className="hud-buttons">
+        {BUTTONS.map(([drawer, icon, label]) => (
+          <button
+            key={drawer}
+            type="button"
+            className={`px-wood hud-btn${activeDrawer === drawer ? ' is-active' : ''}`}
+            onClick={() => toggleDrawer(drawer)}
+            aria-label={label}
+            title={label}
           >
-            Current Quest:
-          </div>
-          <div
-            style={{
-              fontFamily: 'var(--font-ui)',
-              fontWeight: 600,
-              fontSize: 16,
-              color: '#f8f5ef',
-              marginTop: 2,
-              lineHeight: 1.25,
-            }}
-          >
-            {currentQuestTitle}
-          </div>
-        </button>
-      </div>
-
-      {/* ==================== BOTTOM-RIGHT HUD (Exact 4 Square Wooden Buttons) ==================== */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: 16,
-          right: 16,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          pointerEvents: 'auto',
-        }}
-      >
-        <button
-          type="button"
-          onClick={() => toggleDrawer('backpack')}
-          className={`pixel-wood-btn ${activeDrawer === 'backpack' ? 'is-active' : ''}`}
-          aria-label="Backpack"
-          title="Backpack & Clues"
-          style={{ width: 58, height: 58 }}
-        >
-          <BackpackIcon size={36} />
-        </button>
-
-        <button
-          type="button"
-          onClick={() => toggleDrawer('wardrobe')}
-          className={`pixel-wood-btn ${activeDrawer === 'wardrobe' ? 'is-active' : ''}`}
-          aria-label="Wardrobe"
-          title="Wardrobe & Customisation"
-          style={{ width: 58, height: 58 }}
-        >
-          <WardrobeIcon size={36} />
-        </button>
-
-        <button
-          type="button"
-          onClick={() => toggleDrawer('map')}
-          className={`pixel-wood-btn ${activeDrawer === 'map' ? 'is-active' : ''}`}
-          aria-label="Map"
-          title="Neighbourhood Map"
-          style={{ width: 58, height: 58 }}
-        >
-          <MapIcon size={36} />
-        </button>
-
-        <button
-          type="button"
-          onClick={() => toggleDrawer('menu')}
-          className={`pixel-wood-btn ${activeDrawer === 'menu' ? 'is-active' : ''}`}
-          aria-label="Menu"
-          title="Game Menu & S.H.I.E.L.D."
-          style={{ width: 58, height: 58 }}
-        >
-          <MenuHamburgerIcon size={36} />
-        </button>
+            <UiIcon name={icon} size={64} />
+          </button>
+        ))}
       </div>
     </div>
   );

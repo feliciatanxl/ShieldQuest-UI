@@ -115,6 +115,8 @@ export interface RenderState {
   hoveredTarget: string | null;
   speech: { npcId: string; text: string; icon?: 'ezlink' | 'alert' | 'shop' } | null;
   walkTargetMarker: (Pt & { createdAt: number }) | null;
+  /** Visible horizontal slice of the canvas (phones crop the 16:9 scene). */
+  viewX?: [number, number];
 }
 
 const INK = '#231a16';
@@ -166,7 +168,7 @@ export function renderScene(ctx: CanvasRenderingContext2D, s: RenderState) {
 
   if (s.speech) {
     const npc = s.npcs.find((n) => n.id === s.speech!.npcId);
-    if (npc) drawSpeechBubble(ctx, npc, s.speech.text, s.speech.icon, night);
+    if (npc) drawSpeechBubble(ctx, npc, s.speech.text, s.speech.icon, night, s.viewX ?? [0, CANVAS_W]);
   }
 
   if (DEBUG) drawDebug(ctx);
@@ -268,68 +270,58 @@ function drawSpeechBubble(
   npc: NPCEntity,
   text: string,
   icon: 'ezlink' | 'alert' | 'shop' | undefined,
-  night: boolean
+  night: boolean,
+  [viewL, viewR]: [number, number]
 ) {
   const boxW = 252;
   const boxH = 70;
   const tipX = npc.x - 8;
-  const left = Math.max(8, Math.min(CANVAS_W - boxW - 8, tipX - boxW / 2));
+  const left = Math.round(Math.max(viewL + 8, Math.min(viewR - boxW - 8, tipX - boxW / 2)));
   const top = npc.y - 150 - boxH;
   const fill = night ? '#dcd6ea' : '#f5efe6';
+  const P = 2; // one art pixel on the 2x canvas
 
-  ctx.fillStyle = fill;
-  ctx.strokeStyle = INK;
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.roundRect(left, top, boxW, boxH, 10);
-  ctx.fill();
-  ctx.stroke();
+  // Notched pixel frame: ink body, then fill inset by 2 art pixels
+  pxBox(ctx, left, top, boxW, boxH, P * 2, INK);
+  pxBox(ctx, left + P * 2, top + P * 2, boxW - P * 4, boxH - P * 4, P * 2, fill);
+  ctx.fillStyle = night ? '#bdb5d1' : '#e2d6c2'; // bottom shade row
+  ctx.fillRect(left + P * 3, top + boxH - P * 4, boxW - P * 6, P);
 
-  ctx.beginPath();
-  ctx.moveTo(tipX - 9, top + boxH - 1);
-  ctx.lineTo(tipX, top + boxH + 14);
-  ctx.lineTo(tipX + 9, top + boxH - 1);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.moveTo(tipX - 9, top + boxH);
-  ctx.lineTo(tipX, top + boxH + 14);
-  ctx.lineTo(tipX + 9, top + boxH);
-  ctx.stroke();
+  // Stepped tail
+  for (let i = 0; i < 5; i++) {
+    const half = (5 - i) * P * 1.5;
+    ctx.fillStyle = INK;
+    ctx.fillRect(Math.round(tipX - half - P), top + boxH - P * 2 + i * P * 2, Math.round(half * 2 + P * 2), P * 2);
+    ctx.fillStyle = fill;
+    ctx.fillRect(Math.round(tipX - half + P), top + boxH - P * 2 + i * P * 2, Math.max(0, Math.round(half * 2 - P * 2)), P * 2);
+  }
 
   if (icon === 'ezlink') {
-    ctx.save();
-    ctx.translate(left + 36, top + 34);
-    ctx.rotate(-0.14);
+    const x = left + 14;
+    const y = top + 20;
+    pxBox(ctx, x, y, 44, 30, P, INK);
     ctx.fillStyle = '#5eb8a8';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.roundRect(-21, -13, 42, 26, 3);
-    ctx.fill();
-    ctx.stroke();
+    ctx.fillRect(x + P, y + P, 44 - P * 2, 30 - P * 2);
     ctx.fillStyle = '#8ee0cf';
-    ctx.fillRect(-19, -11, 38, 6);
+    ctx.fillRect(x + P, y + P, 44 - P * 2, 6);
+    ctx.fillStyle = '#f5d76e';
+    ctx.fillRect(x + 6, y + 13, 10, 8);
     ctx.fillStyle = '#1b4740';
-    ctx.font = 'bold 8px "Silkscreen", monospace';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'alphabetic';
-    ctx.fillText('EZ-Link', 0, 5);
-    ctx.restore();
+    ctx.fillRect(x + 20, y + 14, 18, P * 2);
+    ctx.fillRect(x + 20, y + 20, 12, P * 2);
   } else {
+    const x = left + 18;
+    const y = top + 18;
+    pxBox(ctx, x, y, 34, 34, P * 2, INK);
     ctx.fillStyle = '#e6b84c';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(left + 34, top + 35, 15, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
+    ctx.fillRect(x + P * 2, y + P * 2, 34 - P * 4, 34 - P * 4);
     ctx.fillStyle = INK;
-    ctx.font = 'bold 18px "Silkscreen", monospace';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'alphabetic';
-    ctx.fillText('!', left + 34, top + 41);
+    ctx.fillRect(x + 15, y + 8, 4, 12);
+    ctx.fillRect(x + 15, y + 23, 4, 4);
   }
 
   ctx.fillStyle = INK;
-  ctx.font = '600 15px "Fredoka", sans-serif';
+  ctx.font = '23px "VT323", monospace';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
   const lines: string[] = [];
@@ -342,8 +334,15 @@ function drawSpeechBubble(
     } else cur = test;
   }
   if (cur) lines.push(cur);
-  const startY = top + (lines.length <= 2 ? 16 : 8);
-  lines.slice(0, 3).forEach((ln, i) => ctx.fillText(ln, left + 68, startY + i * 19));
+  const startY = top + (lines.length <= 2 ? 14 : 6);
+  lines.slice(0, 3).forEach((ln, i) => ctx.fillText(ln, left + 68, startY + i * 20));
+}
+
+/** Filled rectangle with square-notched corners, like a pixel-art panel. */
+function pxBox(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, notch: number, color: string) {
+  ctx.fillStyle = color;
+  ctx.fillRect(x + notch, y, w - notch * 2, h);
+  ctx.fillRect(x, y + notch, w, h - notch * 2);
 }
 
 function drawDebug(ctx: CanvasRenderingContext2D) {

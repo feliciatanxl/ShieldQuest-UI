@@ -114,6 +114,7 @@ export const GameWorld: React.FC<GameWorldProps> = ({
     icon: 'ezlink',
   });
   const simTimeRef = useRef(0);
+  const cameraRef = useRef({ x: 0.5, y: 0.5, ready: false, view: [0, CANVAS_W] as [number, number] });
   const minimartCooldownRef = useRef(-10);
 
   const stateSyncRef = useRef({
@@ -294,7 +295,26 @@ export const GameWorld: React.FC<GameWorldProps> = ({
       if (!sync.kopiPickedUp) items.push({ kind: 'kopi' });
       if (!sync.chopePickedUp) items.push({ kind: 'chope' });
 
-      const ctx = canvasRef.current?.getContext('2d');
+      // Camera: when the screen crops the 16:9 scene (phones), slide object-position to keep the player in view.
+      const canvas = canvasRef.current;
+      if (canvas && canvas.clientWidth > 0) {
+        const scale = Math.max(canvas.clientWidth / CANVAS_W, canvas.clientHeight / CANVAS_H);
+        const visW = canvas.clientWidth / scale;
+        const visH = canvas.clientHeight / scale;
+        const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+        const tx = visW < CANVAS_W - 1 ? clamp01((p.x - visW / 2) / (CANVAS_W - visW)) : 0.5;
+        const ty = visH < CANVAS_H - 1 ? clamp01((p.y - 60 - visH / 2) / (CANVAS_H - visH)) : 0.5;
+        const cam = cameraRef.current;
+        const k = cam.ready ? Math.min(1, dt * 4) : 1;
+        cam.x += (tx - cam.x) * k;
+        cam.y += (ty - cam.y) * k;
+        cam.ready = true;
+        const x0 = Math.max(0, CANVAS_W - visW) * cam.x;
+        cam.view = [x0, x0 + Math.min(visW, CANVAS_W)];
+        canvas.style.objectPosition = `${(cam.x * 100).toFixed(2)}% ${(cam.y * 100).toFixed(2)}%`;
+      }
+
+      const ctx = canvas?.getContext('2d');
       if (ctx) {
         renderScene(ctx, {
           time: t,
@@ -305,6 +325,7 @@ export const GameWorld: React.FC<GameWorldProps> = ({
           hoveredTarget: hoveredTargetRef.current,
           speech: speechBubbleRef.current,
           walkTargetMarker: walkMarkerRef.current,
+          viewX: cameraRef.current.view,
         });
       }
 
@@ -315,14 +336,14 @@ export const GameWorld: React.FC<GameWorldProps> = ({
     return () => cancelAnimationFrame(rafId);
   }, [activeDrawer, pickupEzLink, pickupSideItem, returnEzLinkToUncle, showLookoutModal]);
 
-  // Convert DOM pointer position into 1280x720 canvas coords (accounting for object-fit: cover)
+  // Convert DOM pointer position into 1280x720 canvas coords (object-fit: cover + camera object-position)
   const getCanvasPoint = (clientX: number, clientY: number): Pt | null => {
     const canvas = canvasRef.current;
     if (!canvas) return null;
     const rect = canvas.getBoundingClientRect();
     const scale = Math.max(rect.width / CANVAS_W, rect.height / CANVAS_H);
-    const offsetX = (rect.width - CANVAS_W * scale) / 2;
-    const offsetY = (rect.height - CANVAS_H * scale) / 2;
+    const offsetX = (rect.width - CANVAS_W * scale) * cameraRef.current.x;
+    const offsetY = (rect.height - CANVAS_H * scale) * cameraRef.current.y;
     return {
       x: (clientX - rect.left - offsetX) / scale,
       y: (clientY - rect.top - offsetY) / scale,
@@ -461,15 +482,18 @@ export const GameWorld: React.FC<GameWorldProps> = ({
 
       {toastMsg && (
         <div
-          className="pixel-quest-box"
+          className="px-dark"
+          role="status"
           style={{
             position: 'absolute',
-            top: 20,
+            top: 22,
             left: '50%',
             transform: 'translateX(-50%)',
-            padding: '8px 16px',
+            padding: '8px 18px',
             zIndex: 25,
-            fontSize: 13.5,
+            fontFamily: 'var(--font-pixel)',
+            fontSize: 22,
+            lineHeight: 1.1,
             color: '#fff4dc',
             pointerEvents: 'none',
             whiteSpace: 'nowrap',

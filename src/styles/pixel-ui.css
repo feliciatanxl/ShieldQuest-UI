@@ -83,16 +83,6 @@ body,
     0 1px 0 rgba(20, 14, 12, 0.5);
 }
 
-/* Bottom-left Dark Slate Quest Box matching Screenshot */
-.pixel-quest-box {
-  background: rgba(29, 34, 46, 0.94);
-  border: 3px solid #231a16;
-  outline: 2px solid #c69a67;
-  outline-offset: -5px;
-  border-radius: 8px;
-  box-shadow: 0 5px 0 rgba(15, 14, 20, 0.55);
-}
-
 /* Modal / Drawer Frame: cream card with gold ring (in-game panels) */
 .pixel-modal-frame {
   background: var(--cream);
@@ -518,19 +508,6 @@ button:focus-visible {
   }
 }
 
-.landing-time {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 6px 14px;
-  color: var(--ink-dark);
-  font-family: var(--font-ui);
-}
-
 .landing-content {
   position: relative;
   z-index: 5;
@@ -758,4 +735,327 @@ button:focus-visible {
 input[type='checkbox'],
 input[type='radio'] {
   accent-color: var(--teal-btn);
+}
+
+/* ---------- Pixel-art HUD frames ----------
+   Notched corners + flat bevels drawn with box-shadows so the HUD reads as
+   part of the 2x-scaled pixel art. --p is one "art pixel" on screen. */
+.px-wood,
+.px-dark,
+.px-bar {
+  --p: 3px;
+  border: none;
+  border-radius: 0;
+  image-rendering: pixelated;
+  -webkit-font-smoothing: none;
+}
+
+.px-wood {
+  background: #c8915a;
+  color: #2b1d14;
+  box-shadow:
+    inset var(--p) var(--p) 0 0 #e8bf88,
+    inset calc(var(--p) * -1) calc(var(--p) * -1) 0 0 #93603a,
+    0 calc(var(--p) * -1) 0 0 #2b1d14,
+    0 var(--p) 0 0 #2b1d14,
+    calc(var(--p) * -1) 0 0 0 #2b1d14,
+    var(--p) 0 0 0 #2b1d14,
+    0 calc(var(--p) * 3) 0 calc(var(--p) * -1) rgba(20, 12, 8, 0.45);
+}
+
+button.px-wood {
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+button.px-wood:hover {
+  background: #d39d65;
+}
+
+button.px-wood:active,
+button.px-wood.is-active {
+  transform: translateY(var(--p));
+  background: #b98450;
+  box-shadow:
+    inset var(--p) var(--p) 0 0 #93603a,
+    0 calc(var(--p) * -1) 0 0 #2b1d14,
+    0 var(--p) 0 0 #2b1d14,
+    calc(var(--p) * -1) 0 0 0 #2b1d14,
+    var(--p) 0 0 0 #2b1d14;
+}
+
+.px-dark {
+  background: #2c2634;
+  color: #fff4dc;
+  box-shadow:
+    inset 0 0 0 var(--p) #c69a67,
+    inset var(--p) var(--p) 0 var(--p) #3e3549,
+    0 calc(var(--p) * -1) 0 0 #1a1410,
+    0 var(--p) 0 0 #1a1410,
+    calc(var(--p) * -1) 0 0 0 #1a1410,
+    var(--p) 0 0 0 #1a1410,
+    0 calc(var(--p) * 3) 0 calc(var(--p) * -1) rgba(20, 12, 8, 0.45);
+}
+
+.px-bar {
+  position: relative;
+  height: calc(var(--p) * 5);
+  background: #3d332d;
+  box-shadow:
+    0 calc(var(--p) * -1) 0 0 #1a1410,
+    0 var(--p) 0 0 #1a1410,
+    calc(var(--p) * -1) 0 0 0 #1a1410,
+    var(--p) 0 0 0 #1a1410;
+}
+
+.px-bar > span {
+  display: block;
+  height: 100%;
+  transition: width 0.3s steps(6);
+}
+
+.px-bar.is-red > span {
+  background: linear-gradient(180deg, #f08a7e 0 34%, #d24c45 34% 80%, #a8352f 80%);
+}
+
+.px-bar.is-teal > span {
+  background: linear-gradient(180deg, #8ae3e6 0 34%, #3fb0bb 34% 80%, #2b8790 80%);
+}
+
+.px-text {
+  font-family: var(--font-display);
+  -webkit-font-smoothing: none;
+  text-shadow:
+    2px 0 0 #1a1410,
+    -2px 0 0 #1a1410,
+    0 2px 0 #1a1410,
+    0 -2px 0 #1a1410,
+    0 4px 0 #1a1410;
+}
+
+.px-icon {
+  image-rendering: pixelated;
+  display: block;
+}
+
+@media (max-width: 1100px) {
+  .px-wood,
+  .px-dark,
+  .px-bar {
+    --p: 2px;
+  }
+}
+
+/* ---------- HUD layout ---------- */
+.hud-top-left {
+  position: absolute;
+  top: 18px;
+  left: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  pointer-events: auto;
+}
+
+.hud-portrait {
+  width: 76px;
+  height: 76px;
+  overflow: hidden;
+}
+
+.hud-portrait canvas {
+  width: 64px;
+  height: 64px;
+}
+
+.hud-name {
+  font-size: 18px;
+  line-height: 1;
+  color: #fff4dc;
+}
+
+.hud-bar {
+  width: 150px;
+}
+
+.hud-plain-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  filter: drop-shadow(0 3px 0 rgba(20, 12, 8, 0.45));
+}
+
+.hud-clock {
+  position: absolute;
+  top: 18px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px;
+  pointer-events: auto;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 20px;
+}
+
+.hud-quest {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 260px;
+  padding: 12px 18px 12px 14px;
+  text-align: left;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.hud-quest-label {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 12px;
+  color: #f3c46b;
+  letter-spacing: 0.04em;
+}
+
+.hud-quest-title {
+  display: block;
+  font-family: var(--font-pixel);
+  font-size: 24px;
+  line-height: 1;
+  margin-top: 3px;
+  color: #fff4dc;
+}
+
+.hud-buttons {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  gap: 14px;
+  pointer-events: auto;
+}
+
+.hud-btn {
+  width: 72px;
+  height: 72px;
+}
+
+/* Compact HUD for phones (portrait or landscape). Icons drop to their native 32px so pixels stay square. */
+@media (max-width: 640px), (max-height: 500px) {
+  .hud-top-left {
+    top: 10px;
+    left: 10px;
+    gap: 10px;
+  }
+  .hud-portrait {
+    width: 44px;
+    height: 44px;
+  }
+  .hud-portrait canvas {
+    width: 32px;
+    height: 32px;
+  }
+  .hud-name {
+    font-size: 12px;
+  }
+  .hud-top-left .px-bar {
+    width: 84px;
+    height: 8px;
+  }
+  .hud-top-left > div,
+  .hud-top-left > div > div,
+  .hud-top-left > div > div > div {
+    gap: 6px !important;
+  }
+  .hud-plain-btn .px-icon {
+    width: 32px;
+    height: 32px;
+  }
+  .hud-clock {
+    top: 10px;
+    right: 10px;
+    gap: 6px;
+    padding: 3px 8px;
+    font-size: 14px;
+  }
+  .hud-clock .px-icon {
+    width: 16px;
+    height: 16px;
+  }
+  .hud-buttons {
+    right: 10px;
+    bottom: 10px;
+    gap: 8px;
+  }
+  .hud-btn {
+    width: 44px;
+    height: 44px;
+  }
+  .hud-btn .px-icon {
+    width: 32px;
+    height: 32px;
+  }
+  .hud-quest {
+    left: 10px;
+    bottom: 10px;
+    min-width: 0;
+    gap: 8px;
+    padding: 7px 10px 7px 8px;
+  }
+  .hud-quest .px-icon {
+    width: 16px;
+    height: 16px;
+  }
+  .hud-quest-label {
+    font-size: 9px;
+  }
+  .hud-quest-title {
+    font-size: 18px;
+  }
+}
+
+/* Narrow portrait: stack the quest box above the buttons */
+@media (max-width: 640px) {
+  .hud-quest {
+    bottom: 68px;
+    max-width: calc(100% - 20px);
+  }
+  .landing-content {
+    padding-top: 76px;
+  }
+  .landing-stage canvas {
+    width: 128px;
+    height: 128px;
+  }
+  /* Keep START GAME reachable without scrolling to the bottom */
+  .landing-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    margin: 14px -12px -12px;
+    padding: 10px 12px 12px;
+    background: #f2e2c0;
+    border-top: 2px solid #c89b67;
+    gap: 8px;
+  }
+  .landing-actions .pixel-action-btn {
+    flex-basis: 100% !important;
+    padding: 11px 16px !important;
+  }
+  .landing-wood-btn {
+    flex: 1 1 0;
+    padding: 9px 6px;
+    font-size: 10px;
+  }
+  .landing-card {
+    padding: 12px;
+  }
 }
