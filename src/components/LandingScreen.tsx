@@ -36,7 +36,7 @@ const Swatches: React.FC<{
 }> = ({ label, options, value, onPick }) => (
   <div>
     <div className="parchment-label">{label}</div>
-    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
       {options.map((o) => (
         <button
           key={o.color}
@@ -84,12 +84,14 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
       <button
         type="button"
         className="px-wood landing-back"
+        aria-label="Back to title screen"
         onClick={() => {
           sfx.click();
           onBack();
         }}
       >
-        ← Back
+        <span className="landing-back-arrow" aria-hidden="true">◀</span>
+        Back
       </button>
 
       <div className="landing-content">
@@ -123,11 +125,11 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
             </section>
 
             {/* Customisation + mission */}
-            <section style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <div className="parchment-inset" style={{ display: 'grid', gap: 10 }}>
+            <section style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
+              <div className="parchment-inset" style={{ display: 'grid', gap: 20 }}>
                 <div>
                   <div className="parchment-label">Hair style</div>
-                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     {HAIR_STYLES.map((style) => (
                       <button
                         key={style}
@@ -143,7 +145,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
                     ))}
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
                   <Swatches
                     label="Skin"
                     options={SKIN_TONES}
@@ -157,7 +159,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
                     onPick={(c) => setAvatar((p) => ({ ...p, hairColor: c }))}
                   />
                 </div>
-                <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12 }}>
                   <Swatches
                     label="Tee"
                     options={SHIRT_COLORS}
@@ -180,7 +182,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
 
               <div className="parchment-inset">
                 <div className="parchment-heading">{evening ? 'TONIGHT' : 'TODAY'} IN BLOCK 260</div>
-                <p style={{ margin: 0, fontSize: 14, lineHeight: 1.45 }}>
+                <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6 }}>
                   Uncle Tan lost his <strong>EZ-Link card</strong> near the void deck, and something
                   feels off at <strong>Sunshine Minimart</strong>. Help your neighbours and practise
                   the <strong>S.H.I.E.L.D.</strong> way.
