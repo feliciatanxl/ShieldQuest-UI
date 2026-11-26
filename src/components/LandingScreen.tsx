@@ -501,18 +501,19 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
                 TONIGHT IN BLOCK 260
               </div>
               <p style={{ margin: '0 0 10px', fontSize: 14, lineHeight: 1.45, color: '#e5dfd5' }}>
-                Explore the HDB void deck, sheltered walkway, bus stop and{' '}
-                <strong style={{ color: '#f7e17c' }}>Sunshine Minimart</strong>. Help Uncle Tan
-                find his lost EZ-Link card, then face{' '}
-                <strong style={{ color: '#8ad8c8' }}>The Lookout Dilemma</strong> using your{' '}
-                <strong>S.H.I.E.L.D.</strong> instincts.
+                Explore <strong style={{ color: '#8ad8c8' }}>Blk 260 Shield View</strong>, the RC
+                notice board, stone Xiangqi table and{' '}
+                <strong style={{ color: '#f7e17c' }}>Sunshine Minimart</strong>—with{' '}
+                <strong style={{ color: '#9ec4ea' }}>Baycrest SkyDeck</strong> &amp;{' '}
+                <strong style={{ color: '#cfa7f2' }}>Lion City Wheel</strong> glowing across the
+                Singapore skyline.
               </p>
               <div
                 style={{
                   display: 'flex',
                   flexWrap: 'wrap',
                   gap: 6,
-                  fontSize: 12,
+                  fontSize: 11.5,
                   color: '#c4ccdc',
                 }}
               >
@@ -522,9 +523,10 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
                     padding: '3px 8px',
                     borderRadius: 5,
                     border: '1px solid #3f485e',
+                    color: '#f3c46b',
                   }}
                 >
-                  Click / Tap to Walk
+                  Blk 260 &amp; Sunshine Minimart
                 </span>
                 <span
                   style={{
@@ -534,7 +536,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
                     border: '1px solid #3f485e',
                   }}
                 >
-                  WASD / Arrows + Shift Run
+                  Baycrest SkyDeck
                 </span>
                 <span
                   style={{
@@ -544,7 +546,17 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
                     border: '1px solid #3f485e',
                   }}
                 >
-                  Privacy-first Play
+                  Durian Dome Arts
+                </span>
+                <span
+                  style={{
+                    background: '#272e3f',
+                    padding: '3px 8px',
+                    borderRadius: 5,
+                    border: '1px solid #3f485e',
+                  }}
+                >
+                  WASD / Tap to Walk
                 </span>
               </div>
             </div>

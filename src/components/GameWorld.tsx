@@ -408,7 +408,36 @@ export const GameWorld: React.FC<GameWorldProps> = ({
       return;
     }
 
-    // 2. Check click on Sunshine Minimart / Jun
+    // 2. Check click on Auntie Mei
+    const auntieX = 9.4 + Math.sin(simTimeRef.current * 0.34) * 1.6;
+    const auntieScreen = isoToScreen(auntieX, 8.6, 26);
+    if (Math.hypot(pt.cx - auntieScreen.x, pt.cy - auntieScreen.y) < 34) {
+      sfx.click();
+      showToast(
+        ezLinkReturned
+          ? 'Auntie Mei: "Steady lah! Remember S.H.I.E.L.D. inside Sunshine Minimart!"'
+          : 'Auntie Mei: "Aiya, Uncle Tan always drop his EZ-Link near the stone Xiangqi table!"'
+      );
+      return;
+    }
+
+    // 3. Check click on Bus Stop 26019 Pole
+    const busPoleScreen = isoToScreen(5.25, 9.95, 45);
+    if (Math.hypot(pt.cx - busPoleScreen.x, pt.cy - busPoleScreen.y) < 34) {
+      sfx.click();
+      showToast('Bus Stop 26019 — ShieldBus 88 toward Baycrest SkyDeck & Shiok Hawker Square.');
+      return;
+    }
+
+    // 4. Check click on Void Deck Stone Xiangqi Table / RC Notice Board
+    const tableScreen = isoToScreen(9.8, 3.0, 20);
+    if (Math.hypot(pt.cx - tableScreen.x, pt.cy - tableScreen.y) < 42) {
+      sfx.click();
+      showToast('Someone chope-d the stone Xiangqi table with a tissue packet! Look beside it!');
+      return;
+    }
+
+    // 5. Check click on Sunshine Minimart / Jun
     const minimartScreen = isoToScreen(17.2, 4.0, 45);
     if (Math.hypot(pt.cx - minimartScreen.x, pt.cy - minimartScreen.y) < 110) {
       sfx.click();

@@ -6,6 +6,7 @@ import {
   PANTS_COLORS,
   SHIELD_STYLES,
   SHIRT_COLORS,
+  SINGAPORE_WORLD_LANDMARKS,
   SKIN_TONES,
 } from '../data/gameData';
 import {
@@ -416,10 +417,100 @@ export const GameDrawers: React.FC<GameDrawersProps> = ({
 
         {/* MAP */}
         {activeDrawer === 'map' && (
-          <div style={{ display: 'grid', gap: 10 }}>
-            <p style={{ margin: 0, fontSize: 13.5, color: '#d0d7e3' }}>
-              Tap any neighbourhood landmark to walk straight there:
-            </p>
+          <div style={{ display: 'grid', gap: 12 }}>
+            {/* Illustrated Pixel Singapore Skyline & Heartland Map Header */}
+            <div
+              style={{
+                background: 'linear-gradient(180deg, #1d2744 0%, #2b3c60 68%, #2a473a 100%)',
+                border: '2px solid #231a16',
+                borderRadius: 8,
+                padding: '10px 12px',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: 8,
+                }}
+              >
+                <span
+                  style={{
+                    fontFamily: 'var(--font-display)',
+                    fontSize: 10.5,
+                    color: '#f3c46b',
+                  }}
+                >
+                  SINGAPORE HEARTLAND &amp; BAYCREST VISTA
+                </span>
+                <span style={{ fontSize: 11, color: '#9cd6c8' }}>Blk 260 Pilot Active</span>
+              </div>
+
+              {/* Mini Pixel SVG Skyline with Renamed Game Landmarks */}
+              <svg
+                viewBox="0 0 480 96"
+                width="100%"
+                height="92"
+                shapeRendering="crispEdges"
+                style={{ display: 'block', borderRadius: 6, background: '#1c243c' }}
+              >
+                {/* Bay water */}
+                <rect x="0" y="72" width="480" height="24" fill="#253b5e" />
+                <rect x="0" y="84" width="480" height="12" fill="#3b5e42" />
+                {/* GlowTree Grove */}
+                <rect x="34" y="42" width="3" height="30" fill="#7c56a8" />
+                <ellipse cx="35" cy="41" rx="11" ry="4" fill="#b68ce0" />
+                <rect x="58" y="48" width="3" height="24" fill="#7c56a8" />
+                <ellipse cx="59" cy="47" rx="9" ry="3.5" fill="#9c72c9" />
+                {/* Baycrest SkyDeck (MBS-inspired) */}
+                <rect x="108" y="22" width="11" height="50" fill="#4f6791" />
+                <rect x="125" y="22" width="11" height="50" fill="#4f6791" />
+                <rect x="142" y="22" width="11" height="50" fill="#4f6791" />
+                <polygon points="98,20 162,20 166,15 103,15" fill="#829dc9" />
+                <rect x="106" y="17" width="52" height="2" fill="#f5cf7b" />
+                {/* Lion City Wheel */}
+                <circle cx="204" cy="46" r="20" fill="none" stroke="#9ab4d6" strokeWidth="2" />
+                <line x1="194" y1="72" x2="204" y2="46" stroke="#6c82a3" strokeWidth="2" />
+                <line x1="214" y1="72" x2="204" y2="46" stroke="#6c82a3" strokeWidth="2" />
+                {/* Durian Dome Arts */}
+                <path d="M244 72 A11 11 0 0 1 266 72 Z" fill="#b5a78e" />
+                <path d="M268 72 A11 11 0 0 1 290 72 Z" fill="#b5a78e" />
+                {/* Blk 260 & Sunshine Minimart */}
+                <rect x="328" y="28" width="66" height="48" fill="#d8cfc0" />
+                <rect x="328" y="54" width="66" height="6" fill="#c97855" />
+                <rect x="364" y="60" width="28" height="8" fill="#f7e17c" />
+                <text x="334" y="42" fill="#3d7296" fontSize="9" fontFamily="monospace" fontWeight="bold">
+                  260
+                </text>
+                {/* Emerald Dragon Playground */}
+                <circle cx="432" cy="66" r="7" fill="#5da678" />
+                <rect x="438" y="62" width="16" height="8" fill="#d97a54" />
+                {/* Labels */}
+                <text x="12" y="12" fill="#cfa7f2" fontSize="8" fontFamily="sans-serif">
+                  GlowTree
+                </text>
+                <text x="96" y="11" fill="#f3c46b" fontSize="8" fontFamily="sans-serif" fontWeight="bold">
+                  Baycrest SkyDeck
+                </text>
+                <text x="182" y="20" fill="#a8c7eb" fontSize="8" fontFamily="sans-serif">
+                  Lion Wheel
+                </text>
+                <text x="238" y="55" fill="#e6d6b8" fontSize="8" fontFamily="sans-serif">
+                  Durian Dome
+                </text>
+                <text x="328" y="22" fill="#8de0cf" fontSize="8" fontFamily="sans-serif" fontWeight="bold">
+                  Blk 260 (You)
+                </text>
+                <text x="406" y="54" fill="#8be0a4" fontSize="8" fontFamily="sans-serif">
+                  Dragon Park
+                </text>
+              </svg>
+            </div>
+
+            <div style={{ fontSize: 12.5, color: '#f3c46b', fontWeight: 700 }}>
+              PLAYABLE BLK 260 LOCATIONS — TAP TO WALK:
+            </div>
             {MAP_LANDMARKS.map((loc) => (
               <div
                 key={loc.id}
@@ -427,7 +518,7 @@ export const GameDrawers: React.FC<GameDrawersProps> = ({
                   background: '#1b202b',
                   border: '2px solid #3c4356',
                   borderRadius: 8,
-                  padding: '10px 14px',
+                  padding: '9px 12px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
@@ -435,13 +526,13 @@ export const GameDrawers: React.FC<GameDrawersProps> = ({
                 }}
               >
                 <div>
-                  <div style={{ fontWeight: 700, color: loc.color, fontSize: 15 }}>{loc.name}</div>
-                  <div style={{ fontSize: 13, color: '#cfd6e3', marginTop: 2 }}>{loc.detail}</div>
+                  <div style={{ fontWeight: 700, color: loc.color, fontSize: 14 }}>{loc.name}</div>
+                  <div style={{ fontSize: 12.5, color: '#cfd6e3', marginTop: 2 }}>{loc.detail}</div>
                 </div>
                 <button
                   type="button"
                   className="pixel-action-btn"
-                  style={{ fontSize: 11, padding: '8px 12px', flexShrink: 0 }}
+                  style={{ fontSize: 11, padding: '7px 11px', flexShrink: 0 }}
                   onClick={() => {
                     sfx.click();
                     onWalkToLandmark(loc.gx, loc.gy);
@@ -452,6 +543,29 @@ export const GameDrawers: React.FC<GameDrawersProps> = ({
                 </button>
               </div>
             ))}
+
+            <div style={{ fontSize: 12.5, color: '#9cd6c8', fontWeight: 700, marginTop: 4 }}>
+              SINGAPORE GAME DISTRICTS &amp; SKYLINE LANDMARKS:
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 }}>
+              {SINGAPORE_WORLD_LANDMARKS.filter((l) => l.id !== 'blk260').map((sg) => (
+                <div
+                  key={sg.id}
+                  style={{
+                    background: '#181c26',
+                    border: '2px solid #32394a',
+                    borderRadius: 7,
+                    padding: '8px 10px',
+                  }}
+                >
+                  <div style={{ fontWeight: 700, color: sg.accent, fontSize: 13 }}>{sg.gameName}</div>
+                  <div style={{ fontSize: 11.5, color: '#9da7ba', marginTop: 1 }}>
+                    {sg.district} • {sg.status}
+                  </div>
+                  <div style={{ fontSize: 12, color: '#cfd6e3', marginTop: 3 }}>{sg.summary}</div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

@@ -122,15 +122,229 @@ function drawIsoBox(
   drawIsoPoly(ctx, [t00, t01, t11, t10], topColor, outline, lineWidth);
 }
 
-function drawGroundAndRoads(ctx: CanvasRenderingContext2D, isEvening: boolean) {
+function drawSingaporeSkylineVista(
+  ctx: CanvasRenderingContext2D,
+  isEvening: boolean,
+  time: number
+) {
+  const horizonY = 152;
+  const maxVistaX = 700;
+
+  // 1. Sky Gradient behind Block 260 park (x = 0 .. 700, y = 0 .. 152)
+  const skyGrad = ctx.createLinearGradient(0, 0, 0, horizonY);
+  if (isEvening) {
+    skyGrad.addColorStop(0, '#1e2744');
+    skyGrad.addColorStop(0.58, '#36446b');
+    skyGrad.addColorStop(1, '#7a596c');
+  } else {
+    skyGrad.addColorStop(0, '#72b0db');
+    skyGrad.addColorStop(0.65, '#add9ee');
+    skyGrad.addColorStop(1, '#f4dfb8');
+  }
+  ctx.fillStyle = skyGrad;
+  ctx.fillRect(0, 0, maxVistaX, horizonY);
+
+  // Subtle twinkling stars at 19:15 or fluffy pixel clouds at 17:30
+  if (isEvening) {
+    const stars = [
+      [285, 22], [328, 38], [392, 18], [468, 28], [545, 20], [608, 36], [648, 16],
+    ];
+    stars.forEach(([sx, sy], i) => {
+      const alpha = 0.45 + 0.45 * Math.sin(time * 2.2 + i * 1.4);
+      ctx.fillStyle = `rgba(255, 244, 196, ${alpha})`;
+      ctx.fillRect(sx, sy, 2, 2);
+    });
+  } else {
+    ctx.fillStyle = 'rgba(255, 252, 245, 0.72)';
+    [
+      [295, 32, 46, 12],
+      [480, 26, 54, 14],
+      [590, 42, 42, 11],
+    ].forEach(([cx, cy, w, h]) => {
+      ctx.fillRect(cx, cy, w, h);
+      ctx.fillRect(cx + 8, cy - 6, w - 16, 7);
+    });
+  }
+
+  // 2. Distant Heartland HDB Blocks Silhouette (far left only so right skyline breathes)
+  const distantHdbCol = isEvening ? '#2b3450' : '#8da9be';
+  const distantWindowCol = isEvening ? 'rgba(255, 214, 118, 0.65)' : 'rgba(225, 240, 250, 0.5)';
+  [
+    { x: 185, w: 42, h: 66 },
+    { x: 232, w: 38, h: 52 },
+    { x: 644, w: 34, h: 68 },
+  ].forEach((b) => {
+    ctx.fillStyle = distantHdbCol;
+    ctx.fillRect(b.x, horizonY - 12 - b.h, b.w, b.h);
+    ctx.fillStyle = distantWindowCol;
+    for (let wy = horizonY - 10 - b.h + 6; wy < horizonY - 20; wy += 9) {
+      for (let wx = b.x + 6; wx < b.x + b.w - 8; wx += 9) {
+        ctx.fillRect(wx, wy, 4, 4);
+      }
+    }
+  });
+
+  // 3. Baycrest SkyDeck Towers (Fictionalised MBS 3-tower + boat SkyPark!) at x = 335 .. 446
+  const mbsBaseY = horizonY - 12;
+  const towerXs = [350, 384, 418];
+  const towerCol = isEvening ? '#364566' : '#7b97b2';
+  const towerSide = isEvening ? '#27334d' : '#647f99';
+  const towerEdge = isEvening ? '#1b2236' : '#4a6278';
+
+  towerXs.forEach((tx) => {
+    ctx.fillStyle = towerCol;
+    ctx.strokeStyle = towerEdge;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(tx - 10, mbsBaseY);
+    ctx.lineTo(tx - 7, mbsBaseY - 94);
+    ctx.lineTo(tx + 8, mbsBaseY - 94);
+    ctx.lineTo(tx + 10, mbsBaseY);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = towerSide;
+    ctx.fillRect(tx + 2, mbsBaseY - 92, 5, 90);
+
+    ctx.fillStyle = isEvening ? 'rgba(255, 220, 130, 0.72)' : 'rgba(225, 242, 255, 0.55)';
+    for (let wy = mbsBaseY - 86; wy < mbsBaseY - 12; wy += 7) {
+      ctx.fillRect(tx - 6, wy, 4, 3);
+      ctx.fillRect(tx + 1, wy, 4, 3);
+    }
+  });
+
+  // Cantilevered boat-shaped SkyPark deck
+  ctx.fillStyle = isEvening ? '#53678f' : '#9bb3c9';
+  ctx.strokeStyle = towerEdge;
+  ctx.lineWidth = 1.6;
+  ctx.beginPath();
+  ctx.moveTo(328, mbsBaseY - 96);
+  ctx.lineTo(446, mbsBaseY - 96);
+  ctx.lineTo(454, mbsBaseY - 103);
+  ctx.lineTo(338, mbsBaseY - 103);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  if (isEvening) {
+    ctx.fillStyle = 'rgba(255, 214, 118, 0.75)';
+    ctx.fillRect(342, mbsBaseY - 100, 96, 2);
+  }
+
+  // 4. GlowTree Supertree Grove (placed cleanly between Baycrest SkyDeck & Lion Wheel!)
+  [
+    { x: 468, h: 62, w: 28 },
+    { x: 494, h: 48, w: 22 },
+  ].forEach((st) => {
+    const baseY = horizonY - 12;
+    ctx.strokeStyle = isEvening ? '#7d56a3' : '#52786a';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(st.x, baseY);
+    ctx.lineTo(st.x, baseY - st.h);
+    ctx.stroke();
+
+    ctx.fillStyle = isEvening ? '#b07ee0' : '#6ea88c';
+    ctx.strokeStyle = isEvening ? '#392854' : '#3a574f';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.ellipse(st.x, baseY - st.h, st.w / 2, 5.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    if (isEvening) {
+      ctx.fillStyle = 'rgba(182, 140, 224, 0.34)';
+      ctx.beginPath();
+      ctx.arc(st.x, baseY - st.h, st.w * 0.74, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  });
+
+  // 5. Lion City Observation Wheel (Flyer-inspired turning wheel at x = 546)
+  const wheelX = 546;
+  const wheelY = horizonY - 56;
+  const wheelR = 35;
+  ctx.strokeStyle = isEvening ? '#4c5b7d' : '#657c94';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.moveTo(wheelX - 16, horizonY - 12);
+  ctx.lineTo(wheelX, wheelY);
+  ctx.lineTo(wheelX + 16, horizonY - 12);
+  ctx.stroke();
+
+  ctx.strokeStyle = isEvening ? '#87a3cf' : '#c6d6e6';
+  ctx.lineWidth = 2.2;
+  ctx.beginPath();
+  ctx.arc(wheelX, wheelY, wheelR, 0, Math.PI * 2);
+  ctx.stroke();
+
+  const rot = time * 0.14;
+  for (let i = 0; i < 10; i++) {
+    const ang = rot + (i * Math.PI * 2) / 10;
+    const px = wheelX + Math.cos(ang) * wheelR;
+    const py = wheelY + Math.sin(ang) * wheelR;
+    ctx.strokeStyle = isEvening ? 'rgba(135, 163, 207, 0.4)' : 'rgba(255, 255, 255, 0.45)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(wheelX, wheelY);
+    ctx.lineTo(px, py);
+    ctx.stroke();
+
+    ctx.fillStyle = isEvening ? '#f5cf7b' : '#f2f6fa';
+    ctx.fillRect(px - 2, py - 2, 4, 4);
+  }
+
+  // 6. Durian Dome Arts (Esplanade-inspired twin spiky domes at x = 598 .. 636)
+  [602, 628].forEach((dx) => {
+    ctx.fillStyle = isEvening ? '#6f6b7a' : '#b8b2a6';
+    ctx.strokeStyle = isEvening ? '#272a3b' : '#5e5b54';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(dx, horizonY - 12, 16, Math.PI, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Subtle golden durian-spike lattice dots
+    ctx.fillStyle = isEvening ? 'rgba(255, 224, 145, 0.55)' : 'rgba(255, 250, 232, 0.65)';
+    for (let a = -2; a <= 2; a++) {
+      ctx.fillRect(dx + a * 5 - 1, horizonY - 22 + Math.abs(a) * 2, 2, 2);
+    }
+  });
+
+  // 7. Bay Water Reflection Strip & Park Hedge Border (y = 138 .. 156)
+  ctx.fillStyle = isEvening ? '#223354' : '#5d9bc2';
+  ctx.fillRect(0, horizonY - 14, maxVistaX, 16);
+  // Shimmering water reflections
+  ctx.fillStyle = isEvening ? 'rgba(255, 212, 120, 0.35)' : 'rgba(255, 255, 255, 0.38)';
+  for (let rx = 280; rx < 630; rx += 26) {
+    const wave = Math.sin(time * 2 + rx * 0.1) * 4;
+    ctx.fillRect(rx + wave, horizonY - 10, 12, 2);
+    ctx.fillRect(rx - wave + 4, horizonY - 5, 8, 2);
+  }
+
+  // Park grass hedge line separating waterfront bay from Block 260 lawn
+  ctx.fillStyle = isEvening ? '#314b31' : '#588242';
+  ctx.fillRect(0, horizonY, maxVistaX, 8);
+  ctx.fillStyle = INK;
+  ctx.fillRect(0, horizonY, maxVistaX, 2);
+}
+
+function drawGroundAndRoads(
+  ctx: CanvasRenderingContext2D,
+  isEvening: boolean,
+  time: number
+) {
   // Base grass / terrain fill
   ctx.fillStyle = isEvening ? '#425b3b' : '#6f9653';
   ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
 
-  // Textured grass patches on top-left & left garden bed
-  drawIsoQuad(ctx, -10, -4, 4.5, 11, 0, isEvening ? '#476340' : '#769f58');
-  // Slight lighter lawn streaks
-  for (let i = -3; i < 8; i += 2) {
+  // Singapore Bay Skyline Vista along upper-left park horizon!
+  drawSingaporeSkylineVista(ctx, isEvening, time);
+
+  // Textured grass patches on top-left & left garden bed (below horizonY)
+  for (let i = 1; i < 8; i += 2) {
     drawIsoQuad(
       ctx,
       -5,
@@ -485,26 +699,42 @@ function drawVoidDeckBackdropAndMinimart(
     }
   }
 
-  // Cork Community Notice Board on back wall (gx = 8.4 .. 11.9, gy = 2.06, z = 26 .. 82)
-  const nb1 = isoToScreen(8.4, 2.06, 26);
-  const nb2 = isoToScreen(11.9, 2.06, 26);
-  const nb3 = isoToScreen(11.9, 2.06, 82);
-  const nb4 = isoToScreen(8.4, 2.06, 82);
+  // Cork Community Notice Board on back wall (gx = 8.4 .. 11.9, gy = 2.06, z = 18 .. 70 — cleanly below overhang!)
+  const nb1 = isoToScreen(8.4, 2.06, 18);
+  const nb2 = isoToScreen(11.9, 2.06, 18);
+  const nb3 = isoToScreen(11.9, 2.06, 70);
+  const nb4 = isoToScreen(8.4, 2.06, 70);
   drawIsoPoly(ctx, [nb1, nb2, nb3, nb4], '#8f5b34', INK, 2);
-  const nc1 = isoToScreen(8.6, 2.07, 30);
-  const nc2 = isoToScreen(11.7, 2.07, 30);
-  const nc3 = isoToScreen(11.7, 2.07, 78);
-  const nc4 = isoToScreen(8.6, 2.07, 78);
+  const nc1 = isoToScreen(8.6, 2.07, 22);
+  const nc2 = isoToScreen(11.7, 2.07, 22);
+  const nc3 = isoToScreen(11.7, 2.07, 66);
+  const nc4 = isoToScreen(8.6, 2.07, 66);
   drawIsoPoly(ctx, [nc1, nc2, nc3, nc4], isEvening ? '#b88c52' : '#cf9f63', INK, 1.5);
 
+  // "RC NOTICE" tiny red/cream header plaque on top of Notice Board
+  const rcPos = isoToScreen(10.15, 2.08, 67);
+  ctx.save();
+  ctx.translate(rcPos.x, rcPos.y);
+  ctx.transform(0.89, 0.445, 0, 1, 0, 0);
+  ctx.fillStyle = '#c84b39';
+  ctx.fillRect(-26, -6, 52, 11);
+  ctx.strokeStyle = INK;
+  ctx.lineWidth = 1.2;
+  ctx.strokeRect(-26, -6, 52, 11);
+  ctx.fillStyle = '#fff5e0';
+  ctx.font = 'bold 7.5px "Silkscreen", monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('RC NOTICE', 0, 2);
+  ctx.restore();
+
   const flyers = [
-    { x1: 8.8, x2: 9.35, z1: 56, z2: 74, col: '#f2e8cf' },
-    { x1: 9.55, x2: 10.15, z1: 54, z2: 73, col: '#95d5b2' },
-    { x1: 10.35, x2: 10.95, z1: 55, z2: 74, col: '#f7d67e' },
-    { x1: 11.1, x2: 11.55, z1: 53, z2: 72, col: '#f4a28c' },
-    { x1: 9.0, x2: 9.65, z1: 34, z2: 50, col: '#ffd166' },
-    { x1: 9.85, x2: 10.5, z1: 35, z2: 49, col: '#a8dadc' },
-    { x1: 10.7, x2: 11.35, z1: 34, z2: 49, col: '#f4efe6' },
+    { x1: 8.8, x2: 9.35, z1: 46, z2: 62, col: '#f2e8cf' },
+    { x1: 9.55, x2: 10.15, z1: 44, z2: 61, col: '#95d5b2' },
+    { x1: 10.35, x2: 10.95, z1: 45, z2: 62, col: '#f7d67e' },
+    { x1: 11.1, x2: 11.55, z1: 43, z2: 60, col: '#f4a28c' },
+    { x1: 9.0, x2: 9.65, z1: 26, z2: 40, col: '#ffd166' },
+    { x1: 9.85, x2: 10.5, z1: 27, z2: 39, col: '#a8dadc' },
+    { x1: 10.7, x2: 11.35, z1: 26, z2: 40, col: '#f4efe6' },
   ];
   flyers.forEach((f) => {
     const f1 = isoToScreen(f.x1, 2.09, f.z1);
@@ -734,16 +964,41 @@ function drawHDBUpperBuilding(
   drawCorridorBay(12.0, 15.4, 230, 326, isEvening ? '#a35e45' : '#cf7c59');
   drawCorridorBay(16.2, 19.6, 230, 326, isEvening ? '#46688a' : '#5c87b5');
 
-  drawCorridorBay(6.6, 10.0, 364, 458, isEvening ? '#9b5a42' : '#c97855');
-  drawCorridorBay(11.0, 14.4, 364, 458, isEvening ? '#46688a' : '#5c87b5');
-  drawCorridorBay(15.4, 18.8, 364, 458, isEvening ? '#9b5a42' : '#c97855');
+  drawCorridorBay(8.0, 11.4, 364, 458, isEvening ? '#9b5a42' : '#c97855');
+  drawCorridorBay(12.2, 15.6, 364, 458, isEvening ? '#46688a' : '#5c87b5');
+  drawCorridorBay(16.4, 19.8, 364, 458, isEvening ? '#9b5a42' : '#c97855');
 
-  // Crisp end-wing staircase window on the left side of the front facade (gx = 6.2..7.3, z = 240..305)
+  // Crisp end-wing staircase window + iconic Singapore HDB Block Number "260" mural!
   const ew1 = isoToScreen(6.25, 4.83, 240);
   const ew2 = isoToScreen(7.35, 4.83, 240);
   const ew3 = isoToScreen(7.35, 4.83, 305);
   const ew4 = isoToScreen(6.25, 4.83, 305);
   drawIsoPoly(ctx, [ew1, ew2, ew3, ew4], isEvening ? '#678099' : '#8aa2b8', INK, 2);
+
+  // Iconic Bold HDB Block Numeral "260" centered cleanly on the 3rd-floor left cream wall!
+  const blkPos = isoToScreen(6.92, 4.85, 396);
+  ctx.save();
+  ctx.translate(blkPos.x, blkPos.y);
+  ctx.transform(0.89, 0.445, 0, 1, 0, 0);
+  ctx.fillStyle = isEvening ? '#528cb3' : '#356a8f';
+  ctx.font = 'bold 21px "Silkscreen", monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('260', 0, 0);
+  ctx.restore();
+
+  // Air-con compressor ledges tucked neatly under upper balcony bays (classic SG HDB!)
+  [7.8, 12.0, 16.2].forEach((bx) => {
+    const ac1 = isoToScreen(bx + 0.15, 4.86, 224);
+    const ac2 = isoToScreen(bx + 0.72, 4.86, 224);
+    const ac3 = isoToScreen(bx + 0.72, 4.86, 242);
+    const ac4 = isoToScreen(bx + 0.15, 4.86, 242);
+    drawIsoPoly(ctx, [ac1, ac2, ac3, ac4], isEvening ? '#98a0a8' : '#d2d7de', INK, 1.4);
+    ctx.fillStyle = '#39404a';
+    ctx.beginPath();
+    ctx.arc((ac1.x + ac2.x) / 2, (ac1.y + ac3.y) / 2, 4, 0, Math.PI * 2);
+    ctx.fill();
+  });
 
   // SUNSHINE MINIMART YELLOW SIGNBOARD (cleanly under HDB floor beam z = 148 .. 190)
   const s1 = isoToScreen(14.3, 4.88, 146);
@@ -1212,9 +1467,75 @@ function drawStoneTableAndStools(ctx: CanvasRenderingContext2D, gx: number, gy: 
   drawRoundPiece(gx + stoolOffsets[0].dx, gy + stoolOffsets[0].dy, 12, 7, 14);
   // Center table
   drawRoundPiece(gx, gy, 30, 17, 24);
+  // Classic Void Deck Stone Xiangqi (Chess) grid painted on table top!
+  const tc = isoToScreen(gx, gy, 24);
+  ctx.strokeStyle = '#9c4338';
+  ctx.lineWidth = 1.1;
+  ctx.strokeRect(tc.x - 10, tc.y - 5, 20, 10);
+  ctx.beginPath();
+  ctx.moveTo(tc.x - 10, tc.y);
+  ctx.lineTo(tc.x + 10, tc.y);
+  ctx.moveTo(tc.x, tc.y - 5);
+  ctx.lineTo(tc.x, tc.y + 5);
+  ctx.stroke();
+
+  // Tiny "Chope!" white tissue packet resting on the table edge!
+  ctx.fillStyle = '#f8f5ef';
+  ctx.strokeStyle = INK;
+  ctx.lineWidth = 1;
+  ctx.fillRect(tc.x + 11, tc.y - 2, 7, 4);
+  ctx.strokeRect(tc.x + 11, tc.y - 2, 7, 4);
+
   // Front stools
   drawRoundPiece(gx + stoolOffsets[1].dx, gy + stoolOffsets[1].dy, 12, 7, 14);
   drawRoundPiece(gx + stoolOffsets[3].dx, gy + stoolOffsets[3].dy, 12, 7, 14);
+}
+
+function drawBusStopPole(ctx: CanvasRenderingContext2D, gx: number, gy: number, isEvening: boolean) {
+  const base = isoToScreen(gx, gy, 0);
+  // Metal pole
+  ctx.fillStyle = isEvening ? '#5b6370' : '#858d99';
+  ctx.strokeStyle = INK;
+  ctx.lineWidth = 1.8;
+  ctx.fillRect(base.x - 2.5, base.y - 76, 5, 76);
+  ctx.strokeRect(base.x - 2.5, base.y - 76, 5, 76);
+
+  // Singapore-style Bus Stop Orange/Cream Sign Headplate ("BUS 88")
+  ctx.fillStyle = '#e88e35';
+  ctx.strokeStyle = INK;
+  ctx.lineWidth = 1.8;
+  ctx.beginPath();
+  ctx.roundRect(base.x - 16, base.y - 102, 32, 26, 4);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = '#fff7e6';
+  ctx.fillRect(base.x - 13, base.y - 98, 26, 18);
+  ctx.fillStyle = '#231a16';
+  ctx.font = 'bold 8px "Silkscreen", monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('BUS', base.x, base.y - 90);
+  ctx.fillStyle = '#b53a35';
+  ctx.font = 'bold 8.5px "Silkscreen", monospace';
+  ctx.fillText('88', base.x, base.y - 82);
+}
+
+function drawBlkSignPlaque(ctx: CanvasRenderingContext2D, gx: number, gy: number, z: number) {
+  const p1 = isoToScreen(gx - 0.24, gy + 0.34, z);
+  const p2 = isoToScreen(gx + 0.24, gy + 0.34, z);
+  const p3 = { x: p2.x, y: p2.y - 20 };
+  const p4 = { x: p1.x, y: p1.y - 20 };
+  drawIsoPoly(ctx, [p1, p2, p3, p4], '#2c5a82', INK, 1.5);
+  const midX = (p1.x + p3.x) / 2;
+  const midY = (p1.y + p3.y) / 2 + 2;
+  ctx.save();
+  ctx.translate(midX, midY);
+  ctx.transform(0.89, 0.445, 0, 1, 0, 0);
+  ctx.fillStyle = '#f8f5ef';
+  ctx.font = 'bold 7.5px "Silkscreen", monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('BLK 260', 0, 1);
+  ctx.restore();
 }
 
 function drawCommunityCat(
@@ -1649,7 +1970,7 @@ export function renderIsometricWorld(
   ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
 
   // 1. Ground, Roads, Tactile Paving, Void Deck & Minimart Flooring
-  drawGroundAndRoads(ctx, isEvening);
+  drawGroundAndRoads(ctx, isEvening, state.time);
 
   // 2. Sheltered Walkway BEFORE HDB Upper Building so HDB facade cleanly overlaps behind!
   drawShelteredWalkway(ctx, isEvening, state.time);
@@ -1690,7 +2011,10 @@ export function renderIsometricWorld(
   // Mosaic HDB Pillars (tall height = 198 to meet HDB beam!)
   drawables.push({
     depth: 6.0 + 4.8,
-    draw: () => drawMosaicPillar(ctx, 6.0, 4.8, 198, isEvening),
+    draw: () => {
+      drawMosaicPillar(ctx, 6.0, 4.8, 198, isEvening);
+      drawBlkSignPlaque(ctx, 6.0, 4.82, 74);
+    },
   });
   drawables.push({
     depth: 14.2 + 4.8,
@@ -1705,6 +2029,12 @@ export function renderIsometricWorld(
       drawMosaicPillar(ctx, 20.8, 4.8, 198, isEvening);
       drawNoSmokingSign(ctx, 20.8, 4.82, 58);
     },
+  });
+
+  // Singapore Bus Stop Pole (Stop 26019) beside the yellow tactile tiles
+  drawables.push({
+    depth: 5.25 + 9.95,
+    draw: () => drawBusStopPole(ctx, 5.25, 9.95, isEvening),
   });
 
   // Green Recycling Bin

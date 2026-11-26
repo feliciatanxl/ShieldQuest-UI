@@ -150,18 +150,18 @@ export const INITIAL_SHIELD_SKILLS: Record<ShieldLetter, ShieldSkillState> = {
 export const MAP_LANDMARKS = [
   {
     id: 'busstop',
-    name: 'Bus Stop & Sheltered Walkway',
-    detail: 'Uncle Tan is searching for his missing EZ-Link card near the green bin.',
+    name: 'Blk 260 Bus Stop (Stop 26019)',
+    detail: 'ShieldBus 88 sheltered walkway — Uncle Tan is looking for his missing EZ-Link card.',
     gx: 5.8,
     gy: 7.4,
     color: '#6bb09e',
   },
   {
     id: 'voiddeck',
-    name: 'Block 260 Void Deck',
-    detail: 'Letterboxes, community notice board, round stone chess table & friendly cats.',
+    name: 'Blk 260 Shield View Void Deck',
+    detail: 'RC Notice Board, silver letterboxes, chope-d Xiangqi stone table & community cats.',
     gx: 9.8,
-    gy: 5.7,
+    gy: 4.5,
     color: '#d89b52',
   },
   {
@@ -174,10 +174,77 @@ export const MAP_LANDMARKS = [
   },
   {
     id: 'footpath',
-    name: 'Heartland Footpath',
-    detail: 'Say hello to Auntie Mei on her morning/evening marketing walk.',
-    gx: 6.4,
-    gy: 9.6,
+    name: 'Heartland Linkway Footpath',
+    detail: 'Say hello to Auntie Mei walking past Blk 260 on her marketing trip.',
+    gx: 8.8,
+    gy: 8.6,
     color: '#7da1c4',
+  },
+];
+
+export interface SingaporeLandmarkMeta {
+  id: string;
+  gameName: string;
+  inspiredBy: string;
+  district: string;
+  status: 'Open Pilot' | 'Skyline Vista' | 'Future District';
+  accent: string;
+  summary: string;
+}
+
+export const SINGAPORE_WORLD_LANDMARKS: SingaporeLandmarkMeta[] = [
+  {
+    id: 'blk260',
+    gameName: 'Blk 260 Shield View & Sunshine Minimart',
+    inspiredBy: 'Singapore HDB Heartland Void Deck',
+    district: 'Heartland Pilot District',
+    status: 'Open Pilot',
+    accent: '#f3c46b',
+    summary: 'Active playable zone: Sheltered walkway, RC notice board, stone Xiangqi table & shop-theft pilot.',
+  },
+  {
+    id: 'baycrest',
+    gameName: 'Baycrest SkyDeck Towers',
+    inspiredBy: 'Marina Bay Skyline (MBS-style)',
+    district: 'Baycrest Waterfront',
+    status: 'Skyline Vista',
+    accent: '#76b9d0',
+    summary: 'Three iconic waterfront towers crowned by a boat-shaped skybridge visible across the bay.',
+  },
+  {
+    id: 'lionwheel',
+    gameName: 'Lion City Observation Wheel',
+    inspiredBy: 'Giant Waterfront Ferris Wheel',
+    district: 'Baycrest Waterfront',
+    status: 'Skyline Vista',
+    accent: '#e8a85c',
+    summary: 'Slowly turning waterfront wheel overlooking the ShieldQuest heartland promenade.',
+  },
+  {
+    id: 'glowtree',
+    gameName: 'GlowTree Supertree Grove',
+    inspiredBy: 'Botanical Supertree Gardens',
+    district: 'Emerald Bay Gardens',
+    status: 'Skyline Vista',
+    accent: '#b68ce0',
+    summary: 'Glowing twilight bio-canopies visible past the Blk 260 park horizon.',
+  },
+  {
+    id: 'duriandome',
+    gameName: 'Durian Dome Arts',
+    inspiredBy: 'Spiky Twin Waterfront Theatres',
+    district: 'Baycrest Cultural Link',
+    status: 'Skyline Vista',
+    accent: '#d8b76e',
+    summary: 'Twin spiky-roofed concert domes along the waterfront horizon.',
+  },
+  {
+    id: 'dragonpark',
+    gameName: 'Emerald Dragon Playground & Shiok Hawker',
+    inspiredBy: 'Heritage Heartland Playground & Hawker',
+    district: 'Heartland East',
+    status: 'Future District',
+    accent: '#6dc48c',
+    summary: 'Planned Stage 2 community zone for e-commerce & peer-safety scenarios.',
   },
 ];
