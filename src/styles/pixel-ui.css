@@ -475,7 +475,7 @@ button:focus-visible {
 .landing-art {
   position: fixed;
   inset: -4%;
-  background: url('/assets/scenes/town-overview.png') center / cover no-repeat;
+  background: url('/assets/scenes/town-overview.png?v=sunhub2') center / cover no-repeat;
   image-rendering: pixelated;
   animation: landingPan 40s ease-in-out infinite alternate;
 }
