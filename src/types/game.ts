@@ -56,7 +56,7 @@ export interface ShieldSkillState {
 
 /** A character placed in the street scene. x/y are feet position in 1280x720 canvas pixels. */
 export interface NPCEntity {
-  id: 'uncle' | 'auntie' | 'jun' | 'cashier' | 'student';
+  id: 'uncle' | 'auntie' | 'cashier' | 'student';
   name: string;
   role: string;
   x: number;

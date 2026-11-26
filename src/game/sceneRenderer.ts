@@ -21,6 +21,28 @@ export const ITEM_POS = {
   chope: { x: 965, y: 470 },
   kopi: { x: 480, y: 330 },
 };
+/**
+ * Props painted into the background that characters can stand behind. The outline is
+ * traced from the art; anyone whose feet are above `frontY` is drawn behind the prop.
+ */
+const FOREGROUND_PROPS: { outline: Pt[]; frontY: number }[] = [
+  {
+    // Minimart snack rack (bottom right)
+    outline: [
+      { x: 1203, y: 600 },
+      { x: 1212, y: 574 },
+      { x: 1236, y: 558 },
+      { x: 1250, y: 548 },
+      { x: 1280, y: 546 },
+      { x: 1280, y: 700 },
+      { x: 1250, y: 680 },
+      { x: 1220, y: 668 },
+      { x: 1203, y: 668 },
+    ],
+    frontY: 660,
+  },
+];
+
 /** Walking into this box (the Sunshine Minimart shop front) opens the Lookout Dilemma. */
 export const MINIMART_ZONE = { x0: 1050, y0: 590, x1: 1210, y1: 650 };
 
@@ -158,6 +180,26 @@ export function renderScene(ctx: CanvasRenderingContext2D, s: RenderState) {
       drawCharacter(ctx, sheet, p.x, p.y, p.dir, p.isMoving ? p.walkPhase : null);
     },
   });
+
+  // Painted props that stand in front of characters: redraw their shape from the
+  // background, sorted by their front edge like any other actor.
+  if (bg) {
+    for (const fg of FOREGROUND_PROPS) {
+      actors.push({
+        y: fg.frontY,
+        draw: () => {
+          ctx.save();
+          ctx.filter = 'none';
+          ctx.beginPath();
+          fg.outline.forEach((pt, i) => (i ? ctx.lineTo(pt.x, pt.y) : ctx.moveTo(pt.x, pt.y)));
+          ctx.closePath();
+          ctx.clip();
+          ctx.drawImage(bg, 0, 0, bg.width * ART_SCALE, bg.height * ART_SCALE);
+          ctx.restore();
+        },
+      });
+    }
+  }
 
   // Dim sprites to sit in the night painting's lighting.
   if (night) ctx.filter = 'brightness(0.82) saturate(0.9)';

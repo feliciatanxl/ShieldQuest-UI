@@ -66,9 +66,29 @@ function auntieAt(t: number): NPCEntity {
 const STATIC_NPCS: NPCEntity[] = [
   { id: 'uncle', name: 'Uncle Tan', role: 'Heartland Elder', ...UNCLE_POS, dir: 'south-west' },
   { id: 'student', name: 'Wei Ming (Student)', role: 'Secondary Student', x: 335, y: 372, dir: 'south-east' },
-  { id: 'cashier', name: 'Mr Lim (Cashier)', role: 'Sunshine Minimart Staff', x: 1238, y: 598, dir: 'south-west' },
-  { id: 'jun', name: 'Jun (Friend)', role: 'Classmate', x: 1160, y: 618, dir: 'south-west' },
+  { id: 'cashier', name: 'Mr Lim (Cashier)', role: 'Sunshine Minimart Staff', x: 1160, y: 618, dir: 'south-west' },
 ];
+
+/** Feet footprints (canvas px ellipses) the player cannot walk into. */
+const NPC_FOOT = { rx: 40, ry: 30 };
+const ITEM_FOOT = { rx: 22, ry: 12 };
+type Solid = { c: Pt; f: { rx: number; ry: number } };
+
+/** < 1 means (x, y) is inside the footprint. */
+function footDist(x: number, y: number, { c, f }: Solid) {
+  return ((x - c.x) / f.rx) ** 2 + ((y - c.y) / f.ry) ** 2;
+}
+
+/**
+ * Can the player step from (cx, cy) to (nx, ny)? Moving out of a footprint is always
+ * allowed, so a saved position that overlaps someone never traps the player.
+ */
+function clearOfSolids(nx: number, ny: number, cx: number, cy: number, solids: Solid[]) {
+  return solids.every((o) => {
+    const dn = footDist(nx, ny, o);
+    return dn >= 1 || dn > footDist(cx, cy, o);
+  });
+}
 
 /** Hit box for clicking a character: roughly the 2x sprite's body. */
 function hitsCharacter(pt: Pt, c: Pt) {
@@ -121,6 +141,7 @@ export const GameWorld: React.FC<GameWorldProps> = ({
       : { npcId: 'uncle', text: 'Eh boy, did you see my bus card?', icon: 'ezlink' }
   );
   const simTimeRef = useRef(0);
+  const auntieTimeRef = useRef(0);
   const cameraRef = useRef({ x: 0.5, y: 0.5, ready: false, view: [0, CANVAS_W] as [number, number] });
   const minimartCooldownRef = useRef(-10);
 
@@ -251,6 +272,24 @@ export const GameWorld: React.FC<GameWorldProps> = ({
       const t = simTimeRef.current;
 
       const p = playerRef.current;
+      const sync = stateSyncRef.current;
+
+      // Auntie Mei waits instead of walking into the player.
+      const auntieNext = auntieAt(auntieTimeRef.current + dt);
+      const auntieFoot = { c: auntieNext, f: NPC_FOOT };
+      const auntieNow = { c: auntieAt(auntieTimeRef.current), f: NPC_FOOT };
+      const auntieBlocked = footDist(p.x, p.y, auntieFoot) < 1.2 && footDist(p.x, p.y, auntieFoot) < footDist(p.x, p.y, auntieNow);
+      if (!auntieBlocked) auntieTimeRef.current += dt;
+      const auntie = { ...auntieAt(auntieTimeRef.current), walking: !auntieBlocked };
+      const npcs = [...STATIC_NPCS, auntie];
+
+      const solids: Solid[] = npcs.map((n) => ({ c: n, f: NPC_FOOT }));
+      if (!sync.ezLinkPickedUp) solids.push({ c: ITEM_POS.ezlink, f: ITEM_FOOT });
+      if (!sync.kopiPickedUp) solids.push({ c: ITEM_POS.kopi, f: ITEM_FOOT });
+      if (!sync.chopePickedUp) solids.push({ c: ITEM_POS.chope, f: ITEM_FOOT });
+      const canStand = (nx: number, ny: number) =>
+        isWalkable(nx, ny) && clearOfSolids(nx, ny, p.x, p.y, solids);
+
       const keys = keysPressed.current;
       const running = keys.has('shift');
       const speed = running ? RUN_SPEED : WALK_SPEED;
@@ -279,14 +318,21 @@ export const GameWorld: React.FC<GameWorldProps> = ({
         p.walkPhase += dt * (running ? 14 : 10);
         p.dir = directionFor(dx, dy);
 
-        // Blocked? Steer up to 90° either side so we slide around pillars and tables.
-        const step = [0, 0.5, -0.5, 1, -1, 1.5, -1.5]
-          .map((turn) => {
-            const c = Math.cos(turn);
-            const s = Math.sin(turn);
-            return { x: mx * c - my * s, y: mx * s + my * c };
-          })
-          .find((v) => isWalkable(p.x + v.x, p.y + v.y));
+        // Walking up to a person or item you clicked: stop once you bump into it.
+        const bumped = !clearOfSolids(p.x + mx, p.y + my, p.x, p.y, solids);
+        const target = p.target;
+        const nearTarget = !!target && solids.some((o) => footDist(target.x, target.y, o) < 2.5);
+        // Blocked? Steer up to 90° either side so we slide around pillars, tables and people.
+        const step =
+          bumped && nearTarget
+            ? undefined
+            : [0, 0.5, -0.5, 1, -1, 1.5, -1.5]
+                .map((turn) => {
+                  const c = Math.cos(turn);
+                  const s = Math.sin(turn);
+                  return { x: mx * c - my * s, y: mx * s + my * c };
+                })
+                .find((v) => canStand(p.x + v.x, p.y + v.y));
         if (step) {
           p.x += step.x;
           p.y += step.y;
@@ -299,7 +345,6 @@ export const GameWorld: React.FC<GameWorldProps> = ({
       }
 
       const near = (q: Pt, r: number) => Math.hypot(p.x - q.x, p.y - q.y) < r;
-      const sync = stateSyncRef.current;
       if (!sync.ezLinkPickedUp && near(ITEM_POS.ezlink, 44)) pickupEzLink();
       if (!sync.kopiPickedUp && near(ITEM_POS.kopi, 40)) pickupSideItem('kopi', 'Kopi-O Dabao Packet');
       if (!sync.chopePickedUp && near(ITEM_POS.chope, 40)) {
@@ -352,7 +397,7 @@ export const GameWorld: React.FC<GameWorldProps> = ({
           time: t,
           timeOfDay: sync.timeOfDay,
           player: { x: p.x, y: p.y, dir: p.dir, isMoving: p.isMoving, walkPhase: p.walkPhase, avatar: sync.avatar },
-          npcs: [...STATIC_NPCS, auntieAt(t)],
+          npcs,
           items,
           hoveredTarget: hoveredTargetRef.current,
           speech: speechBubbleRef.current,
@@ -413,7 +458,7 @@ export const GameWorld: React.FC<GameWorldProps> = ({
       return;
     }
 
-    if (hitsCharacter(pt, auntieAt(simTimeRef.current))) {
+    if (hitsCharacter(pt, auntieAt(auntieTimeRef.current))) {
       sfx.click();
       showToast(
         ezLinkReturned
@@ -430,9 +475,9 @@ export const GameWorld: React.FC<GameWorldProps> = ({
       return;
     }
 
-    // Jun, Mr Lim or the shop front open the anchor mission
-    const shopPeople = STATIC_NPCS.filter((n) => n.id === 'jun' || n.id === 'cashier');
-    if (shopPeople.some((n) => hitsCharacter(pt, n)) || Math.hypot(pt.x - 1170, pt.y - 400) < 110) {
+    // Mr Lim or the shop front open the anchor mission
+    const cashier = STATIC_NPCS.find((n) => n.id === 'cashier')!;
+    if (hitsCharacter(pt, cashier) || Math.hypot(pt.x - 1170, pt.y - 400) < 110) {
       sfx.click();
       setShowLookoutModal(true);
       return;
@@ -463,7 +508,7 @@ export const GameWorld: React.FC<GameWorldProps> = ({
     const pt = getCanvasPoint(e.clientX, e.clientY);
     if (!pt) return;
     const hovered =
-      [...STATIC_NPCS, auntieAt(simTimeRef.current)].find((n) => hitsCharacter(pt, n))?.id ?? null;
+      [...STATIC_NPCS, auntieAt(auntieTimeRef.current)].find((n) => hitsCharacter(pt, n))?.id ?? null;
     hoveredTargetRef.current = hovered;
     setCursor(hovered ? 'pointer' : 'default');
   };
