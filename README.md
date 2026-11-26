@@ -81,10 +81,12 @@ Designed for uncluttered exploration across desktop and mobile viewports:
 To keep the world playful and safe for educational use, real-world Singapore landmarks are represented with original **in-game fictionalised names**, alongside authentic heartland architecture:
 
 ### Playable Heartland — Blk 260 Shield View
-- **HDB Block 260 Facade:** Multi-storey cream, terracotta, and slate-blue block featuring the **`260`** wall stencil, **`BLK 260`** pillar plaque, open-air corridors, **bamboo laundry poles**, exterior **air-con compressor units**, and warm evening window lighting.
-- **Void Deck & Sheltered Walkway:** Signature mosaic-tiled pillars, stainless steel letterbox bank, **`RC NOTICE`** cork noticeboard with flyers, **stone Xiangqi (chess) table** with stools and a **"chope" tissue packet**, green recycling bin, community cats (grey tabby & ginger), and curved sheltered walkway with fairy lights.
-- **Streetscape & Bus Stop (`Stop 26019` — `BUS 88`):** Asphalt bus bay with yellow road markings, pedestrian metal railing, storm drain grate, yellow tactile paving, and heritage streetlamps.
-- **Sunshine Minimart:** Open cutaway sundry shop with yellow signboard, No Smoking plaques, stacked blue/green drink crates, illuminated beverage chiller fridge, snack shelves, and `SNACKS` rack.
+- **Elevated MRT Viaduct & Shield Line Train:** Diagonal concrete viaduct with an animated 3-car white/red-striped MRT train running above the park & skyline.
+- **Kopi Corner, Sengkang Satay & Park Fitness Corner:** Open-air hawker stalls with illuminated `KOPI` and `SATAY` fascia signs, Kopi Uncle, seated heartland diners, drink vending machine, fairy-lit linkway, and an HDB outdoor Fitness Corner (pull-up bars, stepper, wooden bench).
+- **HDB Block 260 Facade:** Multi-storey cream, terracotta, and slate-blue block featuring exposed grey vertical riser pipes, the **`260`** wall stencil, **`BLK 260`** pillar plaque, corridor window grilles, **bamboo laundry poles**, exterior **air-con compressor units**, and warm evening window lighting.
+- **Void Deck & Sheltered Walkway:** Signature mosaic-tiled pillars, stainless steel letterbox bank with parcel box, **`RC NOTICE`** cork noticeboard with flyers, **stone Xiangqi (chess) table** with stools and a **"chope" tissue packet**, green recycling bins, community cats (grey tabby & ginger), and curved sheltered walkway with fairy lights.
+- **Left-Hand Streetscape & Transit (`Stop 26019` — `ShieldBus 88`):** Asphalt road with white zebra crossing, yellow dashed `BUS` bay with parked **ShieldBus 88**, cruising **Micro EV**, pedestrian metal railing, storm drain grate, yellow tactile paving, and heritage streetlamps.
+- **Sunshine Minimart & Realistic SG Characters/Items:** Open cutaway sundry shop with yellow signboard, No Smoking plaques, drink crates, illuminated beverage chiller fridge, snack shelves, and `SNACKS` rack — populated by **Uncle Tan**, **Auntie Mei** pushing her silver **FairMart shopping trolley**, **Kopi Uncle**, **Jun**, and collectible SG items (**SimplyGo EZ-Link Card**, **Pocket Tissue ("Chope" Pack)**, **Kopi-O Dabao Packet**, **Field Observation Pad**, **Sunshine Minimart Receipt**).
 
 ### Fictionalised Singapore Bay Skyline & Districts
 Visible along the upper-left park horizon and in the interactive **Map** drawer:

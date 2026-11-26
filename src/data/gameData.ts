@@ -25,18 +25,18 @@ export const HAIR_COLORS = [
 ];
 
 export const SHIRT_COLORS = [
-  { label: 'Sand Tee', color: '#e2c99d' },
-  { label: 'Kopitiam Mint', color: '#6bb09e' },
-  { label: 'HDB Coral', color: '#d8705e' },
-  { label: 'Sky Blue', color: '#6594c0' },
-  { label: 'Amber Gold', color: '#e0a94f' },
+  { label: 'Sand Oversized Tee', color: '#e2c99d' },
+  { label: 'School PE Mint', color: '#6bb09e' },
+  { label: 'Heartland Red Polo', color: '#d8705e' },
+  { label: 'Poly Navy Tee', color: '#4d739e' },
+  { label: 'Pagoda White Tee', color: '#ece9e1' },
 ];
 
 export const PANTS_COLORS = [
-  { label: 'Denim Blue', color: '#466a8f' },
-  { label: 'Khaki', color: '#9c8663' },
-  { label: 'Charcoal', color: '#3b4252' },
-  { label: 'Olive', color: '#5b7252' },
+  { label: 'School Bermudas', color: '#466a8f' },
+  { label: 'Khaki Shorts', color: '#9c8663' },
+  { label: 'Dark Chinos', color: '#3b4252' },
+  { label: 'Olive Cargo', color: '#5b7252' },
 ];
 
 export const SHIELD_STYLES: {
@@ -53,26 +53,42 @@ export const SHIELD_STYLES: {
 export const INITIAL_INVENTORY: InventoryItem[] = [
   {
     id: 'ezlink',
-    name: "Uncle's EZ-Link Card",
+    name: "Uncle's SimplyGo EZ-Link Card",
     description:
-      'A teal-green SimplyGo EZ-Link bus card dropped near the void deck stone table.',
+      'Teal contactless Singapore bus/MRT fare card dropped near the Blk 260 void-deck stone Xiangqi table.',
     icon: 'ezlink',
     collected: false,
   },
   {
-    id: 'notes',
-    name: 'Field Observation Pad',
+    id: 'chope',
+    name: 'Pocket Tissue ("Chope" Pack)',
     description:
-      'Records objective, factual clues spotted around Block 260 & Sunshine Minimart without jumping to conclusions.',
+      'Classic Singapore heartland pocket tissue pack used to chope seats at Kopi Corner or the void deck.',
+    icon: 'chope',
+    collected: false,
+  },
+  {
+    id: 'kopi',
+    name: 'Kopi-O Dabao Packet',
+    description:
+      'Hot Kopi-O Kosong in a clear plastic takeaway bag tied with a red raffia string from Kopi Corner.',
+    icon: 'kopi',
+    collected: false,
+  },
+  {
+    id: 'notes',
+    name: 'S.H.I.E.L.D. Field Observation Pad',
+    description:
+      'Records strictly verified observations around Blk 260 & Sunshine Minimart without jumping to assumptions.',
     icon: 'notes',
     collected: true,
     clueFact: true,
   },
   {
     id: 'receipt',
-    name: 'Minimart Notice',
+    name: 'Sunshine Minimart Receipt',
     description:
-      'Sunshine Minimart community poster: "Think before you act — S.H.I.E.L.D. keeps our neighbourhood safe."',
+      'Itemised paper receipt showing date, time, and GST breakdown — key to distinguishing paid vs unpaid items.',
     icon: 'receipt',
     collected: true,
   },
@@ -149,9 +165,17 @@ export const INITIAL_SHIELD_SKILLS: Record<ShieldLetter, ShieldSkillState> = {
 
 export const MAP_LANDMARKS = [
   {
+    id: 'kopitiam',
+    name: 'Kopi Corner & Sengkang Satay',
+    detail: 'Heartland hawker stalls, outdoor round tables, Kopi-O dabao & drink vending machine.',
+    gx: 0.4,
+    gy: 6.2,
+    color: '#e59254',
+  },
+  {
     id: 'busstop',
     name: 'Blk 260 Bus Stop (Stop 26019)',
-    detail: 'ShieldBus 88 sheltered walkway — Uncle Tan is looking for his missing EZ-Link card.',
+    detail: 'ShieldBus 88 sheltered linkway — Uncle Tan is looking for his missing EZ-Link card.',
     gx: 5.8,
     gy: 7.4,
     color: '#6bb09e',
@@ -159,7 +183,7 @@ export const MAP_LANDMARKS = [
   {
     id: 'voiddeck',
     name: 'Blk 260 Shield View Void Deck',
-    detail: 'RC Notice Board, silver letterboxes, chope-d Xiangqi stone table & community cats.',
+    detail: 'RC Notice Board, stainless letterboxes, chope-d Xiangqi stone table & community cats.',
     gx: 9.8,
     gy: 4.5,
     color: '#d89b52',
@@ -171,14 +195,6 @@ export const MAP_LANDMARKS = [
     gx: 15.8,
     gy: 4.5,
     color: '#e6b84c',
-  },
-  {
-    id: 'footpath',
-    name: 'Heartland Linkway Footpath',
-    detail: 'Say hello to Auntie Mei walking past Blk 260 on her marketing trip.',
-    gx: 8.8,
-    gy: 8.6,
-    color: '#7da1c4',
   },
 ];
 

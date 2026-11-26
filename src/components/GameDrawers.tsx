@@ -19,7 +19,15 @@ import {
   TimeOfDay,
 } from '../types/game';
 import { sfx } from '../utils/sound';
-import { EzLinkCardIcon, PlayerPortrait, ShieldEmblemIcon } from './PixelIcons';
+import {
+  ChopeTissueIcon,
+  EzLinkCardIcon,
+  FieldNotesIcon,
+  KopiDabaoIcon,
+  PlayerPortrait,
+  ReceiptIcon,
+  ShieldEmblemIcon,
+} from './PixelIcons';
 
 interface GameDrawersProps {
   activeDrawer: DrawerType;
@@ -158,10 +166,14 @@ export const GameDrawers: React.FC<GameDrawersProps> = ({
                 >
                   {item.icon === 'ezlink' ? (
                     <EzLinkCardIcon size={34} />
+                  ) : item.icon === 'chope' ? (
+                    <ChopeTissueIcon size={30} />
+                  ) : item.icon === 'kopi' ? (
+                    <KopiDabaoIcon size={30} />
+                  ) : item.icon === 'receipt' ? (
+                    <ReceiptIcon size={30} />
                   ) : (
-                    <span style={{ fontSize: 18 }}>
-                      {item.icon === 'notes' ? '📝' : '📄'}
-                    </span>
+                    <FieldNotesIcon size={30} />
                   )}
                 </div>
                 <div>

@@ -36,28 +36,32 @@ interface GameWorldProps {
 }
 
 function isWalkable(gx: number, gy: number): boolean {
-  // Footpath
-  const onFootpath = gx >= -0.4 && gx <= 20.3 && gy >= 4.95 && gy <= 9.65;
+  // Main Footpath & Kopi Corner patio
+  const onFootpath = gx >= -1.1 && gx <= 20.3 && gy >= 4.95 && gy <= 9.65;
   // Sheltered walkway
-  const onWalkway = gx >= 1.6 && gx <= 4.2 && gy >= -2.5 && gy <= 5.1;
+  const onWalkway = gx >= 1.6 && gx <= 4.2 && gy >= -1.6 && gy <= 5.1;
   // Void deck interior
-  const inVoidDeck = gx >= 6.65 && gx <= 13.8 && gy >= 1.85 && gy <= 5.1;
+  const inVoidDeck = gx >= 6.65 && gx <= 13.8 && gy >= 2.25 && gy <= 5.1;
   // Sunshine Minimart aisle
-  const inMinimart = gx >= 14.6 && gx <= 19.8 && gy >= 2.65 && gy <= 5.1;
+  const inMinimart = gx >= 14.6 && gx <= 19.8 && gy >= 2.95 && gy <= 5.1;
 
   if (!onFootpath && !onWalkway && !inVoidDeck && !inMinimart) return false;
 
-  // Obstacle: Green Recycling Bin (5.5, 5.7)
+  // Obstacle: Kopitiam outdoor round tables
+  if (Math.hypot(gx - -0.2, gy - 6.4) < 0.85) return false;
+  if (Math.hypot(gx - 0.4, gy - 8.3) < 0.85) return false;
+  // Obstacle: Green Recycling Bins
   if (Math.hypot(gx - 5.5, gy - 5.7) < 0.72) return false;
+  if (Math.hypot(gx - 2.3, gy - 4.8) < 0.68) return false;
   // Obstacle: HDB Mosaic Pillars
   if (Math.hypot(gx - 6.0, gy - 4.8) < 0.65) return false;
   if (Math.hypot(gx - 14.2, gy - 4.8) < 0.65) return false;
   if (Math.hypot(gx - 20.8, gy - 4.8) < 0.65) return false;
-  // Obstacle: Void deck stone table & stools (9.8, 3.0)
+  // Obstacle: Void deck stone Xiangqi table & stools
   if (Math.hypot(gx - 9.8, gy - 3.0) < 1.25) return false;
   // Obstacle: Minimart crates & snack rack
-  if (gx >= 14.3 && gx <= 15.4 && gy >= 2.9 && gy <= 4.0) return false;
-  if (gx >= 17.2 && gx <= 19.5 && gy >= 3.0 && gy <= 4.1) return false;
+  if (gx >= 14.3 && gx <= 15.4 && gy >= 3.0 && gy <= 4.1) return false;
+  if (gx >= 17.1 && gx <= 19.3 && gy >= 3.1 && gy <= 4.1) return false;
 
   return true;
 }
@@ -89,6 +93,8 @@ export const GameWorld: React.FC<GameWorldProps> = ({
   const [questId, setQuestId] = useState<QuestId>('ezlink');
   const [ezLinkPickedUp, setEzLinkPickedUp] = useState(false);
   const [ezLinkReturned, setEzLinkReturned] = useState(false);
+  const [kopiPickedUp, setKopiPickedUp] = useState(false);
+  const [chopePickedUp, setChopePickedUp] = useState(false);
   const [showLookoutModal, setShowLookoutModal] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [soundEnabled, setSoundEnabled] = useState(sfx.enabled);
@@ -125,9 +131,19 @@ export const GameWorld: React.FC<GameWorldProps> = ({
     timeOfDay,
     ezLinkPickedUp,
     ezLinkReturned,
+    kopiPickedUp,
+    chopePickedUp,
     questId,
   });
-  stateSyncRef.current = { avatar, timeOfDay, ezLinkPickedUp, ezLinkReturned, questId };
+  stateSyncRef.current = {
+    avatar,
+    timeOfDay,
+    ezLinkPickedUp,
+    ezLinkReturned,
+    kopiPickedUp,
+    chopePickedUp,
+    questId,
+  };
 
   const showToast = useCallback((msg: string) => {
     setToastMsg(msg);
@@ -147,8 +163,21 @@ export const GameWorld: React.FC<GameWorldProps> = ({
       prev.map((item) => (item.id === 'ezlink' ? { ...item, collected: true } : item))
     );
     setEnergyPct((v) => Math.min(100, v + 10));
-    showToast("Picked up Uncle's EZ-Link Card! Bring it back to Uncle Tan.");
+    showToast("Picked up Uncle's SimplyGo EZ-Link Card! Bring it back to Uncle Tan.");
   }, [setInventory, showToast]);
+
+  const pickupSideItem = useCallback(
+    (id: 'kopi' | 'chope', label: string) => {
+      sfx.success();
+      if (id === 'kopi') setKopiPickedUp(true);
+      if (id === 'chope') setChopePickedUp(true);
+      setInventory((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, collected: true } : item))
+      );
+      showToast(`Added ${label} to your Backpack!`);
+    },
+    [setInventory, showToast]
+  );
 
   const returnEzLinkToUncle = useCallback(() => {
     if (!stateSyncRef.current.ezLinkPickedUp || stateSyncRef.current.ezLinkReturned) return;
@@ -265,6 +294,13 @@ export const GameWorld: React.FC<GameWorldProps> = ({
       if (!stateSyncRef.current.ezLinkPickedUp && Math.hypot(p.gx - 8.6, p.gy - 3.8) < 1.1) {
         pickupEzLink();
       }
+      // Check auto-pickup Kopi-O Dabao & Chope Tissue Pack
+      if (!stateSyncRef.current.kopiPickedUp && Math.hypot(p.gx - -0.6, p.gy - 7.2) < 1.0) {
+        pickupSideItem('kopi', 'Kopi-O Dabao Packet');
+      }
+      if (!stateSyncRef.current.chopePickedUp && Math.hypot(p.gx - 9.8, p.gy - 4.2) < 1.0) {
+        pickupSideItem('chope', 'Pocket Tissue ("Chope" Pack)');
+      }
 
       // Check returning EZ-Link to Uncle Tan (4.9, 6.3)
       if (
@@ -287,15 +323,15 @@ export const GameWorld: React.FC<GameWorldProps> = ({
         setShowLookoutModal(true);
       }
 
-      // Auntie Mei strolling gently along mid-right footpath
-      const auntieGx = 9.4 + Math.sin(t * 0.34) * 1.6;
-      const auntieDir: Direction = Math.cos(t * 0.34) >= 0 ? 'SE' : 'NW';
+      // Auntie Mei pushing FairMart trolley along mid-right footpath
+      const auntieGx = 10.6 + Math.sin(t * 0.32) * 1.8;
+      const auntieDir: Direction = Math.cos(t * 0.32) >= 0 ? 'SE' : 'NW';
 
       const npcs: NPCEntity[] = [
         {
           id: 'uncle',
           name: 'Uncle Tan',
-          role: 'Neighbourhood Elder',
+          role: 'Heartland Elder',
           gx: 4.9,
           gy: 6.3,
           dir: 'SW',
@@ -308,15 +344,28 @@ export const GameWorld: React.FC<GameWorldProps> = ({
         {
           id: 'auntie',
           name: 'Auntie Mei',
-          role: 'Neighbour',
+          role: 'FairMart Shopper',
           gx: auntieGx,
-          gy: 8.6,
+          gy: 8.5,
           dir: auntieDir,
           shirtColor: '#d97b74',
           pantsColor: '#48454f',
           hairColor: '#2d2930',
           skinTone: '#d6a07b',
-          hasBag: true,
+          hasTrolley: true,
+        },
+        {
+          id: 'hawker',
+          name: 'Kopi Uncle',
+          role: 'Kopi Corner Stallholder',
+          gx: -1.0,
+          gy: 6.6,
+          dir: 'SE',
+          shirtColor: '#f2e8cf',
+          pantsColor: '#3d4552',
+          hairColor: '#5c5856',
+          skinTone: '#d49d78',
+          hasApron: true,
         },
         {
           id: 'jun',
@@ -350,6 +399,8 @@ export const GameWorld: React.FC<GameWorldProps> = ({
             npcs,
             ezLinkFound: stateSyncRef.current.ezLinkPickedUp,
             ezLinkPickedUp: stateSyncRef.current.ezLinkPickedUp,
+            kopiPickedUp: stateSyncRef.current.kopiPickedUp,
+            chopePickedUp: stateSyncRef.current.chopePickedUp,
             hoveredTarget: hoveredTargetRef.current,
             activeSpeechBubble: speechBubbleRef.current,
             walkTargetMarker: walkMarkerRef.current,
@@ -362,7 +413,7 @@ export const GameWorld: React.FC<GameWorldProps> = ({
 
     rafId = requestAnimationFrame(step);
     return () => cancelAnimationFrame(rafId);
-  }, [activeDrawer, pickupEzLink, returnEzLinkToUncle, showLookoutModal]);
+  }, [activeDrawer, pickupEzLink, pickupSideItem, returnEzLinkToUncle, showLookoutModal]);
 
   // Convert DOM pointer position accurately into 1280x720 canvas coords (accounting for object-fit: cover)
   const getCanvasPoint = (clientX: number, clientY: number) => {
@@ -409,8 +460,8 @@ export const GameWorld: React.FC<GameWorldProps> = ({
     }
 
     // 2. Check click on Auntie Mei
-    const auntieX = 9.4 + Math.sin(simTimeRef.current * 0.34) * 1.6;
-    const auntieScreen = isoToScreen(auntieX, 8.6, 26);
+    const auntieX = 10.6 + Math.sin(simTimeRef.current * 0.32) * 1.8;
+    const auntieScreen = isoToScreen(auntieX, 8.5, 26);
     if (Math.hypot(pt.cx - auntieScreen.x, pt.cy - auntieScreen.y) < 34) {
       sfx.click();
       showToast(
@@ -421,8 +472,16 @@ export const GameWorld: React.FC<GameWorldProps> = ({
       return;
     }
 
+    // 2b. Check click on Kopi Uncle
+    const hawkerScreen = isoToScreen(-1.0, 6.6, 26);
+    if (Math.hypot(pt.cx - hawkerScreen.x, pt.cy - hawkerScreen.y) < 38) {
+      sfx.click();
+      showToast('Kopi Uncle: "Kopi-O Kosong or Satay? Walk near the table to dabao one!"');
+      return;
+    }
+
     // 3. Check click on Bus Stop 26019 Pole
-    const busPoleScreen = isoToScreen(5.25, 9.95, 45);
+    const busPoleScreen = isoToScreen(4.9, 10.0, 45);
     if (Math.hypot(pt.cx - busPoleScreen.x, pt.cy - busPoleScreen.y) < 34) {
       sfx.click();
       showToast('Bus Stop 26019 — ShieldBus 88 toward Baycrest SkyDeck & Shiok Hawker Square.');

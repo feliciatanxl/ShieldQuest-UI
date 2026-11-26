@@ -29,7 +29,7 @@ export interface InventoryItem {
   id: string;
   name: string;
   description: string;
-  icon: 'ezlink' | 'receipt' | 'notes' | 'snack' | 'badge';
+  icon: 'ezlink' | 'receipt' | 'notes' | 'chope' | 'kopi' | 'badge';
   collected: boolean;
   clueFact?: boolean;
 }
@@ -47,7 +47,7 @@ export interface ShieldSkillState {
 }
 
 export interface NPCEntity {
-  id: 'uncle' | 'auntie' | 'jun' | 'cashier';
+  id: 'uncle' | 'auntie' | 'jun' | 'cashier' | 'hawker' | 'commuter';
   name: string;
   role: string;
   gx: number;
@@ -58,6 +58,8 @@ export interface NPCEntity {
   hairColor: string;
   skinTone: string;
   hasBag?: boolean;
+  hasTrolley?: boolean;
+  hasApron?: boolean;
   isBald?: boolean;
   speechText?: string;
   speechIcon?: 'ezlink' | 'alert' | 'shop';
