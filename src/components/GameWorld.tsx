@@ -23,7 +23,7 @@ import {
   ShieldLetter,
   ShieldSkillState,
 } from '../types/game';
-import { WorldSave } from '../utils/save';
+import { Wallet, WorldSave } from '../utils/save';
 import { SingaporeClock } from '../utils/sgClock';
 import { sfx } from '../utils/sound';
 import { GameDrawers } from './GameDrawers';
@@ -39,6 +39,10 @@ interface GameWorldProps {
   skills: Record<ShieldLetter, ShieldSkillState>;
   onCompleteSkill: (letter: ShieldLetter, passed: boolean, score: number) => void;
   squadCode: string;
+  wallet: Wallet;
+  /** Grants a one-time coin reward by id (see REWARDS). */
+  onClaimReward: (id: string) => void;
+  onBuyItem: (id: string) => void;
   /** Saved progress to resume from (null = fresh game). */
   initialWorld: WorldSave | null;
   onWorldChange: (world: WorldSave) => void;
@@ -104,6 +108,9 @@ export const GameWorld: React.FC<GameWorldProps> = ({
   skills,
   onCompleteSkill,
   squadCode,
+  wallet,
+  onClaimReward,
+  onBuyItem,
   initialWorld,
   onWorldChange,
   onReturnToTitle,
@@ -205,8 +212,9 @@ export const GameWorld: React.FC<GameWorldProps> = ({
       prev.map((item) => (item.id === 'ezlink' ? { ...item, collected: true } : item))
     );
     setEnergyPct((v) => Math.min(100, v + 10));
+    onClaimReward('ezlink-found');
     showToast("Picked up Uncle's SimplyGo EZ-Link Card! Bring it back to Uncle Tan.");
-  }, [setInventory, showToast]);
+  }, [setInventory, showToast, onClaimReward]);
 
   const pickupSideItem = useCallback(
     (id: 'kopi' | 'chope', label: string) => {
@@ -216,9 +224,10 @@ export const GameWorld: React.FC<GameWorldProps> = ({
       setInventory((prev) =>
         prev.map((item) => (item.id === id ? { ...item, collected: true } : item))
       );
+      onClaimReward(id);
       showToast(`Added ${label} to your Backpack!`);
     },
-    [setInventory, showToast]
+    [setInventory, showToast, onClaimReward]
   );
 
   const returnEzLinkToUncle = useCallback(() => {
@@ -235,8 +244,9 @@ export const GameWorld: React.FC<GameWorldProps> = ({
       text: 'Wah, steady lah! Check Sunshine Minimart next!',
       icon: 'shop',
     };
+    onClaimReward('ezlink-return');
     showToast('Quest Complete! Next Quest: The Lookout Dilemma at Sunshine Minimart.');
-  }, [setInventory, showToast]);
+  }, [setInventory, showToast, onClaimReward]);
 
   // Keyboard listeners
   useEffect(() => {
@@ -319,12 +329,16 @@ export const GameWorld: React.FC<GameWorldProps> = ({
         p.dir = directionFor(dx, dy);
 
         // Walking up to a person or item you clicked: stop once you bump into it.
-        const bumped = !clearOfSolids(p.x + mx, p.y + my, p.x, p.y, solids);
+        // Only counts when the thing in the way is the person/item that was clicked.
         const target = p.target;
-        const nearTarget = !!target && solids.some((o) => footDist(target.x, target.y, o) < 2.5);
+        const nearTarget =
+          !!target &&
+          solids.some(
+            (o) => !clearOfSolids(p.x + mx, p.y + my, p.x, p.y, [o]) && footDist(target.x, target.y, o) < 2.5
+          );
         // Blocked? Steer up to 90° either side so we slide around pillars, tables and people.
         const step =
-          bumped && nearTarget
+          nearTarget
             ? undefined
             : [0, 0.5, -0.5, 1, -1, 1.5, -1.5]
                 .map((turn) => {
@@ -550,6 +564,7 @@ export const GameWorld: React.FC<GameWorldProps> = ({
       <GameHUD
         avatar={avatar}
         clock={clock}
+        coins={wallet.coins}
         confidencePct={confidencePct}
         energyPct={energyPct}
         currentQuestTitle={currentQuestTitle}
@@ -602,6 +617,8 @@ export const GameWorld: React.FC<GameWorldProps> = ({
         squadCode={squadCode}
         playerPos={{ x: playerRef.current.x, y: playerRef.current.y }}
         onWalkToLandmark={walkTo}
+        wallet={wallet}
+        onBuyItem={onBuyItem}
         onStartLookoutMission={() => setShowLookoutModal(true)}
         onReturnToTitle={onReturnToTitle}
       />
@@ -618,6 +635,7 @@ export const GameWorld: React.FC<GameWorldProps> = ({
           }}
           onFinishMission={() => {
             setQuestId('completed');
+            onClaimReward('lookout');
             showToast('Completed The Lookout Dilemma! Check your S.H.I.E.L.D. badge.');
           }}
           onClose={() => setShowLookoutModal(false)}

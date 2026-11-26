@@ -1,4 +1,4 @@
-import { DEFAULT_AVATAR, INITIAL_INVENTORY, INITIAL_SHIELD_SKILLS } from '../data/gameData';
+import { DEFAULT_AVATAR, INITIAL_INVENTORY, INITIAL_SHIELD_SKILLS, REWARDS, SHOP_ITEMS } from '../data/gameData';
 import { AvatarConfig, InventoryItem, QuestId, ShieldLetter, ShieldSkillState } from '../types/game';
 
 /** Progress inside the street scene (owned by GameWorld). */
@@ -13,12 +13,22 @@ export interface WorldSave {
   player: { x: number; y: number };
 }
 
+/** Coins plus which one-time rewards were claimed and which shop items are owned. */
+export interface Wallet {
+  coins: number;
+  claimed: string[];
+  owned: string[];
+}
+
+export const EMPTY_WALLET: Wallet = { coins: 0, claimed: [], owned: [] };
+
 export interface SaveData {
   avatar: AvatarConfig;
   squadCode: string;
   inventory: InventoryItem[];
   skills: Record<ShieldLetter, ShieldSkillState>;
   world: WorldSave | null;
+  wallet: Wallet;
   savedAt: number;
 }
 
@@ -89,7 +99,25 @@ export function loadSave(): SaveData | null {
     };
   }
 
-  return { avatar, squadCode: str(raw.squadCode, '').slice(0, 10), inventory, skills, world, savedAt: num(raw.savedAt, 0) };
+  // Only known reward/shop ids survive, so an edited save can't invent items.
+  const w = isObj(raw.wallet) ? raw.wallet : {};
+  const ids = (v: unknown, known: string[]) =>
+    Array.isArray(v) ? known.filter((id) => v.includes(id)) : [];
+  const wallet: Wallet = {
+    coins: Math.max(0, Math.min(9999, Math.floor(num(w.coins, 0)))),
+    claimed: ids(w.claimed, REWARDS.map((r) => r.id)),
+    owned: ids(w.owned, SHOP_ITEMS.map((i) => i.id)),
+  };
+
+  return {
+    avatar,
+    squadCode: str(raw.squadCode, '').slice(0, 10),
+    inventory,
+    skills,
+    world,
+    wallet,
+    savedAt: num(raw.savedAt, 0),
+  };
 }
 
 export function writeSave(data: Omit<SaveData, 'savedAt'>) {

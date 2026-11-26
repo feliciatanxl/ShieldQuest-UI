@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { AvatarConfig, DrawerType } from '../types/game';
 import { SingaporeClock } from '../utils/sgClock';
 import { sfx } from '../utils/sound';
@@ -7,6 +7,7 @@ import { PlayerPortrait, UiIcon } from './PixelIcons';
 interface GameHUDProps {
   avatar: AvatarConfig;
   clock: SingaporeClock;
+  coins: number;
   confidencePct: number;
   energyPct: number;
   currentQuestTitle: string;
@@ -27,6 +28,7 @@ const clampPct = (v: number) => `${Math.max(8, Math.min(100, v))}%`;
 export const GameHUD: React.FC<GameHUDProps> = ({
   avatar,
   clock,
+  coins,
   confidencePct,
   energyPct,
   currentQuestTitle,
@@ -34,6 +36,18 @@ export const GameHUD: React.FC<GameHUDProps> = ({
   onSelectDrawer,
 }) => {
   const night = clock.timeOfDay === 'evening';
+
+  // "+N" pop above the coin counter whenever coins go up
+  const prevCoins = useRef(coins);
+  const [gain, setGain] = useState<{ amount: number; key: number } | null>(null);
+  useEffect(() => {
+    const diff = coins - prevCoins.current;
+    prevCoins.current = coins;
+    if (diff <= 0) return;
+    setGain({ amount: diff, key: Date.now() });
+    const t = setTimeout(() => setGain(null), 1600);
+    return () => clearTimeout(t);
+  }, [coins]);
   const toggleDrawer = (drawer: Exclude<DrawerType, null>) => {
     sfx.click();
     onSelectDrawer(activeDrawer === drawer ? null : drawer);
@@ -66,11 +80,28 @@ export const GameHUD: React.FC<GameHUDProps> = ({
         </div>
       </div>
 
-      {/* Top-right: live Singapore clock */}
-      <div className="px-wood hud-clock" title="Live Singapore time (SGT)">
-        <UiIcon name={night ? 'moon' : 'clock'} size={32} />
-        <span>{clock.label}</span>
-        <UiIcon name={night ? 'night-cloud' : 'sun'} size={32} />
+      {/* Top-right: coins (opens Rewards) + live Singapore clock */}
+      <div className="hud-top-right">
+        <button
+          type="button"
+          className={`px-wood hud-coins${activeDrawer === 'rewards' ? ' is-active' : ''}`}
+          onClick={() => toggleDrawer('rewards')}
+          title="Rewards"
+          aria-label={`Rewards: ${coins} coins`}
+        >
+          <UiIcon name="coin" size={32} />
+          <span>{coins}</span>
+          {gain && (
+            <span key={gain.key} className="hud-coin-pop" aria-hidden="true">
+              +{gain.amount}
+            </span>
+          )}
+        </button>
+        <div className="px-wood hud-clock" title="Live Singapore time (SGT)">
+          <UiIcon name={night ? 'moon' : 'clock'} size={32} />
+          <span>{clock.label}</span>
+          <UiIcon name={night ? 'night-cloud' : 'sun'} size={32} />
+        </div>
       </div>
 
       {/* Bottom-left: current quest */}

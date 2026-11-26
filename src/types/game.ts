@@ -19,6 +19,7 @@ export type DrawerType =
   | 'menu'
   | 'quest'
   | 'shield'
+  | 'rewards'
   | null;
 
 export type ShieldLetter = 'S' | 'H' | 'I' | 'E' | 'L' | 'D';

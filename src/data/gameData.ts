@@ -190,3 +190,29 @@ export const MAP_LANDMARKS = [
     color: '#e6b84c',
   },
 ];
+
+/** One-time coin rewards. Each id can only be claimed once per save. */
+export const REWARDS: { id: string; label: string; coins: number }[] = [
+  { id: 'kopi', label: 'Pick up the Kopi-O dabao', coins: 10 },
+  { id: 'chope', label: 'Find the chope tissue packet', coins: 10 },
+  { id: 'ezlink-found', label: "Find Uncle Tan's EZ-Link card", coins: 20 },
+  { id: 'ezlink-return', label: 'Return the card to Uncle Tan', coins: 40 },
+  { id: 'skill-S', label: 'Pass S · Spot the Risk', coins: 20 },
+  { id: 'skill-H', label: 'Pass H · Hold Before Acting', coins: 20 },
+  { id: 'skill-I', label: 'Pass I · Identify the Influence', coins: 20 },
+  { id: 'skill-E', label: 'Pass E · Evaluate Consequences', coins: 20 },
+  { id: 'skill-L', label: 'Pass L · Lead the Right Choice', coins: 20 },
+  { id: 'skill-D', label: 'Pass D · Defend Your Community', coins: 20 },
+  { id: 'lookout', label: 'Finish the Lookout Dilemma', coins: 50 },
+];
+
+/** Clothing sold for coins in the Rewards panel; bought colours appear in the Wardrobe. */
+export const SHOP_ITEMS: { id: string; kind: 'shirt' | 'pants'; label: string; color: string; price: number }[] = [
+  { id: 'tee-sunset', kind: 'shirt', label: 'Sunset Orange Tee', color: '#ee8a3c', price: 30 },
+  { id: 'tee-lilac', kind: 'shirt', label: 'Lilac Hawker Tee', color: '#a98bd6', price: 30 },
+  { id: 'tee-lime', kind: 'shirt', label: 'Kaya Lime Tee', color: '#a9cf54', price: 40 },
+  { id: 'tee-night', kind: 'shirt', label: 'Midnight Tee', color: '#34324a', price: 50 },
+  { id: 'pants-denim', kind: 'pants', label: 'Denim Shorts', color: '#5b84c4', price: 30 },
+  { id: 'pants-cream', kind: 'pants', label: 'Cream Shorts', color: '#e4d6b4', price: 30 },
+  { id: 'pants-red', kind: 'pants', label: 'Merah Red Shorts', color: '#c4483f', price: 40 },
+];

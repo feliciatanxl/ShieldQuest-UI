@@ -4,7 +4,9 @@ import {
   HAIR_COLORS,
   MAP_LANDMARKS,
   PANTS_COLORS,
+  REWARDS,
   SHIELD_STYLES,
+  SHOP_ITEMS,
   SHIRT_COLORS,
   SKIN_TONES,
 } from '../data/gameData';
@@ -16,6 +18,7 @@ import {
   ShieldLetter,
   ShieldSkillState,
 } from '../types/game';
+import { Wallet } from '../utils/save';
 import { SingaporeClock } from '../utils/sgClock';
 import { sfx } from '../utils/sound';
 import { PlayerSpritePreview, ShieldEmblemIcon, UiIcon } from './PixelIcons';
@@ -37,6 +40,8 @@ interface GameDrawersProps {
   onWalkToLandmark: (target: { x: number; y: number }) => void;
   onStartLookoutMission: () => void;
   onReturnToTitle: () => void;
+  wallet: Wallet;
+  onBuyItem: (id: string) => void;
 }
 
 const HEADINGS: Record<Exclude<DrawerType, null>, [eyebrow: string, title: string]> = {
@@ -46,6 +51,7 @@ const HEADINGS: Record<Exclude<DrawerType, null>, [eyebrow: string, title: strin
   menu: ['Your adventure', 'Settings'],
   quest: ['Your adventure', 'Quests'],
   shield: ['Your adventure', 'Guardians'],
+  rewards: ['Earn & spend coins', 'Sunshine Rewards'],
 };
 
 // PixelLab item art in public/assets/ui/item-<name>.png
@@ -75,7 +81,7 @@ export const GameDrawers: React.FC<GameDrawersProps> = (props) => {
 
   if (!activeDrawer) return null;
   const [eyebrow, title] = HEADINGS[activeDrawer];
-  const wide = activeDrawer === 'wardrobe' || activeDrawer === 'map';
+  const wide = activeDrawer === 'wardrobe' || activeDrawer === 'map' || activeDrawer === 'rewards';
 
   return (
     <div className="panel-backdrop" onClick={onClose}>
@@ -118,6 +124,7 @@ export const GameDrawers: React.FC<GameDrawersProps> = (props) => {
         {activeDrawer === 'quest' && <QuestPanel {...props} />}
         {activeDrawer === 'shield' && <GuardiansPanel {...props} />}
         {activeDrawer === 'menu' && <SettingsPanel {...props} />}
+        {activeDrawer === 'rewards' && <RewardsPanel {...props} />}
       </div>
     </div>
   );
@@ -198,7 +205,13 @@ const ColourGrid: React.FC<{
   </div>
 );
 
-const WardrobePanel: React.FC<GameDrawersProps> = ({ avatar, setAvatar }) => {
+/** Default colour options plus any of this kind bought in the Rewards shop. */
+const withOwned = (base: { label: string; color: string }[], kind: 'shirt' | 'pants', owned: string[]) => [
+  ...base,
+  ...SHOP_ITEMS.filter((i) => i.kind === kind && owned.includes(i.id)).map((i) => ({ label: i.label, color: i.color })),
+];
+
+const WardrobePanel: React.FC<GameDrawersProps> = ({ avatar, setAvatar, wallet }) => {
   const [tab, setTab] = useState<WardrobeTab>('body');
   const set = (patch: Partial<AvatarConfig>) => setAvatar((p) => ({ ...p, ...patch }));
 
@@ -270,7 +283,7 @@ const WardrobePanel: React.FC<GameDrawersProps> = ({ avatar, setAvatar }) => {
             <ColourGrid
               heading="T-shirt"
               hint="Your everyday heartland tee."
-              options={SHIRT_COLORS}
+              options={withOwned(SHIRT_COLORS, 'shirt', wallet.owned)}
               value={avatar.shirtColor}
               onPick={(c) => set({ shirtColor: c })}
             />
@@ -279,7 +292,7 @@ const WardrobePanel: React.FC<GameDrawersProps> = ({ avatar, setAvatar }) => {
             <ColourGrid
               heading="Shorts"
               hint="Comfy for walking around the estate."
-              options={PANTS_COLORS}
+              options={withOwned(PANTS_COLORS, 'pants', wallet.owned)}
               value={avatar.pantsColor}
               onPick={(c) => set({ pantsColor: c })}
             />
@@ -632,3 +645,191 @@ const SettingsPanel: React.FC<GameDrawersProps> = ({
     </div>
   </div>
 );
+
+// ---------- Rewards (earn coins, buy clothing) ----------
+
+type RewardsTab = 'front' | 'earn' | 'clothing' | 'collection';
+const REWARDS_TABS: [RewardsTab, string][] = [
+  ['front', 'Front page'],
+  ['earn', 'Earn coins'],
+  ['clothing', 'Clothing'],
+  ['collection', 'Your collection'],
+];
+
+type ShopItem = (typeof SHOP_ITEMS)[number];
+
+/** The player wearing a shop item (used for previews). */
+const wearing = (avatar: AvatarConfig, item: ShopItem): AvatarConfig =>
+  item.kind === 'shirt' ? { ...avatar, shirtColor: item.color } : { ...avatar, pantsColor: item.color };
+
+const CoinAmount: React.FC<{ amount: number; size?: number }> = ({ amount, size = 16 }) => (
+  <span className="coin-amount">
+    <UiIcon name="coin" size={size} />
+    {amount}
+  </span>
+);
+
+const ShopCard: React.FC<{
+  item: ShopItem;
+  avatar: AvatarConfig;
+  wallet: Wallet;
+  onBuy: () => void;
+  onWear: () => void;
+}> = ({ item, avatar, wallet, onBuy, onWear }) => {
+  const owned = wallet.owned.includes(item.id);
+  const worn = (item.kind === 'shirt' ? avatar.shirtColor : avatar.pantsColor) === item.color;
+  const short = item.price - wallet.coins;
+  return (
+    <div className="cream-card shop-card">
+      <div className="sprite-tile shop-stage">
+        <PlayerSpritePreview avatar={wearing(avatar, item)} scale={2} />
+      </div>
+      <div style={{ fontWeight: 800, fontSize: 15 }}>{item.label}</div>
+      <div className="cream-muted" style={{ display: 'flex', justifyContent: 'center', gap: 8, alignItems: 'center' }}>
+        {item.kind === 'shirt' ? 'T-shirt' : 'Shorts'} · {owned ? 'Owned' : <CoinAmount amount={item.price} />}
+      </div>
+      <div style={{ marginTop: 'auto', paddingTop: 12 }}>
+        {owned ? (
+          <button type="button" className="pixel-secondary-btn" style={{ width: '100%' }} disabled={worn} onClick={onWear}>
+            {worn ? 'Wearing' : 'Wear'}
+          </button>
+        ) : (
+          <button type="button" className="teal-btn" style={{ width: '100%' }} disabled={short > 0} onClick={onBuy}>
+            {short > 0 ? `Need ${short} more` : 'Buy'}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const RewardsPanel: React.FC<GameDrawersProps> = ({ wallet, avatar, setAvatar, onBuyItem }) => {
+  const [tab, setTab] = useState<RewardsTab>('front');
+  const owned = SHOP_ITEMS.filter((i) => wallet.owned.includes(i.id));
+  const featured = SHOP_ITEMS.find((i) => !wallet.owned.includes(i.id)) ?? SHOP_ITEMS[0];
+  const earned = REWARDS.filter((r) => wallet.claimed.includes(r.id));
+  const go = (t: RewardsTab) => {
+    sfx.click();
+    setTab(t);
+  };
+  const buy = (item: ShopItem) => {
+    sfx.success();
+    onBuyItem(item.id);
+  };
+  const wear = (item: ShopItem) => {
+    sfx.click();
+    setAvatar((a) => wearing(a, item));
+  };
+  const card = (item: ShopItem) => (
+    <ShopCard key={item.id} item={item} avatar={avatar} wallet={wallet} onBuy={() => buy(item)} onWear={() => wear(item)} />
+  );
+
+  return (
+    <div>
+      <div className="rewards-topline">
+        <span className="cream-muted" style={{ fontSize: 14 }}>
+          Help around Block 260 to earn coins, then treat yourself.
+        </span>
+        <span className="coin-badge" aria-label={`${wallet.coins} coins`}>
+          <UiIcon name="coin" size={32} />
+          {wallet.coins}
+          <small>coins</small>
+        </span>
+      </div>
+
+      <div className="cream-tabs" role="tablist">
+        {REWARDS_TABS.map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            role="tab"
+            aria-selected={tab === id}
+            className={`cream-tab${tab === id ? ' is-active' : ''}`}
+            onClick={() => go(id)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'front' && (
+        <div className="rewards-front">
+          <div className="cream-card rewards-hero">
+            <div className="panel-eyebrow">The Sunshine collection</div>
+            <div className="sprite-tile rewards-hero-stage">
+              <PlayerSpritePreview avatar={wearing(avatar, featured)} scale={3} />
+            </div>
+            <div className="rewards-hero-title">Fresh threads for the estate.</div>
+            <div className="cream-muted">
+              Try the {featured.label} for <CoinAmount amount={featured.price} />.
+            </div>
+            <button type="button" className="teal-btn" style={{ marginTop: 14 }} onClick={() => go('clothing')}>
+              Browse clothing →
+            </button>
+          </div>
+          <div style={{ display: 'grid', gap: 14, alignContent: 'start' }}>
+            <div className="cream-card">
+              <div className="panel-eyebrow">Earn coins</div>
+              <div className="rewards-card-title">
+                {earned.length} of {REWARDS.length} rewards claimed
+              </div>
+              <div className="px-bar is-teal rewards-progress">
+                <span style={{ width: `${(earned.length / REWARDS.length) * 100}%` }} />
+              </div>
+              <button type="button" className="pixel-secondary-btn" onClick={() => go('earn')}>
+                How to earn →
+              </button>
+            </div>
+            <div className="cream-card">
+              <div className="panel-eyebrow">Your finds, all together</div>
+              <div className="rewards-card-title">
+                {owned.length} of {SHOP_ITEMS.length} outfits collected
+              </div>
+              <button type="button" className="pixel-secondary-btn" onClick={() => go('collection')}>
+                See your collection →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {tab === 'earn' && (
+        <div style={{ display: 'grid', gap: 8 }}>
+          {REWARDS.map((r) => {
+            const done = wallet.claimed.includes(r.id);
+            return (
+              <div key={r.id} className="cream-card rewards-row" style={{ opacity: done ? 0.7 : 1 }}>
+                <span style={{ fontWeight: 700 }}>
+                  {done ? '✓ ' : ''}
+                  {r.label}
+                </span>
+                {done ? <span className="pill">Claimed</span> : <CoinAmount amount={r.coins} size={32} />}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {tab === 'clothing' && <div className="shop-grid">{SHOP_ITEMS.map(card)}</div>}
+
+      {tab === 'collection' &&
+        (owned.length ? (
+          <div className="shop-grid">{owned.map(card)}</div>
+        ) : (
+          <div className="cream-card" style={{ textAlign: 'center', padding: 28 }}>
+            <div className="rewards-card-title">Nothing here yet</div>
+            <p className="cream-muted" style={{ margin: '6px 0 14px' }}>
+              Outfits you buy will appear here and in your Wardrobe.
+            </p>
+            <button type="button" className="teal-btn" onClick={() => go('clothing')}>
+              Browse clothing →
+            </button>
+          </div>
+        ))}
+
+      <div className="cream-muted" style={{ textAlign: 'center', marginTop: 16, fontSize: 12 }}>
+        Coins are earned in the game only. No real-money payments.
+      </div>
+    </div>
+  );
+};
