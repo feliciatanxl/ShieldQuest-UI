@@ -160,6 +160,7 @@ ShieldQuest-UI/
 ├── public/
 │   ├── assets/
 │   │   ├── chars/                       # PixelLab character sprite sheets (PNG + row-map JSON)
+│   │   ├── guardians/                   # PixelLab S.H.I.E.L.D. Guardian portraits (64x64)
 │   │   └── scenes/                      # PixelLab street scene (day/night) & town overview, 640x360 shown at 2x
 │   ├── favicon.svg                      # Pixel Shield icon
 │   └── manifest.webmanifest             # PWA manifest metadata

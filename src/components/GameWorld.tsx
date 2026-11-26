@@ -22,8 +22,8 @@ import {
   QuestId,
   ShieldLetter,
   ShieldSkillState,
-  TimeOfDay,
 } from '../types/game';
+import { SingaporeClock } from '../utils/sgClock';
 import { sfx } from '../utils/sound';
 import { GameDrawers } from './GameDrawers';
 import { GameHUD } from './GameHUD';
@@ -32,8 +32,7 @@ import { LookoutDilemmaModal } from './LookoutDilemmaModal';
 interface GameWorldProps {
   avatar: AvatarConfig;
   setAvatar: React.Dispatch<React.SetStateAction<AvatarConfig>>;
-  timeOfDay: TimeOfDay;
-  setTimeOfDay: React.Dispatch<React.SetStateAction<TimeOfDay>>;
+  clock: SingaporeClock;
   inventory: InventoryItem[];
   setInventory: React.Dispatch<React.SetStateAction<InventoryItem[]>>;
   skills: Record<ShieldLetter, ShieldSkillState>;
@@ -75,8 +74,7 @@ function hitsCharacter(pt: Pt, c: Pt) {
 export const GameWorld: React.FC<GameWorldProps> = ({
   avatar,
   setAvatar,
-  timeOfDay,
-  setTimeOfDay,
+  clock,
   inventory,
   setInventory,
   skills,
@@ -120,7 +118,7 @@ export const GameWorld: React.FC<GameWorldProps> = ({
 
   const stateSyncRef = useRef({
     avatar,
-    timeOfDay,
+    timeOfDay: clock.timeOfDay,
     ezLinkPickedUp,
     ezLinkReturned,
     kopiPickedUp,
@@ -128,7 +126,7 @@ export const GameWorld: React.FC<GameWorldProps> = ({
   });
   stateSyncRef.current = {
     avatar,
-    timeOfDay,
+    timeOfDay: clock.timeOfDay,
     ezLinkPickedUp,
     ezLinkReturned,
     kopiPickedUp,
@@ -453,10 +451,7 @@ export const GameWorld: React.FC<GameWorldProps> = ({
 
       <GameHUD
         avatar={avatar}
-        timeOfDay={timeOfDay}
-        onToggleTimeOfDay={() =>
-          setTimeOfDay((prev) => (prev === 'evening' ? 'afternoon' : 'evening'))
-        }
+        clock={clock}
         confidencePct={confidencePct}
         energyPct={energyPct}
         currentQuestTitle={currentQuestTitle}
@@ -496,10 +491,7 @@ export const GameWorld: React.FC<GameWorldProps> = ({
         skills={skills}
         questId={questId}
         ezLinkPickedUp={ezLinkPickedUp}
-        timeOfDay={timeOfDay}
-        onToggleTimeOfDay={() =>
-          setTimeOfDay((prev) => (prev === 'evening' ? 'afternoon' : 'evening'))
-        }
+        clock={clock}
         soundEnabled={soundEnabled}
         onToggleSound={() => {
           sfx.enabled = !sfx.enabled;
@@ -507,6 +499,7 @@ export const GameWorld: React.FC<GameWorldProps> = ({
           if (sfx.enabled) sfx.click();
         }}
         squadCode={squadCode}
+        playerPos={{ x: playerRef.current.x, y: playerRef.current.y }}
         onWalkToLandmark={walkTo}
         onStartLookoutMission={() => setShowLookoutModal(true)}
         onReturnToTitle={onReturnToTitle}

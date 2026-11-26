@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { DEFAULT_AVATAR, HAIR_COLORS, SHIRT_COLORS, SKIN_TONES } from '../data/gameData';
-import { AvatarConfig, TimeOfDay } from '../types/game';
+import { AvatarConfig } from '../types/game';
+import { SingaporeClock } from '../utils/sgClock';
 import { sfx } from '../utils/sound';
 import {
   ClockIcon,
@@ -13,8 +14,7 @@ import {
 interface LandingScreenProps {
   avatar: AvatarConfig;
   setAvatar: React.Dispatch<React.SetStateAction<AvatarConfig>>;
-  timeOfDay: TimeOfDay;
-  setTimeOfDay: React.Dispatch<React.SetStateAction<TimeOfDay>>;
+  clock: SingaporeClock;
   squadCode: string;
   setSquadCode: (code: string) => void;
   onStartGame: () => void;
@@ -61,15 +61,14 @@ const Swatches: React.FC<{
 export const LandingScreen: React.FC<LandingScreenProps> = ({
   avatar,
   setAvatar,
-  timeOfDay,
-  setTimeOfDay,
+  clock,
   squadCode,
   setSquadCode,
   onStartGame,
 }) => {
   const [showSquadInput, setShowSquadInput] = useState(false);
   const [showBriefModal, setShowBriefModal] = useState(false);
-  const evening = timeOfDay === 'evening';
+  const evening = clock.timeOfDay === 'evening';
 
   return (
     <div className="landing-root pixel-scroll">
@@ -77,19 +76,11 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
       <div className={`landing-art${evening ? ' is-evening' : ''}`} aria-hidden="true" />
       <div className="landing-shade" aria-hidden="true" />
 
-      <button
-        type="button"
-        onClick={() => {
-          sfx.click();
-          setTimeOfDay((prev) => (prev === 'evening' ? 'afternoon' : 'evening'));
-        }}
-        className="pixel-wood-panel landing-time"
-        title="Switch Afternoon (17:30) / Evening (19:15)"
-      >
+      <div className="pixel-wood-panel landing-time" title="Live Singapore time (SGT)">
         {evening ? <MoonIcon size={26} /> : <ClockIcon size={26} />}
-        <span style={{ fontWeight: 700, fontSize: 18 }}>{evening ? '19:15' : '17:30'}</span>
+        <span style={{ fontWeight: 700, fontSize: 18 }}>{clock.label}</span>
         {evening ? <NightWeatherIcon size={26} /> : <DayWeatherIcon size={26} />}
-      </button>
+      </div>
 
       <div className="landing-content">
         <header style={{ textAlign: 'center' }}>

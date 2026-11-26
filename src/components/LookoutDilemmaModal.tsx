@@ -138,57 +138,21 @@ export const LookoutDilemmaModal: React.FC<LookoutDilemmaModalProps> = ({
   const passedCount = STEP_ORDER.filter((l) => skills[l].passed).length;
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(12, 14, 22, 0.78)',
-        zIndex: 40,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 16,
-      }}
-    >
+    <div className="panel-backdrop" style={{ zIndex: 40 }}>
       <div
         className="pixel-modal-frame pixel-scroll"
-        style={{
-          width: 'min(94vw, 680px)',
-          maxHeight: '88vh',
-          overflowY: 'auto',
-          padding: 22,
-        }}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="lookout-title"
+        style={{ width: 'min(94vw, 680px)', maxHeight: '88vh', overflowY: 'auto', padding: 24 }}
       >
-        {/* Header */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: 12,
-            borderBottom: '2px solid rgba(200, 155, 103, 0.35)',
-            paddingBottom: 12,
-            marginBottom: 14,
-          }}
-        >
+        <div className="panel-header">
           <div>
-            <div style={{ fontFamily: 'var(--font-display)', fontSize: 11, color: '#8de0cf' }}>
-              SUNSHINE MINIMART • ANCHOR MISSION
-            </div>
-            <h2
-              style={{
-                margin: '4px 0 0',
-                fontFamily: 'var(--font-display)',
-                fontSize: 18,
-                color: '#f3c46b',
-              }}
-            >
-              THE LOOKOUT DILEMMA
-            </h2>
+            <div className="panel-eyebrow">Sunshine Minimart · Anchor mission</div>
+            <h2 id="lookout-title" className="panel-title">The Lookout Dilemma</h2>
           </div>
-
-          <button type="button" className="pixel-secondary-btn" onClick={onClose}>
-            EXIT
+          <button type="button" className="panel-close" aria-label="Exit mission" onClick={onClose}>
+            ✕
           </button>
         </div>
 
@@ -205,17 +169,17 @@ export const LookoutDilemmaModal: React.FC<LookoutDilemmaModalProps> = ({
                   textAlign: 'center',
                   padding: '6px 8px',
                   borderRadius: 6,
-                  border: active ? '2px solid #f3c46b' : '2px solid #231a16',
+                  border: active ? '2px solid #2b2118' : '2px solid #ecd6aa',
                   background: st.completed
                     ? st.passed
-                      ? '#2f5e4d'
-                      : '#63433b'
+                      ? '#cdeedd'
+                      : '#f8d9cf'
                     : active
-                      ? '#3b4459'
-                      : '#1b202b',
+                      ? '#fff1d6'
+                      : '#fffaf0',
                   fontFamily: 'var(--font-display)',
                   fontSize: 12,
-                  color: active ? '#f3c46b' : '#f4efe6',
+                  color: active ? '#2b2118' : '#3a2b20',
                 }}
               >
                 {letter} {st.completed ? (st.passed ? '✓' : '!') : ''}
@@ -228,17 +192,17 @@ export const LookoutDilemmaModal: React.FC<LookoutDilemmaModalProps> = ({
         {!isSummary && (
           <div
             style={{
-              background: '#1b202b',
-              border: '2px solid #485063',
+              background: '#fffaf0',
+              border: '2px solid #ecd6aa',
               borderRadius: 8,
               padding: '10px 14px',
               marginBottom: 14,
               fontSize: 14,
               lineHeight: 1.45,
-              color: '#e6e0d6',
+              color: '#3a2b20',
             }}
           >
-            <strong style={{ color: '#f7e17c' }}>Scene:</strong> Inside{' '}
+            <strong style={{ color: '#b8741a' }}>Scene:</strong> Inside{' '}
             <strong>Sunshine Minimart</strong>, your classmate <strong>Jun</strong> slips a snack
             packet into an open sling bag near the snack rack without going to the counter, glances
             at the cashier, and whispers:{' '}
@@ -249,10 +213,10 @@ export const LookoutDilemmaModal: React.FC<LookoutDilemmaModalProps> = ({
         {/* Active Step Content */}
         {currentLetter === 'S' && (
           <div>
-            <h3 style={{ margin: '0 0 8px', color: '#f3c46b', fontSize: 16 }}>
+            <h3 style={{ margin: '0 0 8px', color: '#2b2118', fontSize: 16 }}>
               S — Spot the Risk (Factual Observation)
             </h3>
-            <p style={{ margin: '0 0 10px', fontSize: 14, color: '#d0d7e3' }}>
+            <p style={{ margin: '0 0 10px', fontSize: 14, color: '#6b5744' }}>
               Select the <strong>strictly observable facts</strong> in the scene (avoid guesses or
               labelling intent):
             </p>
@@ -270,10 +234,10 @@ export const LookoutDilemmaModal: React.FC<LookoutDilemmaModalProps> = ({
                     display: 'flex',
                     alignItems: 'center',
                     gap: 10,
-                    background: sChecked.includes(id) ? '#323c52' : '#1b202b',
+                    background: sChecked.includes(id) ? '#dff3ee' : '#fffaf0',
                     border: sChecked.includes(id)
-                      ? '2px solid #63b5a7'
-                      : '2px solid #3c4356',
+                      ? '2px solid #2a9d8f'
+                      : '2px solid #ecd6aa',
                     borderRadius: 8,
                     padding: '9px 12px',
                     cursor: 'pointer',
@@ -294,10 +258,10 @@ export const LookoutDilemmaModal: React.FC<LookoutDilemmaModalProps> = ({
 
         {currentLetter === 'H' && (
           <div>
-            <h3 style={{ margin: '0 0 8px', color: '#f3c46b', fontSize: 16 }}>
+            <h3 style={{ margin: '0 0 8px', color: '#2b2118', fontSize: 16 }}>
               H — Hold Before Acting (Safe Boundary)
             </h3>
-            <p style={{ margin: '0 0 10px', fontSize: 14, color: '#d0d7e3' }}>
+            <p style={{ margin: '0 0 10px', fontSize: 14, color: '#6b5744' }}>
               What is your safest <strong>immediate response</strong> right now?
             </p>
             <div style={{ display: 'grid', gap: 8 }}>
@@ -321,9 +285,9 @@ export const LookoutDilemmaModal: React.FC<LookoutDilemmaModalProps> = ({
                     padding: '10px 14px',
                     borderRadius: 8,
                     cursor: 'pointer',
-                    background: hChoice === id ? '#344157' : '#1b202b',
-                    border: hChoice === id ? '2px solid #f3c46b' : '2px solid #3c4356',
-                    color: '#f5efe6',
+                    background: hChoice === id ? '#dff3ee' : '#fffaf0',
+                    border: hChoice === id ? '2px solid #2b2118' : '2px solid #ecd6aa',
+                    color: '#3a2b20',
                     fontSize: 14,
                   }}
                 >
@@ -336,15 +300,15 @@ export const LookoutDilemmaModal: React.FC<LookoutDilemmaModalProps> = ({
 
         {currentLetter === 'I' && (
           <div>
-            <h3 style={{ margin: '0 0 8px', color: '#f3c46b', fontSize: 16 }}>
+            <h3 style={{ margin: '0 0 8px', color: '#2b2118', fontSize: 16 }}>
               I — Identify the Influence
             </h3>
-            <p style={{ margin: '0 0 8px', fontSize: 14, color: '#d0d7e3' }}>
+            <p style={{ margin: '0 0 8px', fontSize: 14, color: '#6b5744' }}>
               Identify <strong>both</strong> the persuasion tactic and the role requested of you:
             </p>
             <div style={{ display: 'grid', gap: 10 }}>
               <div>
-                <div style={{ fontSize: 13, color: '#8de0cf', marginBottom: 5 }}>
+                <div style={{ fontSize: 13, color: '#1f7a6d', marginBottom: 5 }}>
                   1. Pressure tactic used:
                 </div>
                 <div style={{ display: 'grid', gap: 6 }}>
@@ -363,9 +327,9 @@ export const LookoutDilemmaModal: React.FC<LookoutDilemmaModalProps> = ({
                         textAlign: 'left',
                         padding: '8px 12px',
                         borderRadius: 7,
-                        background: iTactic === id ? '#344157' : '#1b202b',
-                        border: iTactic === id ? '2px solid #f3c46b' : '2px solid #3c4356',
-                        color: '#f5efe6',
+                        background: iTactic === id ? '#dff3ee' : '#fffaf0',
+                        border: iTactic === id ? '2px solid #2b2118' : '2px solid #ecd6aa',
+                        color: '#3a2b20',
                         cursor: 'pointer',
                         fontSize: 13.5,
                       }}
@@ -377,7 +341,7 @@ export const LookoutDilemmaModal: React.FC<LookoutDilemmaModalProps> = ({
               </div>
 
               <div>
-                <div style={{ fontSize: 13, color: '#8de0cf', marginBottom: 5 }}>
+                <div style={{ fontSize: 13, color: '#1f7a6d', marginBottom: 5 }}>
                   2. Role you are being asked to play:
                 </div>
                 <div style={{ display: 'grid', gap: 6 }}>
@@ -396,9 +360,9 @@ export const LookoutDilemmaModal: React.FC<LookoutDilemmaModalProps> = ({
                         textAlign: 'left',
                         padding: '8px 12px',
                         borderRadius: 7,
-                        background: iRole === id ? '#344157' : '#1b202b',
-                        border: iRole === id ? '2px solid #f3c46b' : '2px solid #3c4356',
-                        color: '#f5efe6',
+                        background: iRole === id ? '#dff3ee' : '#fffaf0',
+                        border: iRole === id ? '2px solid #2b2118' : '2px solid #ecd6aa',
+                        color: '#3a2b20',
                         cursor: 'pointer',
                         fontSize: 13.5,
                       }}
@@ -414,10 +378,10 @@ export const LookoutDilemmaModal: React.FC<LookoutDilemmaModalProps> = ({
 
         {currentLetter === 'E' && (
           <div>
-            <h3 style={{ margin: '0 0 8px', color: '#f3c46b', fontSize: 16 }}>
+            <h3 style={{ margin: '0 0 8px', color: '#2b2118', fontSize: 16 }}>
               E — Evaluate Consequences (Delayed Consequence Engine)
             </h3>
-            <p style={{ margin: '0 0 10px', fontSize: 14, color: '#d0d7e3' }}>
+            <p style={{ margin: '0 0 10px', fontSize: 14, color: '#6b5744' }}>
               Before seeing the outcome, match each action to its most likely consequence:
             </p>
             <div style={{ display: 'grid', gap: 10 }}>
@@ -438,8 +402,8 @@ export const LookoutDilemmaModal: React.FC<LookoutDilemmaModalProps> = ({
                 <div
                   key={row.key}
                   style={{
-                    background: '#1b202b',
-                    border: '2px solid #3c4356',
+                    background: '#fffaf0',
+                    border: '2px solid #ecd6aa',
                     borderRadius: 8,
                     padding: '9px 12px',
                     display: 'flex',
@@ -457,9 +421,9 @@ export const LookoutDilemmaModal: React.FC<LookoutDilemmaModalProps> = ({
                       setEPairs((prev) => ({ ...prev, [row.key]: e.target.value }));
                     }}
                     style={{
-                      background: '#2b3244',
-                      color: '#f5efe6',
-                      border: '2px solid #231a16',
+                      background: '#ffffff',
+                      color: '#3a2b20',
+                      border: '2px solid #ecd6aa',
                       borderRadius: 6,
                       padding: '6px 10px',
                       fontSize: 13,
@@ -484,10 +448,10 @@ export const LookoutDilemmaModal: React.FC<LookoutDilemmaModalProps> = ({
 
         {currentLetter === 'L' && (
           <div>
-            <h3 style={{ margin: '0 0 8px', color: '#f3c46b', fontSize: 16 }}>
+            <h3 style={{ margin: '0 0 8px', color: '#2b2118', fontSize: 16 }}>
               L — Lead the Right Choice (Peer Redirection)
             </h3>
-            <p style={{ margin: '0 0 10px', fontSize: 14, color: '#d0d7e3' }}>
+            <p style={{ margin: '0 0 10px', fontSize: 14, color: '#6b5744' }}>
               Pick a respectful message that nudges Jun towards a safer choice:
             </p>
             <div style={{ display: 'grid', gap: 8 }}>
@@ -514,9 +478,9 @@ export const LookoutDilemmaModal: React.FC<LookoutDilemmaModalProps> = ({
                     padding: '10px 14px',
                     borderRadius: 8,
                     cursor: 'pointer',
-                    background: lChoice === id ? '#344157' : '#1b202b',
-                    border: lChoice === id ? '2px solid #f3c46b' : '2px solid #3c4356',
-                    color: '#f5efe6',
+                    background: lChoice === id ? '#dff3ee' : '#fffaf0',
+                    border: lChoice === id ? '2px solid #2b2118' : '2px solid #ecd6aa',
+                    color: '#3a2b20',
                     fontSize: 14,
                   }}
                 >
@@ -529,10 +493,10 @@ export const LookoutDilemmaModal: React.FC<LookoutDilemmaModalProps> = ({
 
         {currentLetter === 'D' && (
           <div>
-            <h3 style={{ margin: '0 0 8px', color: '#f3c46b', fontSize: 16 }}>
+            <h3 style={{ margin: '0 0 8px', color: '#2b2118', fontSize: 16 }}>
               D — Defend Your Community (Responsible Help-Seeking)
             </h3>
-            <p style={{ margin: '0 0 8px', fontSize: 14, color: '#d0d7e3' }}>
+            <p style={{ margin: '0 0 8px', fontSize: 14, color: '#6b5744' }}>
               If concern remains unresolved, choose <strong>who to approach</strong> and{' '}
               <strong>two factual observations</strong> to share:
             </p>
@@ -553,9 +517,9 @@ export const LookoutDilemmaModal: React.FC<LookoutDilemmaModalProps> = ({
                       flex: '1 1 200px',
                       padding: '9px 12px',
                       borderRadius: 7,
-                      background: dHelper === id ? '#344157' : '#1b202b',
-                      border: dHelper === id ? '2px solid #f3c46b' : '2px solid #3c4356',
-                      color: '#f5efe6',
+                      background: dHelper === id ? '#dff3ee' : '#fffaf0',
+                      border: dHelper === id ? '2px solid #2b2118' : '2px solid #ecd6aa',
+                      color: '#3a2b20',
                       cursor: 'pointer',
                       fontSize: 13.5,
                     }}
@@ -577,10 +541,10 @@ export const LookoutDilemmaModal: React.FC<LookoutDilemmaModalProps> = ({
                       display: 'flex',
                       alignItems: 'center',
                       gap: 10,
-                      background: dFacts.includes(id) ? '#323c52' : '#1b202b',
+                      background: dFacts.includes(id) ? '#dff3ee' : '#fffaf0',
                       border: dFacts.includes(id)
-                        ? '2px solid #63b5a7'
-                        : '2px solid #3c4356',
+                        ? '2px solid #2a9d8f'
+                        : '2px solid #ecd6aa',
                       borderRadius: 7,
                       padding: '8px 12px',
                       cursor: 'pointer',
@@ -603,10 +567,10 @@ export const LookoutDilemmaModal: React.FC<LookoutDilemmaModalProps> = ({
         {/* Summary / Ripple Debrief */}
         {isSummary && (
           <div>
-            <h3 style={{ margin: '0 0 8px', color: '#8de0cf', fontSize: 17 }}>
+            <h3 style={{ margin: '0 0 8px', color: '#1f7a6d', fontSize: 17 }}>
               Delayed Consequence & Individual S.H.I.E.L.D. Breakdown
             </h3>
-            <p style={{ fontSize: 14, color: '#e6e0d6', lineHeight: 1.5, marginTop: 0 }}>
+            <p style={{ fontSize: 14, color: '#3a2b20', lineHeight: 1.5, marginTop: 0 }}>
               You completed <strong>The Lookout Dilemma</strong> ({passedCount}/6 individual
               competencies passed). Notice how each S.H.I.E.L.D. skill is scored independently—one
               good choice doesn&apos;t cover for another!
@@ -621,17 +585,17 @@ export const LookoutDilemmaModal: React.FC<LookoutDilemmaModalProps> = ({
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      background: '#1b202b',
+                      background: '#fffaf0',
                       border: `2px solid ${st.passed ? '#48a999' : '#85584a'}`,
                       borderRadius: 8,
                       padding: '8px 12px',
                     }}
                   >
                     <div>
-                      <div style={{ fontWeight: 700, color: '#f3c46b', fontSize: 14 }}>
+                      <div style={{ fontWeight: 700, color: '#2b2118', fontSize: 14 }}>
                         {st.letter} — {st.title}
                       </div>
-                      <div style={{ fontSize: 12.5, color: '#c4ccdc' }}>
+                      <div style={{ fontSize: 12.5, color: '#6b5744' }}>
                         Guardian: {st.guardianName} • {st.competency}
                       </div>
                     </div>
@@ -639,7 +603,7 @@ export const LookoutDilemmaModal: React.FC<LookoutDilemmaModalProps> = ({
                       style={{
                         fontFamily: 'var(--font-display)',
                         fontSize: 11,
-                        color: st.passed ? '#7ce8be' : '#f29f8d',
+                        color: st.passed ? '#1f7a6d' : '#c0533e',
                       }}
                     >
                       {st.passed ? 'PASS' : 'REVIEW'} ({st.score}/{st.maxScore})
@@ -656,12 +620,12 @@ export const LookoutDilemmaModal: React.FC<LookoutDilemmaModalProps> = ({
           <div
             style={{
               marginTop: 14,
-              background: '#2c3548',
-              border: '2px solid #f3c46b',
+              background: '#fff1d6',
+              border: '2px solid #2b2118',
               borderRadius: 8,
               padding: '10px 14px',
               fontSize: 13.5,
-              color: '#fff4dc',
+              color: '#3a2b20',
               lineHeight: 1.45,
             }}
           >

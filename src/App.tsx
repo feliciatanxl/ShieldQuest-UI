@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { GameWorld } from './components/GameWorld';
 import { LandingScreen } from './components/LandingScreen';
+import { useSingaporeClock } from './utils/sgClock';
 import {
   DEFAULT_AVATAR,
   INITIAL_INVENTORY,
@@ -11,13 +12,12 @@ import {
   InventoryItem,
   ShieldLetter,
   ShieldSkillState,
-  TimeOfDay,
 } from './types/game';
 
 export const App: React.FC = () => {
   const [screen, setScreen] = useState<'landing' | 'game'>('landing');
   const [avatar, setAvatar] = useState<AvatarConfig>(DEFAULT_AVATAR);
-  const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>('evening');
+  const clock = useSingaporeClock();
   const [inventory, setInventory] = useState<InventoryItem[]>(INITIAL_INVENTORY);
   const [skills, setSkills] =
     useState<Record<ShieldLetter, ShieldSkillState>>(INITIAL_SHIELD_SKILLS);
@@ -40,8 +40,7 @@ export const App: React.FC = () => {
       <LandingScreen
         avatar={avatar}
         setAvatar={setAvatar}
-        timeOfDay={timeOfDay}
-        setTimeOfDay={setTimeOfDay}
+        clock={clock}
         squadCode={squadCode}
         setSquadCode={setSquadCode}
         onStartGame={() => setScreen('game')}
@@ -53,8 +52,7 @@ export const App: React.FC = () => {
     <GameWorld
       avatar={avatar}
       setAvatar={setAvatar}
-      timeOfDay={timeOfDay}
-      setTimeOfDay={setTimeOfDay}
+      clock={clock}
       inventory={inventory}
       setInventory={setInventory}
       skills={skills}

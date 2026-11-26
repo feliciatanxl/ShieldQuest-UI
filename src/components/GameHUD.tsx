@@ -1,6 +1,7 @@
 import React from 'react';
 import { SHIELD_STYLES } from '../data/gameData';
-import { AvatarConfig, DrawerType, TimeOfDay } from '../types/game';
+import { AvatarConfig, DrawerType } from '../types/game';
+import { SingaporeClock } from '../utils/sgClock';
 import { sfx } from '../utils/sound';
 import {
   BackpackIcon,
@@ -18,8 +19,7 @@ import {
 
 interface GameHUDProps {
   avatar: AvatarConfig;
-  timeOfDay: TimeOfDay;
-  onToggleTimeOfDay: () => void;
+  clock: SingaporeClock;
   confidencePct: number;
   energyPct: number;
   currentQuestTitle: string;
@@ -29,8 +29,7 @@ interface GameHUDProps {
 
 export const GameHUD: React.FC<GameHUDProps> = ({
   avatar,
-  timeOfDay,
-  onToggleTimeOfDay,
+  clock,
   confidencePct,
   energyPct,
   currentQuestTitle,
@@ -197,24 +196,18 @@ export const GameHUD: React.FC<GameHUDProps> = ({
           pointerEvents: 'auto',
         }}
       >
-        <button
-          type="button"
-          onClick={() => {
-            sfx.click();
-            onToggleTimeOfDay();
-          }}
+        <div
           className="pixel-wood-panel"
-          title="Click to toggle Afternoon (17:30) / Evening (19:15)"
+          title="Live Singapore time (SGT)"
           style={{
             display: 'flex',
             alignItems: 'center',
             gap: 10,
             padding: '6px 14px',
-            cursor: 'pointer',
             color: '#231a16',
           }}
         >
-          {timeOfDay === 'evening' ? <MoonIcon size={28} /> : <ClockIcon size={28} />}
+          {clock.timeOfDay === 'evening' ? <MoonIcon size={28} /> : <ClockIcon size={28} />}
           <span
             style={{
               fontFamily: 'var(--font-ui)',
@@ -224,14 +217,14 @@ export const GameHUD: React.FC<GameHUDProps> = ({
               color: '#231a16',
             }}
           >
-            {timeOfDay === 'evening' ? '19:15' : '17:30'}
+            {clock.label}
           </span>
-          {timeOfDay === 'evening' ? (
+          {clock.timeOfDay === 'evening' ? (
             <NightWeatherIcon size={28} />
           ) : (
             <DayWeatherIcon size={28} />
           )}
-        </button>
+        </div>
       </div>
 
       {/* ==================== BOTTOM-LEFT HUD (Exact Match to Screenshot) ==================== */}

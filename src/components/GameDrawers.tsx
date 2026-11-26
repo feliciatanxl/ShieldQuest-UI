@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   DEFAULT_AVATAR,
   HAIR_COLORS,
@@ -16,15 +16,15 @@ import {
   QuestId,
   ShieldLetter,
   ShieldSkillState,
-  TimeOfDay,
 } from '../types/game';
+import { SingaporeClock } from '../utils/sgClock';
 import { sfx } from '../utils/sound';
 import {
   ChopeTissueIcon,
   EzLinkCardIcon,
   FieldNotesIcon,
   KopiDabaoIcon,
-  PlayerPortrait,
+  PlayerSpritePreview,
   ReceiptIcon,
   ShieldEmblemIcon,
 } from './PixelIcons';
@@ -38,777 +38,614 @@ interface GameDrawersProps {
   skills: Record<ShieldLetter, ShieldSkillState>;
   questId: QuestId;
   ezLinkPickedUp: boolean;
-  timeOfDay: TimeOfDay;
-  onToggleTimeOfDay: () => void;
+  clock: SingaporeClock;
   soundEnabled: boolean;
   onToggleSound: () => void;
   squadCode: string;
+  playerPos: { x: number; y: number };
   onWalkToLandmark: (target: { x: number; y: number }) => void;
   onStartLookoutMission: () => void;
   onReturnToTitle: () => void;
 }
 
-export const GameDrawers: React.FC<GameDrawersProps> = ({
-  activeDrawer,
-  onClose,
-  avatar,
-  setAvatar,
-  inventory,
-  skills,
-  questId,
-  ezLinkPickedUp,
-  timeOfDay,
-  onToggleTimeOfDay,
-  soundEnabled,
-  onToggleSound,
-  squadCode,
-  onWalkToLandmark,
-  onStartLookoutMission,
-  onReturnToTitle,
-}) => {
-  if (!activeDrawer) return null;
+const HEADINGS: Record<Exclude<DrawerType, null>, [eyebrow: string, title: string]> = {
+  backpack: ['Your adventure', 'Pack'],
+  wardrobe: ['Wardrobe', 'Choose your look'],
+  map: ['Neighbourhood guide', 'Area map'],
+  menu: ['Your adventure', 'Settings'],
+  quest: ['Your adventure', 'Quests'],
+  shield: ['Your adventure', 'Guardians'],
+};
 
-  const titles: Record<Exclude<DrawerType, null>, string> = {
-    backpack: 'BACKPACK & FIELD CLUES',
-    wardrobe: 'WARDROBE & CUSTOMISATION',
-    map: 'BLOCK 260 NEIGHBOURHOOD MAP',
-    menu: 'SHIELDQUEST MENU',
-    quest: 'CURRENT QUESTS',
-    shield: 'S.H.I.E.L.D. COMPETENCIES & GUARDIANS',
-  };
+const ITEM_ICONS: Record<InventoryItem['icon'], React.ReactNode> = {
+  ezlink: <EzLinkCardIcon size={40} />,
+  chope: <ChopeTissueIcon size={36} />,
+  kopi: <KopiDabaoIcon size={36} />,
+  receipt: <ReceiptIcon size={36} />,
+  notes: <FieldNotesIcon size={36} />,
+  badge: <FieldNotesIcon size={36} />,
+};
+
+const HAIR_STYLES: AvatarConfig['hairStyle'][] = ['short', 'spiky', 'bob', 'ponytail'];
+
+const pick = <T,>(list: T[]) => list[Math.floor(Math.random() * list.length)];
+
+export const GameDrawers: React.FC<GameDrawersProps> = (props) => {
+  const { activeDrawer, onClose } = props;
+
+  // Esc closes the open panel
+  useEffect(() => {
+    if (!activeDrawer) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [activeDrawer, onClose]);
+
+  if (!activeDrawer) return null;
+  const [eyebrow, title] = HEADINGS[activeDrawer];
+  const wide = activeDrawer === 'wardrobe' || activeDrawer === 'map';
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(12, 14, 22, 0.56)',
-        zIndex: 35,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 16,
-      }}
-      onClick={onClose}
-    >
+    <div className="panel-backdrop" onClick={onClose}>
       <div
         className="pixel-modal-frame pixel-scroll"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="drawer-title"
         style={{
-          width: 'min(92vw, 560px)',
-          maxHeight: '84vh',
+          width: `min(94vw, ${wide ? 980 : 620}px)`,
+          maxHeight: '88vh',
           overflowY: 'auto',
-          padding: 20,
+          padding: 24,
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: 10,
-            borderBottom: '2px solid rgba(200, 155, 103, 0.35)',
-            paddingBottom: 10,
-            marginBottom: 14,
-          }}
-        >
-          <h2
-            style={{
-              margin: 0,
-              fontFamily: 'var(--font-display)',
-              fontSize: 15,
-              color: '#f3c46b',
-            }}
-          >
-            {titles[activeDrawer]}
-          </h2>
+        <div className="panel-header">
+          <div>
+            <div className="panel-eyebrow">{eyebrow}</div>
+            <h2 id="drawer-title" className="panel-title">
+              {title}
+            </h2>
+          </div>
           <button
             type="button"
-            className="pixel-secondary-btn"
+            className="panel-close"
+            aria-label="Close"
             onClick={() => {
               sfx.click();
               onClose();
             }}
           >
-            CLOSE
+            ✕
           </button>
         </div>
 
-        {/* BACKPACK */}
-        {activeDrawer === 'backpack' && (
-          <div style={{ display: 'grid', gap: 10 }}>
-            {inventory.map((item) => (
-              <div
-                key={item.id}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 12,
-                  background: '#1b202b',
-                  border: `2px solid ${item.collected ? '#63b5a7' : '#3c4356'}`,
-                  borderRadius: 8,
-                  padding: '10px 12px',
-                  opacity: item.collected ? 1 : 0.55,
-                }}
-              >
-                <div
-                  style={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: 8,
-                    background: '#272f40',
-                    border: '2px solid #231a16',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                  }}
-                >
-                  {item.icon === 'ezlink' ? (
-                    <EzLinkCardIcon size={34} />
-                  ) : item.icon === 'chope' ? (
-                    <ChopeTissueIcon size={30} />
-                  ) : item.icon === 'kopi' ? (
-                    <KopiDabaoIcon size={30} />
-                  ) : item.icon === 'receipt' ? (
-                    <ReceiptIcon size={30} />
-                  ) : (
-                    <FieldNotesIcon size={30} />
-                  )}
-                </div>
-                <div>
-                  <div style={{ fontWeight: 700, color: '#f3c46b', fontSize: 14 }}>
-                    {item.name} {!item.collected && '(Not found yet)'}
-                  </div>
-                  <div style={{ fontSize: 13, color: '#d0d7e3', marginTop: 2 }}>
-                    {item.description}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        {activeDrawer === 'backpack' && <PackPanel {...props} />}
+        {activeDrawer === 'wardrobe' && <WardrobePanel {...props} />}
+        {activeDrawer === 'map' && <MapPanel {...props} />}
+        {activeDrawer === 'quest' && <QuestPanel {...props} />}
+        {activeDrawer === 'shield' && <GuardiansPanel {...props} />}
+        {activeDrawer === 'menu' && <SettingsPanel {...props} />}
+      </div>
+    </div>
+  );
+};
 
-        {/* WARDROBE */}
-        {activeDrawer === 'wardrobe' && (
-          <div style={{ display: 'grid', gap: 14 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-              <div
-                style={{
-                  width: 76,
-                  height: 76,
-                  borderRadius: '50%',
-                  overflow: 'hidden',
-                  border: '4px solid #231a16',
-                  boxShadow: '0 0 0 3px #c89b67',
-                  flexShrink: 0,
-                }}
-              >
-                <PlayerPortrait avatar={avatar} size={68} />
-              </div>
-              <div style={{ flex: 1 }}>
-                <label style={{ fontSize: 12, color: '#f3c46b', display: 'block', marginBottom: 4 }}>
-                  Display Name
-                </label>
-                <input
-                  type="text"
-                  maxLength={14}
-                  value={avatar.name}
-                  onChange={(e) =>
-                    setAvatar((prev) => ({ ...prev, name: e.target.value }))
-                  }
-                  style={{
-                    width: '100%',
-                    padding: '7px 10px',
-                    borderRadius: 6,
-                    border: '2px solid #231a16',
-                    background: '#2b3244',
-                    color: '#fff',
-                    fontSize: 15,
-                    fontWeight: 600,
-                  }}
-                />
+// ---------- Pack ----------
+
+const PackPanel: React.FC<GameDrawersProps> = ({ inventory }) => {
+  const found = inventory.filter((i) => i.collected).length;
+  return (
+    <div style={{ display: 'grid', gap: 12 }}>
+      <span className="pill" style={{ justifySelf: 'start' }}>
+        {found} of {inventory.length} items
+      </span>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 10 }}>
+        {inventory.map((item) => (
+          <div
+            key={item.id}
+            className="cream-card"
+            style={{ display: 'flex', gap: 12, alignItems: 'center', opacity: item.collected ? 1 : 0.55 }}
+          >
+            <div className="sprite-tile" style={{ width: 56, height: 56, flexShrink: 0 }}>
+              {ITEM_ICONS[item.icon]}
+            </div>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 15 }}>{item.name}</div>
+              <div className="cream-muted" style={{ marginTop: 2 }}>
+                {item.collected ? item.description : 'Not found yet — keep exploring Block 260.'}
               </div>
             </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
-            <div>
-              <div style={{ fontSize: 12, color: '#bcc4d4', marginBottom: 5 }}>Hair Style</div>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                {(['short', 'spiky', 'bob', 'ponytail'] as AvatarConfig['hairStyle'][]).map(
-                  (style) => (
+// ---------- Wardrobe ("Choose your look") ----------
+
+type WardrobeTab = 'body' | 'head' | 'torso' | 'legs' | 'misc';
+const WARDROBE_TABS: [WardrobeTab, string][] = [
+  ['body', 'Face & Body'],
+  ['head', 'Head'],
+  ['torso', 'Torso'],
+  ['legs', 'Legs'],
+  ['misc', 'Misc'],
+];
+
+const ColourGrid: React.FC<{
+  heading: string;
+  hint: string;
+  options: { label: string; color: string }[];
+  value: string;
+  onPick: (color: string) => void;
+}> = ({ heading, hint, options, value, onPick }) => (
+  <div className="cream-card">
+    <div style={{ fontWeight: 800, fontSize: 16 }}>{heading}</div>
+    <div className="cream-muted" style={{ margin: '2px 0 10px' }}>
+      {hint}
+    </div>
+    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+      {options.map((o) => (
+        <button
+          key={o.color}
+          type="button"
+          title={o.label}
+          aria-label={o.label}
+          aria-pressed={value === o.color}
+          className={`pixel-swatch${value === o.color ? ' is-active' : ''}`}
+          style={{ background: o.color, width: 34, height: 34 }}
+          onClick={() => {
+            sfx.click();
+            onPick(o.color);
+          }}
+        />
+      ))}
+    </div>
+  </div>
+);
+
+const WardrobePanel: React.FC<GameDrawersProps> = ({ avatar, setAvatar }) => {
+  const [tab, setTab] = useState<WardrobeTab>('body');
+  const set = (patch: Partial<AvatarConfig>) => setAvatar((p) => ({ ...p, ...patch }));
+
+  return (
+    <div>
+      <div className="cream-tabs" role="tablist">
+        {WARDROBE_TABS.map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            role="tab"
+            aria-selected={tab === id}
+            className={`cream-tab${tab === id ? ' is-active' : ''}`}
+            onClick={() => {
+              sfx.click();
+              setTab(id);
+            }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 250px', gap: 14 }} className="wardrobe-grid">
+        <div style={{ display: 'grid', gap: 12, alignContent: 'start' }}>
+          {tab === 'body' && (
+            <ColourGrid
+              heading="Skin tone"
+              hint="Pick the skin tone for your hero."
+              options={SKIN_TONES}
+              value={avatar.skinTone}
+              onPick={(c) => set({ skinTone: c })}
+            />
+          )}
+          {tab === 'head' && (
+            <>
+              <div className="cream-card">
+                <div style={{ fontWeight: 800, fontSize: 16 }}>Hairstyle</div>
+                <div className="cream-muted" style={{ margin: '2px 0 10px' }}>
+                  Short and Spiky are boys&apos; cuts; Bob and Ponytail are girls&apos;.
+                </div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {HAIR_STYLES.map((s) => (
                     <button
-                      key={style}
+                      key={s}
                       type="button"
+                      aria-pressed={avatar.hairStyle === s}
+                      className={`pixel-chip${avatar.hairStyle === s ? ' is-active' : ''}`}
                       onClick={() => {
                         sfx.click();
-                        setAvatar((p) => ({ ...p, hairStyle: style }));
-                      }}
-                      style={{
-                        padding: '6px 12px',
-                        borderRadius: 6,
-                        cursor: 'pointer',
-                        textTransform: 'capitalize',
-                        fontWeight: 600,
-                        background: avatar.hairStyle === style ? '#3a4254' : '#1b202b',
-                        border:
-                          avatar.hairStyle === style
-                            ? '2px solid #f3c46b'
-                            : '2px solid #3c4356',
-                        color: '#f5efe6',
+                        set({ hairStyle: s });
                       }}
                     >
-                      {style}
+                      {s}
                     </button>
-                  )
-                )}
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap' }}>
-              <div>
-                <div style={{ fontSize: 12, color: '#bcc4d4', marginBottom: 5 }}>Skin Tone</div>
-                <div style={{ display: 'flex', gap: 7 }}>
-                  {SKIN_TONES.map((s) => (
-                    <button
-                      key={s.color}
-                      type="button"
-                      onClick={() => {
-                        sfx.click();
-                        setAvatar((p) => ({ ...p, skinTone: s.color }));
-                      }}
-                      style={{
-                        width: 28,
-                        height: 26,
-                        borderRadius: 6,
-                        background: s.color,
-                        cursor: 'pointer',
-                        border:
-                          avatar.skinTone === s.color
-                            ? '3px solid #f3c46b'
-                            : '2px solid #231a16',
-                      }}
-                    />
                   ))}
                 </div>
               </div>
-
-              <div>
-                <div style={{ fontSize: 12, color: '#bcc4d4', marginBottom: 5 }}>Hair Color</div>
-                <div style={{ display: 'flex', gap: 7 }}>
-                  {HAIR_COLORS.map((h) => (
-                    <button
-                      key={h.color}
-                      type="button"
-                      onClick={() => {
-                        sfx.click();
-                        setAvatar((p) => ({ ...p, hairColor: h.color }));
-                      }}
-                      style={{
-                        width: 28,
-                        height: 26,
-                        borderRadius: 6,
-                        background: h.color,
-                        cursor: 'pointer',
-                        border:
-                          avatar.hairColor === h.color
-                            ? '3px solid #f3c46b'
-                            : '2px solid #231a16',
-                      }}
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap' }}>
-              <div>
-                <div style={{ fontSize: 12, color: '#bcc4d4', marginBottom: 5 }}>Top Tee</div>
-                <div style={{ display: 'flex', gap: 7 }}>
-                  {SHIRT_COLORS.map((t) => (
-                    <button
-                      key={t.color}
-                      type="button"
-                      onClick={() => {
-                        sfx.click();
-                        setAvatar((p) => ({ ...p, shirtColor: t.color }));
-                      }}
-                      style={{
-                        width: 28,
-                        height: 26,
-                        borderRadius: 6,
-                        background: t.color,
-                        cursor: 'pointer',
-                        border:
-                          avatar.shirtColor === t.color
-                            ? '3px solid #f3c46b'
-                            : '2px solid #231a16',
-                      }}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <div style={{ fontSize: 12, color: '#bcc4d4', marginBottom: 5 }}>Shorts / Pants</div>
-                <div style={{ display: 'flex', gap: 7 }}>
-                  {PANTS_COLORS.map((p) => (
-                    <button
-                      key={p.color}
-                      type="button"
-                      onClick={() => {
-                        sfx.click();
-                        setAvatar((prev) => ({ ...prev, pantsColor: p.color }));
-                      }}
-                      style={{
-                        width: 28,
-                        height: 26,
-                        borderRadius: 6,
-                        background: p.color,
-                        cursor: 'pointer',
-                        border:
-                          avatar.pantsColor === p.color
-                            ? '3px solid #f3c46b'
-                            : '2px solid #231a16',
-                      }}
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <div style={{ fontSize: 12, color: '#bcc4d4', marginBottom: 5 }}>
-                Shield Backpack Crest
+              <ColourGrid
+                heading="Hair colour"
+                hint="Natural shades for every hairstyle."
+                options={HAIR_COLORS}
+                value={avatar.hairColor}
+                onPick={(c) => set({ hairColor: c })}
+              />
+            </>
+          )}
+          {tab === 'torso' && (
+            <ColourGrid
+              heading="T-shirt"
+              hint="Your everyday heartland tee."
+              options={SHIRT_COLORS}
+              value={avatar.shirtColor}
+              onPick={(c) => set({ shirtColor: c })}
+            />
+          )}
+          {tab === 'legs' && (
+            <ColourGrid
+              heading="Shorts"
+              hint="Comfy for walking around the estate."
+              options={PANTS_COLORS}
+              value={avatar.pantsColor}
+              onPick={(c) => set({ pantsColor: c })}
+            />
+          )}
+          {tab === 'misc' && (
+            <div className="cream-card">
+              <div style={{ fontWeight: 800, fontSize: 16 }}>Shield crest</div>
+              <div className="cream-muted" style={{ margin: '2px 0 10px' }}>
+                Shown on your HUD badge.
               </div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {SHIELD_STYLES.map((sh) => (
                   <button
                     key={sh.id}
                     type="button"
+                    aria-pressed={avatar.shieldStyle === sh.id}
+                    className={`pixel-chip${avatar.shieldStyle === sh.id ? ' is-active' : ''}`}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 6, textTransform: 'none' }}
                     onClick={() => {
                       sfx.click();
-                      setAvatar((p) => ({ ...p, shieldStyle: sh.id }));
-                    }}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      padding: '5px 10px',
-                      borderRadius: 6,
-                      cursor: 'pointer',
-                      background: avatar.shieldStyle === sh.id ? '#344157' : '#1b202b',
-                      border:
-                        avatar.shieldStyle === sh.id
-                          ? '2px solid #f3c46b'
-                          : '2px solid #3c4356',
-                      color: '#f5efe6',
-                      fontSize: 12.5,
+                      set({ shieldStyle: sh.id });
                     }}
                   >
                     <ShieldEmblemIcon size={20} accent={sh.accent} />
-                    <span>{sh.label}</span>
+                    {sh.label}
                   </button>
                 ))}
               </div>
             </div>
+          )}
+        </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <button
-                type="button"
-                className="pixel-secondary-btn"
-                onClick={() => {
-                  sfx.click();
-                  setAvatar(DEFAULT_AVATAR);
-                }}
-              >
-                RESET TO DEFAULT
-              </button>
-            </div>
+        <div style={{ display: 'grid', gap: 10, alignContent: 'start' }}>
+          <label htmlFor="wardrobe-name" style={{ fontWeight: 700, fontSize: 15 }}>
+            Your name
+          </label>
+          <input
+            id="wardrobe-name"
+            type="text"
+            maxLength={14}
+            value={avatar.name}
+            placeholder="e.g. Wei Ling, Hafiz, Priya"
+            onChange={(e) => set({ name: e.target.value })}
+            className="parchment-input"
+            style={{ borderColor: '#ecd6aa' }}
+          />
+          <div className="wardrobe-stage">
+            <PlayerSpritePreview avatar={avatar} scale={3} />
           </div>
-        )}
-
-        {/* MAP */}
-        {activeDrawer === 'map' && (
-          <div style={{ display: 'grid', gap: 12 }}>
-            {/* Illustrated Pixel Singapore Skyline & Heartland Map Header */}
-            <div
-              style={{
-                background: 'linear-gradient(180deg, #1d2744 0%, #2b3c60 68%, #2a473a 100%)',
-                border: '2px solid #231a16',
-                borderRadius: 8,
-                padding: '10px 12px',
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+            <button
+              type="button"
+              className="pixel-secondary-btn"
+              onClick={() => {
+                sfx.click();
+                setAvatar((p) => ({ ...DEFAULT_AVATAR, name: p.name }));
               }}
             >
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: 8,
-                }}
-              >
-                <span
-                  style={{
-                    fontFamily: 'var(--font-display)',
-                    fontSize: 10.5,
-                    color: '#f3c46b',
-                  }}
-                >
-                  SINGAPORE HEARTLAND &amp; BAYCREST VISTA
-                </span>
-                <span style={{ fontSize: 11, color: '#9cd6c8' }}>Blk 260 Pilot Active</span>
-              </div>
-
-              {/* Mini Pixel SVG Skyline with Renamed Game Landmarks */}
-              <svg
-                viewBox="0 0 480 96"
-                width="100%"
-                height="92"
-                shapeRendering="crispEdges"
-                style={{ display: 'block', borderRadius: 6, background: '#1c243c' }}
-              >
-                {/* Bay water */}
-                <rect x="0" y="72" width="480" height="24" fill="#253b5e" />
-                <rect x="0" y="84" width="480" height="12" fill="#3b5e42" />
-                {/* GlowTree Grove */}
-                <rect x="34" y="42" width="3" height="30" fill="#7c56a8" />
-                <ellipse cx="35" cy="41" rx="11" ry="4" fill="#b68ce0" />
-                <rect x="58" y="48" width="3" height="24" fill="#7c56a8" />
-                <ellipse cx="59" cy="47" rx="9" ry="3.5" fill="#9c72c9" />
-                {/* Baycrest SkyDeck (MBS-inspired) */}
-                <rect x="108" y="22" width="11" height="50" fill="#4f6791" />
-                <rect x="125" y="22" width="11" height="50" fill="#4f6791" />
-                <rect x="142" y="22" width="11" height="50" fill="#4f6791" />
-                <polygon points="98,20 162,20 166,15 103,15" fill="#829dc9" />
-                <rect x="106" y="17" width="52" height="2" fill="#f5cf7b" />
-                {/* Lion City Wheel */}
-                <circle cx="204" cy="46" r="20" fill="none" stroke="#9ab4d6" strokeWidth="2" />
-                <line x1="194" y1="72" x2="204" y2="46" stroke="#6c82a3" strokeWidth="2" />
-                <line x1="214" y1="72" x2="204" y2="46" stroke="#6c82a3" strokeWidth="2" />
-                {/* Durian Dome Arts */}
-                <path d="M244 72 A11 11 0 0 1 266 72 Z" fill="#b5a78e" />
-                <path d="M268 72 A11 11 0 0 1 290 72 Z" fill="#b5a78e" />
-                {/* Blk 260 & Sunshine Minimart */}
-                <rect x="328" y="28" width="66" height="48" fill="#d8cfc0" />
-                <rect x="328" y="54" width="66" height="6" fill="#c97855" />
-                <rect x="364" y="60" width="28" height="8" fill="#f7e17c" />
-                <text x="334" y="42" fill="#3d7296" fontSize="9" fontFamily="monospace" fontWeight="bold">
-                  260
-                </text>
-                {/* Emerald Dragon Playground */}
-                <circle cx="432" cy="66" r="7" fill="#5da678" />
-                <rect x="438" y="62" width="16" height="8" fill="#d97a54" />
-                {/* Labels */}
-                <text x="12" y="12" fill="#cfa7f2" fontSize="8" fontFamily="sans-serif">
-                  GlowTree
-                </text>
-                <text x="96" y="11" fill="#f3c46b" fontSize="8" fontFamily="sans-serif" fontWeight="bold">
-                  Baycrest SkyDeck
-                </text>
-                <text x="182" y="20" fill="#a8c7eb" fontSize="8" fontFamily="sans-serif">
-                  Lion Wheel
-                </text>
-                <text x="238" y="55" fill="#e6d6b8" fontSize="8" fontFamily="sans-serif">
-                  Durian Dome
-                </text>
-                <text x="328" y="22" fill="#8de0cf" fontSize="8" fontFamily="sans-serif" fontWeight="bold">
-                  Blk 260 (You)
-                </text>
-                <text x="406" y="54" fill="#8be0a4" fontSize="8" fontFamily="sans-serif">
-                  Dragon Park
-                </text>
-              </svg>
-            </div>
-
-            <div style={{ fontSize: 12.5, color: '#f3c46b', fontWeight: 700 }}>
-              PLAYABLE BLK 260 LOCATIONS — TAP TO WALK:
-            </div>
-            {MAP_LANDMARKS.map((loc) => (
-              <div
-                key={loc.id}
-                style={{
-                  background: '#1b202b',
-                  border: '2px solid #3c4356',
-                  borderRadius: 8,
-                  padding: '9px 12px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: 12,
-                }}
-              >
-                <div>
-                  <div style={{ fontWeight: 700, color: loc.color, fontSize: 14 }}>{loc.name}</div>
-                  <div style={{ fontSize: 12.5, color: '#cfd6e3', marginTop: 2 }}>{loc.detail}</div>
-                </div>
-                <button
-                  type="button"
-                  className="pixel-action-btn"
-                  style={{ fontSize: 11, padding: '7px 11px', flexShrink: 0 }}
-                  onClick={() => {
-                    sfx.click();
-                    onWalkToLandmark(loc);
-                    onClose();
-                  }}
-                >
-                  WALK HERE
-                </button>
-              </div>
-            ))}
-
-            <div style={{ fontSize: 12.5, color: '#9cd6c8', fontWeight: 700, marginTop: 4 }}>
-              SINGAPORE GAME DISTRICTS &amp; SKYLINE LANDMARKS:
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 }}>
-              {SINGAPORE_WORLD_LANDMARKS.filter((l) => l.id !== 'blk260').map((sg) => (
-                <div
-                  key={sg.id}
-                  style={{
-                    background: '#181c26',
-                    border: '2px solid #32394a',
-                    borderRadius: 7,
-                    padding: '8px 10px',
-                  }}
-                >
-                  <div style={{ fontWeight: 700, color: sg.accent, fontSize: 13 }}>{sg.gameName}</div>
-                  <div style={{ fontSize: 11.5, color: '#9da7ba', marginTop: 1 }}>
-                    {sg.district} • {sg.status}
-                  </div>
-                  <div style={{ fontSize: 12, color: '#cfd6e3', marginTop: 3 }}>{sg.summary}</div>
-                </div>
-              ))}
-            </div>
+              ↺ Reset
+            </button>
+            <button
+              type="button"
+              className="teal-btn"
+              style={{ background: '#2b2118', borderColor: '#2b2118', boxShadow: '0 3px 0 #000' }}
+              onClick={() => {
+                sfx.click();
+                set({
+                  hairStyle: pick(HAIR_STYLES),
+                  skinTone: pick(SKIN_TONES).color,
+                  hairColor: pick(HAIR_COLORS).color,
+                  shirtColor: pick(SHIRT_COLORS).color,
+                  pantsColor: pick(PANTS_COLORS).color,
+                });
+              }}
+            >
+              ⤨ Random
+            </button>
           </div>
-        )}
-
-        {/* QUEST LOG */}
-        {activeDrawer === 'quest' && (
-          <div style={{ display: 'grid', gap: 12 }}>
-            <div
-              style={{
-                background: '#1b202b',
-                border: `2px solid ${questId === 'ezlink' ? '#f3c46b' : '#48a999'}`,
-                borderRadius: 8,
-                padding: '12px 14px',
-              }}
-            >
-              <div style={{ fontWeight: 700, color: '#f3c46b', fontSize: 15 }}>
-                1. Find Uncle&apos;s EZ-Link {questId !== 'ezlink' ? '✓ Completed' : '(Active)'}
-              </div>
-              <p style={{ margin: '6px 0 10px', fontSize: 13.5, color: '#d0d7e3', lineHeight: 1.45 }}>
-                {ezLinkPickedUp
-                  ? 'You picked up the teal EZ-Link card! Return to Uncle Tan near the green recycling bin.'
-                  : 'Uncle Tan misplaced his EZ-Link bus card near Block 260. Check by the Void Deck stone table and bring it back to him!'}
-              </p>
-              {questId === 'ezlink' && (
-                <button
-                  type="button"
-                  className="pixel-secondary-btn"
-                  onClick={() => {
-                    sfx.click();
-                    onWalkToLandmark(ezLinkPickedUp ? { x: 600, y: 480 } : { x: 790, y: 478 });
-                    onClose();
-                  }}
-                >
-                  {ezLinkPickedUp ? 'WALK TO UNCLE TAN' : 'CHECK VOID DECK TABLE'}
-                </button>
-              )}
-            </div>
-
-            <div
-              style={{
-                background: '#1b202b',
-                border: `2px solid ${questId === 'lookout' ? '#f3c46b' : '#3c4356'}`,
-                borderRadius: 8,
-                padding: '12px 14px',
-              }}
-            >
-              <div style={{ fontWeight: 700, color: '#8de0cf', fontSize: 15 }}>
-                2. The Lookout Dilemma — Sunshine Minimart{' '}
-                {questId === 'completed' ? '✓ Completed' : ''}
-              </div>
-              <p style={{ margin: '6px 0 10px', fontSize: 13.5, color: '#d0d7e3', lineHeight: 1.45 }}>
-                Visit Sunshine Minimart on the right side of Block 260 to practise all six
-                S.H.I.E.L.D. shop-theft prevention skills.
-              </p>
-              <button
-                type="button"
-                className="pixel-action-btn"
-                style={{ fontSize: 11 }}
-                onClick={() => {
-                  sfx.click();
-                  onClose();
-                  onStartLookoutMission();
-                }}
-              >
-                PLAY LOOKOUT DILEMMA
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* SHIELD SKILLS */}
-        {activeDrawer === 'shield' && (
-          <div style={{ display: 'grid', gap: 8 }}>
-            <p style={{ margin: '0 0 6px', fontSize: 13.5, color: '#d0d7e3' }}>
-              Each S.H.I.E.L.D. skill is independently assessed and unlocks its Original Guardian:
-            </p>
-            {(Object.keys(skills) as ShieldLetter[]).map((letter) => {
-              const st = skills[letter];
-              return (
-                <div
-                  key={letter}
-                  style={{
-                    background: '#1b202b',
-                    border: `2px solid ${st.passed ? '#48a999' : '#3c4356'}`,
-                    borderRadius: 8,
-                    padding: '9px 12px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: 10,
-                  }}
-                >
-                  <div>
-                    <div style={{ fontWeight: 700, color: '#f3c46b', fontSize: 14 }}>
-                      {st.letter} — {st.title}
-                    </div>
-                    <div style={{ fontSize: 12.5, color: '#c4ccdc', marginTop: 2 }}>
-                      {st.promptSummary}
-                    </div>
-                  </div>
-                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                    <div style={{ fontSize: 12, color: '#8de0cf', fontWeight: 600 }}>
-                      {st.guardianName}
-                    </div>
-                    <div
-                      style={{
-                        fontFamily: 'var(--font-display)',
-                        fontSize: 10,
-                        color: st.completed ? (st.passed ? '#7ce8be' : '#f29f8d') : '#9aa4b8',
-                      }}
-                    >
-                      {st.completed ? `${st.score}/${st.maxScore}` : 'PENDING'}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* MENU */}
-        {activeDrawer === 'menu' && (
-          <div style={{ display: 'grid', gap: 10 }}>
-            {squadCode && (
-              <div
-                style={{
-                  background: '#1b202b',
-                  border: '2px solid #63b5a7',
-                  borderRadius: 8,
-                  padding: '9px 12px',
-                  fontSize: 13,
-                  color: '#8de0cf',
-                }}
-              >
-                Workshop Squad Code: <strong>{squadCode}</strong> (Pseudonymous Session)
-              </div>
-            )}
-
-            <div
-              style={{
-                background: '#1b202b',
-                border: '2px solid #3c4356',
-                borderRadius: 8,
-                padding: '10px 14px',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}
-            >
-              <div>
-                <div style={{ fontWeight: 700, fontSize: 14 }}>Time & Atmosphere</div>
-                <div style={{ fontSize: 12.5, color: '#bcc4d4' }}>
-                  Currently {timeOfDay === 'evening' ? '19:15 Evening Dusk' : '17:30 Late Afternoon'}
-                </div>
-              </div>
-              <button
-                type="button"
-                className="pixel-secondary-btn"
-                onClick={() => {
-                  sfx.click();
-                  onToggleTimeOfDay();
-                }}
-              >
-                SWITCH TO {timeOfDay === 'evening' ? '17:30' : '19:15'}
-              </button>
-            </div>
-
-            <div
-              style={{
-                background: '#1b202b',
-                border: '2px solid #3c4356',
-                borderRadius: 8,
-                padding: '10px 14px',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}
-            >
-              <div>
-                <div style={{ fontWeight: 700, fontSize: 14 }}>Sound Effects</div>
-                <div style={{ fontSize: 12.5, color: '#bcc4d4' }}>Cozy 8-bit chiptune feedback</div>
-              </div>
-              <button type="button" className="pixel-secondary-btn" onClick={onToggleSound}>
-                {soundEnabled ? 'ON' : 'OFF'}
-              </button>
-            </div>
-
-            <div
-              style={{
-                background: '#1b202b',
-                border: '2px solid #3c4356',
-                borderRadius: 8,
-                padding: '10px 14px',
-                fontSize: 13,
-                color: '#d0d7e3',
-                lineHeight: 1.45,
-              }}
-            >
-              <strong style={{ color: '#f3c46b' }}>Controls:</strong> Click/Tap anywhere on the
-              footpath, void deck, or Sunshine Minimart to walk there, or use{' '}
-              <strong>WASD / Arrow Keys</strong> (+ <strong>Shift</strong> to run). Click Uncle Tan,
-              the glowing EZ-Link card, or Sunshine Minimart to interact!
-            </div>
-
-            <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
-              <button
-                type="button"
-                className="pixel-action-btn"
-                style={{ flex: 1 }}
-                onClick={() => {
-                  sfx.click();
-                  onClose();
-                  onStartLookoutMission();
-                }}
-              >
-                SUNSHINE MINIMART QUEST
-              </button>
-              <button
-                type="button"
-                className="pixel-secondary-btn"
-                onClick={() => {
-                  sfx.click();
-                  onClose();
-                  onReturnToTitle();
-                }}
-              >
-                TITLE SCREEN
-              </button>
-            </div>
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );
 };
+
+// ---------- Area map ----------
+
+const MapPanel: React.FC<GameDrawersProps> = ({ clock, playerPos, onWalkToLandmark, onClose }) => {
+  const pct = (p: { x: number; y: number }) => ({ left: `${(p.x / 1280) * 100}%`, top: `${(p.y / 720) * 100}%` });
+  return (
+    <div style={{ display: 'grid', gap: 12 }}>
+      <span className="pill" style={{ justifySelf: 'start' }}>
+        📍 Block 260, Sunshine Estate
+      </span>
+      <div className="cream-card" style={{ padding: 10 }}>
+        <div className="area-map">
+          <img
+            src={`/assets/scenes/${clock.timeOfDay === 'evening' ? 'street-night' : 'street-day'}.png`}
+            alt="Block 260 street: bus stop, void deck and Sunshine Minimart"
+          />
+          {MAP_LANDMARKS.map((loc) => (
+            <button
+              key={loc.id}
+              type="button"
+              className="map-marker"
+              style={pct(loc)}
+              title={`Walk to ${loc.name}`}
+              onClick={() => {
+                sfx.click();
+                onWalkToLandmark(loc);
+                onClose();
+              }}
+            >
+              <span className="map-dot" style={{ background: loc.color }}>
+                {loc.name[0]}
+              </span>
+              <span className="map-label">{loc.name}</span>
+            </button>
+          ))}
+          <div className="map-you" style={pct(playerPos)} aria-label="You are here">
+            YOU
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', fontSize: 13 }}>
+        <span>
+          <span className="map-you map-you-inline">YOU</span> You
+        </span>
+        {MAP_LANDMARKS.map((loc) => (
+          <span key={loc.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <span className="map-dot" style={{ background: loc.color, position: 'static' }}>
+              {loc.name[0]}
+            </span>
+            {loc.name}
+          </span>
+        ))}
+      </div>
+      <div className="cream-muted">Tap a marker to walk there.</div>
+
+      <div className="panel-section">Further afield</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 }}>
+        {SINGAPORE_WORLD_LANDMARKS.filter((l) => l.id !== 'blk260').map((sg) => (
+          <div key={sg.id} className="cream-card" style={{ padding: '10px 12px' }}>
+            <div style={{ fontWeight: 700, fontSize: 14 }}>{sg.gameName}</div>
+            <div className="cream-muted" style={{ fontSize: 12 }}>
+              {sg.district} · {sg.status}
+            </div>
+            <div style={{ fontSize: 13, marginTop: 4 }}>{sg.summary}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// ---------- Quests ----------
+
+const QuestPanel: React.FC<GameDrawersProps> = ({
+  questId,
+  ezLinkPickedUp,
+  onWalkToLandmark,
+  onStartLookoutMission,
+  onClose,
+}) => (
+  <div style={{ display: 'grid', gap: 12 }}>
+    <div className="cream-card" style={{ borderColor: questId === 'ezlink' ? '#2a9d8f' : undefined }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center' }}>
+        <div style={{ fontWeight: 800, fontSize: 16 }}>1. Find Uncle&apos;s EZ-Link</div>
+        <span className="pill">{questId === 'ezlink' ? 'Active' : '✓ Done'}</span>
+      </div>
+      <p className="cream-muted" style={{ margin: '6px 0 10px', fontSize: 14, lineHeight: 1.45 }}>
+        {ezLinkPickedUp
+          ? 'You picked up the teal EZ-Link card! Return it to Uncle Tan at the bus stop.'
+          : 'Uncle Tan misplaced his EZ-Link bus card near Block 260. Check by the void deck stone table and bring it back to him!'}
+      </p>
+      {questId === 'ezlink' && (
+        <button
+          type="button"
+          className="pixel-secondary-btn"
+          onClick={() => {
+            sfx.click();
+            onWalkToLandmark(ezLinkPickedUp ? { x: 600, y: 480 } : { x: 790, y: 478 });
+            onClose();
+          }}
+        >
+          {ezLinkPickedUp ? 'Walk to Uncle Tan →' : 'Check the void deck table →'}
+        </button>
+      )}
+    </div>
+
+    <div className="cream-card" style={{ borderColor: questId === 'lookout' ? '#2a9d8f' : undefined }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center' }}>
+        <div style={{ fontWeight: 800, fontSize: 16 }}>2. The Lookout Dilemma</div>
+        <span className="pill">
+          {questId === 'completed' ? '✓ Done' : questId === 'lookout' ? 'Active' : 'Up next'}
+        </span>
+      </div>
+      <p className="cream-muted" style={{ margin: '6px 0 10px', fontSize: 14, lineHeight: 1.45 }}>
+        Visit Sunshine Minimart to practise all six S.H.I.E.L.D. shop-theft prevention skills.
+      </p>
+      <button
+        type="button"
+        className="teal-btn"
+        onClick={() => {
+          sfx.click();
+          onClose();
+          onStartLookoutMission();
+        }}
+      >
+        Play the Lookout Dilemma →
+      </button>
+    </div>
+  </div>
+);
+
+// ---------- Guardians ----------
+
+const GuardiansPanel: React.FC<GameDrawersProps> = ({ skills }) => {
+  const letters = Object.keys(skills) as ShieldLetter[];
+  const collected = letters.filter((l) => skills[l].passed).length;
+  return (
+    <div style={{ display: 'grid', gap: 12 }}>
+      <div>
+        <span className="pill">
+          {collected} of {letters.length} collected
+        </span>
+        <div style={{ fontSize: 14, marginTop: 8 }}>
+          Pass a S.H.I.E.L.D. challenge in the Lookout Dilemma, then collect its Guardian here.
+        </div>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))', gap: 10 }}>
+        {letters.map((letter) => {
+          const st = skills[letter];
+          return (
+            <div key={letter} className="cream-card" style={{ textAlign: 'center', padding: 14 }}>
+              <div className="sprite-tile" style={{ width: 84, height: 84, margin: '0 auto 10px' }}>
+                <img
+                  src={`/assets/guardians/${st.guardianName.toLowerCase()}.png`}
+                  alt=""
+                  width={64}
+                  height={64}
+                  style={{ imageRendering: 'pixelated', filter: st.passed ? 'none' : 'saturate(0.85)' }}
+                />
+              </div>
+              <div style={{ fontWeight: 800, fontSize: 16 }}>{st.guardianName}</div>
+              <div className="cream-muted">
+                {st.letter} · {st.title}
+              </div>
+              <div style={{ marginTop: 10, fontWeight: 700, fontSize: 13, color: st.passed ? '#1f7a6d' : '#6b5744' }}>
+                {st.passed
+                  ? `✓ Collected · ${st.score}/${st.maxScore}`
+                  : st.completed
+                    ? `Try again · ${st.score}/${st.maxScore}`
+                    : '🔒 Locked'}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+// ---------- Settings & help ----------
+
+const SettingRow: React.FC<{ title: string; hint?: string; children: React.ReactNode }> = ({
+  title,
+  hint,
+  children,
+}) => (
+  <div className="cream-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+    <div>
+      <div style={{ fontWeight: 700, fontSize: 15 }}>{title}</div>
+      {hint && <div className="cream-muted">{hint}</div>}
+    </div>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>{children}</div>
+  </div>
+);
+
+const SettingsPanel: React.FC<GameDrawersProps> = ({
+  clock,
+  soundEnabled,
+  onToggleSound,
+  squadCode,
+  onStartLookoutMission,
+  onReturnToTitle,
+  onClose,
+}) => (
+  <div style={{ display: 'grid', gap: 8 }}>
+    <div className="panel-section">Game</div>
+    <SettingRow title="Sound effects" hint="Cosy 8-bit chiptune feedback.">
+      <button
+        type="button"
+        role="switch"
+        aria-checked={soundEnabled}
+        aria-label="Sound effects"
+        className="switch"
+        onClick={onToggleSound}
+      />
+    </SettingRow>
+    <SettingRow
+      title="Time of day"
+      hint="Follows live Singapore time: day 07:00–19:00, night after."
+    >
+      <span className="keycap">{clock.label} SGT</span>
+      <span className="pill">{clock.timeOfDay === 'evening' ? 'Night' : 'Day'}</span>
+    </SettingRow>
+    {squadCode && (
+      <SettingRow title="Workshop squad" hint="Pseudonymous session code.">
+        <span className="keycap">{squadCode}</span>
+      </SettingRow>
+    )}
+
+    <div className="panel-section" style={{ marginTop: 8 }}>
+      Help &amp; controls
+    </div>
+    <SettingRow title="Move">
+      <span className="keycap">WASD</span>
+      <span className="cream-muted">or</span>
+      <span className="keycap">↑ ↓ ← →</span>
+      <span className="cream-muted">or click</span>
+    </SettingRow>
+    <SettingRow title="Run">
+      <span className="cream-muted">Hold</span>
+      <span className="keycap">Shift</span>
+    </SettingRow>
+    <SettingRow title="Interact">
+      <span className="cream-muted">Click a neighbour or glowing item</span>
+    </SettingRow>
+    <SettingRow title="Close a panel">
+      <span className="keycap">Esc</span>
+      <span className="cream-muted">or ✕</span>
+    </SettingRow>
+
+    <div style={{ display: 'flex', gap: 10, marginTop: 10, flexWrap: 'wrap' }}>
+      <button
+        type="button"
+        className="teal-btn"
+        style={{ flex: 1 }}
+        onClick={() => {
+          sfx.click();
+          onClose();
+          onStartLookoutMission();
+        }}
+      >
+        Sunshine Minimart quest
+      </button>
+      <button
+        type="button"
+        className="pixel-secondary-btn"
+        onClick={() => {
+          sfx.click();
+          onClose();
+          onReturnToTitle();
+        }}
+      >
+        ← Main menu
+      </button>
+    </div>
+  </div>
+);
