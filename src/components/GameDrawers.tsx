@@ -6,7 +6,6 @@ import {
   PANTS_COLORS,
   SHIELD_STYLES,
   SHIRT_COLORS,
-  SINGAPORE_WORLD_LANDMARKS,
   SKIN_TONES,
 } from '../data/gameData';
 import {
@@ -419,19 +418,6 @@ const MapPanel: React.FC<GameDrawersProps> = ({ clock, playerPos, onWalkToLandma
         ))}
       </div>
       <div className="cream-muted">Tap a marker to walk there.</div>
-
-      <div className="panel-section">Further afield</div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 }}>
-        {SINGAPORE_WORLD_LANDMARKS.filter((l) => l.id !== 'blk260').map((sg) => (
-          <div key={sg.id} className="cream-card" style={{ padding: '10px 12px' }}>
-            <div style={{ fontWeight: 700, fontSize: 14 }}>{sg.gameName}</div>
-            <div className="cream-muted" style={{ fontSize: 12 }}>
-              {sg.district} · {sg.status}
-            </div>
-            <div style={{ fontSize: 13, marginTop: 4 }}>{sg.summary}</div>
-          </div>
-        ))}
-      </div>
     </div>
   );
 };
@@ -515,7 +501,11 @@ const GuardiansPanel: React.FC<GameDrawersProps> = ({ skills }) => {
         {letters.map((letter) => {
           const st = skills[letter];
           return (
-            <div key={letter} className="cream-card" style={{ textAlign: 'center', padding: 14 }}>
+            <div
+              key={letter}
+              className="cream-card"
+              style={{ textAlign: 'center', padding: 14, display: 'flex', flexDirection: 'column' }}
+            >
               <div className="sprite-tile" style={{ width: 84, height: 84, margin: '0 auto 10px' }}>
                 <img
                   src={`/assets/guardians/${st.guardianName.toLowerCase()}.png`}
@@ -529,7 +519,7 @@ const GuardiansPanel: React.FC<GameDrawersProps> = ({ skills }) => {
               <div className="cream-muted">
                 {st.letter} · {st.title}
               </div>
-              <div style={{ marginTop: 10, fontWeight: 700, fontSize: 13, color: st.passed ? '#1f7a6d' : '#6b5744' }}>
+              <div style={{ marginTop: 'auto', paddingTop: 10, fontWeight: 700, fontSize: 13, color: st.passed ? '#1f7a6d' : '#6b5744' }}>
                 {st.passed
                   ? `✓ Collected · ${st.score}/${st.maxScore}`
                   : st.completed
@@ -637,7 +627,7 @@ const SettingsPanel: React.FC<GameDrawersProps> = ({
           onReturnToTitle();
         }}
       >
-        ← Main menu
+        Main menu
       </button>
     </div>
   </div>
