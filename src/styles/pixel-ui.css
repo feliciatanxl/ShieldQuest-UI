@@ -1,0 +1,185 @@
+:root {
+  --ink-dark: #231a16;
+  --wood-light: #dfba8c;
+  --wood-mid: #c59663;
+  --wood-dark: #8e5f39;
+  --wood-shadow: #5e3c23;
+  --slate-bg: #1e2330;
+  --slate-panel: #272d3d;
+  --amber-text: #f3c46b;
+  --cream-bubble: #f4eee4;
+  --cream-evening: #ddd8e8;
+  --red-bar: #d45550;
+  --teal-bar: #4db1ba;
+  --font-display: 'Silkscreen', 'Courier New', monospace;
+  --font-ui: 'Fredoka', 'Segoe UI', system-ui, sans-serif;
+  --font-pixel: 'VT323', 'Courier New', monospace;
+}
+
+* {
+  box-sizing: border-box;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #161822;
+  font-family: var(--font-ui);
+  color: #f8f5ef;
+}
+
+/* Crisp Pixel Wooden Frame matching Screenshot HUD */
+.pixel-wood-panel {
+  background: linear-gradient(180deg, #d7ac7c 0%, #be8d5a 100%);
+  border: 3px solid var(--ink-dark);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 240, 214, 0.55),
+    inset 0 -3px 0 rgba(105, 65, 34, 0.55),
+    0 4px 0 rgba(20, 14, 12, 0.45);
+  border-radius: 10px;
+}
+
+.pixel-wood-btn {
+  background: linear-gradient(180deg, #d7ac7b 0%, #ba8958 55%, #9f6f42 100%);
+  border: 3px solid var(--ink-dark);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 242, 220, 0.55),
+    inset 0 -3px 0 rgba(94, 58, 30, 0.6),
+    0 4px 0 rgba(20, 14, 12, 0.5);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.08s ease, filter 0.12s ease;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pixel-wood-btn:hover {
+  filter: brightness(1.07);
+  transform: translateY(-1px);
+}
+
+.pixel-wood-btn:active,
+.pixel-wood-btn.is-active {
+  transform: translateY(2px);
+  box-shadow:
+    inset 0 2px 0 rgba(94, 58, 30, 0.55),
+    0 1px 0 rgba(20, 14, 12, 0.5);
+}
+
+/* Bottom-left Dark Slate Quest Box matching Screenshot */
+.pixel-quest-box {
+  background: rgba(29, 34, 46, 0.94);
+  border: 3px solid #231a16;
+  outline: 2px solid #c69a67;
+  outline-offset: -5px;
+  border-radius: 8px;
+  box-shadow: 0 5px 0 rgba(15, 14, 20, 0.55);
+}
+
+/* Modal / Drawer Backdrop & Frame */
+.pixel-modal-frame {
+  background: #242937;
+  border: 4px solid var(--ink-dark);
+  box-shadow:
+    inset 0 0 0 3px #c89b67,
+    0 14px 40px rgba(0, 0, 0, 0.65);
+  border-radius: 12px;
+}
+
+.pixel-action-btn {
+  font-family: var(--font-display);
+  font-size: 13px;
+  letter-spacing: 0.03em;
+  background: linear-gradient(180deg, #eab967 0%, #c88d3a 100%);
+  color: #231a16;
+  border: 3px solid var(--ink-dark);
+  border-radius: 8px;
+  padding: 10px 18px;
+  cursor: pointer;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 248, 224, 0.7),
+    inset 0 -3px 0 rgba(125, 78, 22, 0.45),
+    0 4px 0 #1b130f;
+  transition: transform 0.08s ease, filter 0.12s ease;
+}
+
+.pixel-action-btn:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+.pixel-action-btn:active {
+  transform: translateY(2px);
+  box-shadow:
+    inset 0 2px 0 rgba(125, 78, 22, 0.5),
+    0 1px 0 #1b130f;
+}
+
+.pixel-secondary-btn {
+  font-family: var(--font-display);
+  font-size: 12px;
+  background: #333a4d;
+  color: #f5efe6;
+  border: 3px solid var(--ink-dark);
+  border-radius: 8px;
+  padding: 9px 15px;
+  cursor: pointer;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.12),
+    0 3px 0 #181c26;
+  transition: transform 0.08s ease, background-color 0.12s ease;
+}
+
+.pixel-secondary-btn:hover {
+  background: #3f485f;
+}
+
+.pixel-secondary-btn:active {
+  transform: translateY(2px);
+}
+
+.text-outline {
+  text-shadow:
+    -1.5px -1.5px 0 #231a16,
+    1.5px -1.5px 0 #231a16,
+    -1.5px 1.5px 0 #231a16,
+    1.5px 1.5px 0 #231a16,
+    0 2px 0 #231a16;
+}
+
+/* Custom thin scrollbars inside modals */
+.pixel-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+.pixel-scroll::-webkit-scrollbar-track {
+  background: #1b1f2a;
+  border-radius: 4px;
+}
+.pixel-scroll::-webkit-scrollbar-thumb {
+  background: #8e5f39;
+  border-radius: 4px;
+  border: 1px solid #231a16;
+}
+
+@keyframes floatSlow {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.animate-float-slow {
+  animation: floatSlow 2.8s ease-in-out infinite;
+}

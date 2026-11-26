@@ -1,0 +1,16 @@
+{
+  "name": "ShieldQuest — Project SHIELD",
+  "short_name": "ShieldQuest",
+  "description": "A cosy 2D isometric neighbourhood adventure set in the Singapore heartlands.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1e222d",
+  "theme_color": "#1e222d",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

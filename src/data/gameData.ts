@@ -1,0 +1,183 @@
+import { AvatarConfig, InventoryItem, ShieldLetter, ShieldSkillState } from '../types/game';
+
+export const DEFAULT_AVATAR: AvatarConfig = {
+  name: 'Player',
+  skinTone: '#d9a47c',
+  hairStyle: 'short',
+  hairColor: '#4c3224',
+  shirtColor: '#e2c99d',
+  pantsColor: '#466a8f',
+  shieldStyle: 'classic',
+};
+
+export const SKIN_TONES = [
+  { label: 'Fair', color: '#f0c6a6' },
+  { label: 'Warm Tan', color: '#d9a47c' },
+  { label: 'Honey', color: '#c4865a' },
+  { label: 'Deep Brown', color: '#8c5638' },
+];
+
+export const HAIR_COLORS = [
+  { label: 'Espresso', color: '#3b251c' },
+  { label: 'Chestnut', color: '#5a3a29' },
+  { label: 'Jet Black', color: '#1f1d24' },
+  { label: 'Auburn', color: '#8c422c' },
+];
+
+export const SHIRT_COLORS = [
+  { label: 'Sand Tee', color: '#e2c99d' },
+  { label: 'Kopitiam Mint', color: '#6bb09e' },
+  { label: 'HDB Coral', color: '#d8705e' },
+  { label: 'Sky Blue', color: '#6594c0' },
+  { label: 'Amber Gold', color: '#e0a94f' },
+];
+
+export const PANTS_COLORS = [
+  { label: 'Denim Blue', color: '#466a8f' },
+  { label: 'Khaki', color: '#9c8663' },
+  { label: 'Charcoal', color: '#3b4252' },
+  { label: 'Olive', color: '#5b7252' },
+];
+
+export const SHIELD_STYLES: {
+  id: AvatarConfig['shieldStyle'];
+  label: string;
+  accent: string;
+}[] = [
+  { id: 'classic', label: 'Heartland Silver', accent: '#75a3bd' },
+  { id: 'verifox', label: 'VeriFox Amber', accent: '#d98c3f' },
+  { id: 'beacon', label: 'Beacon Teal', accent: '#48a999' },
+  { id: 'cluepaw', label: 'Cluepaw Violet', accent: '#8e74b5' },
+];
+
+export const INITIAL_INVENTORY: InventoryItem[] = [
+  {
+    id: 'ezlink',
+    name: "Uncle's EZ-Link Card",
+    description:
+      'A teal-green SimplyGo EZ-Link bus card dropped near the void deck stone table.',
+    icon: 'ezlink',
+    collected: false,
+  },
+  {
+    id: 'notes',
+    name: 'Field Observation Pad',
+    description:
+      'Records objective, factual clues spotted around Block 260 & Sunshine Minimart without jumping to conclusions.',
+    icon: 'notes',
+    collected: true,
+    clueFact: true,
+  },
+  {
+    id: 'receipt',
+    name: 'Minimart Notice',
+    description:
+      'Sunshine Minimart community poster: "Think before you act — S.H.I.E.L.D. keeps our neighbourhood safe."',
+    icon: 'receipt',
+    collected: true,
+  },
+];
+
+export const INITIAL_SHIELD_SKILLS: Record<ShieldLetter, ShieldSkillState> = {
+  S: {
+    letter: 'S',
+    title: 'Spot the Risk',
+    competency: 'Situational awareness & factual observation',
+    promptSummary: 'Distinguish verified visual clues from unsupported assumptions.',
+    completed: false,
+    passed: false,
+    score: 0,
+    maxScore: 5,
+    guardianName: 'Cluepaw',
+  },
+  H: {
+    letter: 'H',
+    title: 'Hold Before Acting',
+    competency: 'Self-control & safe boundary setting',
+    promptSummary: 'Refuse risky lookout requests immediately without confrontation.',
+    completed: false,
+    passed: false,
+    score: 0,
+    maxScore: 1,
+    guardianName: 'Shieldfin',
+  },
+  I: {
+    letter: 'I',
+    title: 'Identify the Influence',
+    competency: 'Recognising peer pressure tactics',
+    promptSummary: 'Name the social pressure tactic and the role requested.',
+    completed: false,
+    passed: false,
+    score: 0,
+    maxScore: 2,
+    guardianName: 'ByteBuddy',
+  },
+  E: {
+    letter: 'E',
+    title: 'Evaluate Consequences',
+    competency: 'Delayed consequence awareness',
+    promptSummary: 'Match actions to short-term and longer-term consequences before reveal.',
+    completed: false,
+    passed: false,
+    score: 0,
+    maxScore: 4,
+    guardianName: 'VeriFox',
+  },
+  L: {
+    letter: 'L',
+    title: 'Lead the Right Choice',
+    competency: 'Constructive positive peer influence',
+    promptSummary: 'Craft a respectful reply redirecting a friend towards a safer alternative.',
+    completed: false,
+    passed: false,
+    score: 0,
+    maxScore: 2,
+    guardianName: 'Echo',
+  },
+  D: {
+    letter: 'D',
+    title: 'Defend Your Community',
+    competency: 'Responsible help-seeking',
+    promptSummary: 'Approach an appropriate trusted adult/staff with objective facts.',
+    completed: false,
+    passed: false,
+    score: 0,
+    maxScore: 2,
+    guardianName: 'Beacon',
+  },
+};
+
+export const MAP_LANDMARKS = [
+  {
+    id: 'busstop',
+    name: 'Bus Stop & Sheltered Walkway',
+    detail: 'Uncle Tan is searching for his missing EZ-Link card near the green bin.',
+    gx: 5.8,
+    gy: 7.4,
+    color: '#6bb09e',
+  },
+  {
+    id: 'voiddeck',
+    name: 'Block 260 Void Deck',
+    detail: 'Letterboxes, community notice board, round stone chess table & friendly cats.',
+    gx: 9.8,
+    gy: 5.7,
+    color: '#d89b52',
+  },
+  {
+    id: 'minimart',
+    name: 'Sunshine Minimart',
+    detail: 'Anchor Quest: "The Lookout Dilemma" — practise all 6 S.H.I.E.L.D. choices.',
+    gx: 15.8,
+    gy: 4.5,
+    color: '#e6b84c',
+  },
+  {
+    id: 'footpath',
+    name: 'Heartland Footpath',
+    detail: 'Say hello to Auntie Mei on her morning/evening marketing walk.',
+    gx: 6.4,
+    gy: 9.6,
+    color: '#7da1c4',
+  },
+];
