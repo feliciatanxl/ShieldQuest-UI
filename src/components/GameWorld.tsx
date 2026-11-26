@@ -50,6 +50,8 @@ function isWalkable(gx: number, gy: number): boolean {
   // Obstacle: Kopitiam outdoor round tables
   if (Math.hypot(gx - -0.2, gy - 6.4) < 0.85) return false;
   if (Math.hypot(gx - 0.4, gy - 8.3) < 0.85) return false;
+  // Obstacle: Bus stop bench & timetable
+  if (gx >= 1.9 && gx <= 3.7 && gy >= 8.9 && gy <= 9.75) return false;
   // Obstacle: Green Recycling Bins
   if (Math.hypot(gx - 5.5, gy - 5.7) < 0.72) return false;
   if (Math.hypot(gx - 2.3, gy - 4.8) < 0.68) return false;
@@ -336,9 +338,10 @@ export const GameWorld: React.FC<GameWorldProps> = ({
           gy: 6.3,
           dir: 'SW',
           shirtColor: '#c9d4db',
-          pantsColor: '#6b5344',
+          pantsColor: '#8c7258',
           hairColor: '#c8cdd4',
           skinTone: '#d49d78',
+          pattern: 'plaid',
           isBald: true,
         },
         {
@@ -352,6 +355,7 @@ export const GameWorld: React.FC<GameWorldProps> = ({
           pantsColor: '#48454f',
           hairColor: '#2d2930',
           skinTone: '#d6a07b',
+          pattern: 'floral',
           hasTrolley: true,
         },
         {
@@ -368,11 +372,39 @@ export const GameWorld: React.FC<GameWorldProps> = ({
           hasApron: true,
         },
         {
+          id: 'student',
+          name: 'Wei Ming (Student)',
+          role: 'Secondary Student',
+          gx: 2.9,
+          gy: 8.85,
+          dir: 'SE',
+          shirtColor: '#ece9e1',
+          pantsColor: '#364d69',
+          hairColor: '#1f1d24',
+          skinTone: '#d9a47c',
+          pattern: 'pe',
+          hasBackpack: true,
+        },
+        {
+          id: 'cashier',
+          name: 'Mr Lim (Cashier)',
+          role: 'Sunshine Minimart Staff',
+          gx: 18.2,
+          gy: 4.4,
+          dir: 'SW',
+          shirtColor: '#698fb8',
+          pantsColor: '#353b47',
+          hairColor: '#48454a',
+          skinTone: '#d49d78',
+          pattern: 'stripe',
+          hasApron: true,
+        },
+        {
           id: 'jun',
           name: 'Jun (Friend)',
           role: 'Classmate',
-          gx: 16.5,
-          gy: 4.2,
+          gx: 16.2,
+          gy: 4.3,
           dir: 'SW',
           shirtColor: '#6bb09e',
           pantsColor: '#3b4252',

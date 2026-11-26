@@ -131,20 +131,20 @@ function drawSingaporeSkylineVista(
 
   const skyGrad = ctx.createLinearGradient(0, 0, 0, horizonY);
   if (isEvening) {
-    skyGrad.addColorStop(0, '#19223d');
-    skyGrad.addColorStop(0.58, '#2f3d63');
-    skyGrad.addColorStop(1, '#685069');
+    skyGrad.addColorStop(0, '#1a2340');
+    skyGrad.addColorStop(0.55, '#334168');
+    skyGrad.addColorStop(1, '#7c5b6e');
   } else {
-    skyGrad.addColorStop(0, '#6aaad9');
-    skyGrad.addColorStop(0.65, '#a8d6ec');
-    skyGrad.addColorStop(1, '#f2ddb8');
+    skyGrad.addColorStop(0, '#6baad9');
+    skyGrad.addColorStop(0.65, '#add8ed');
+    skyGrad.addColorStop(1, '#f4e0bc');
   }
   ctx.fillStyle = skyGrad;
   ctx.fillRect(0, 0, maxVistaX, horizonY);
 
   if (isEvening) {
     const stars = [
-      [270, 18], [312, 34], [385, 16], [448, 22], [516, 15], [588, 28], [640, 14],
+      [268, 18], [312, 34], [385, 16], [448, 22], [516, 15], [588, 28], [640, 14],
     ];
     stars.forEach(([sx, sy], i) => {
       const alpha = 0.45 + 0.45 * Math.sin(time * 2.2 + i * 1.4);
@@ -163,7 +163,7 @@ function drawSingaporeSkylineVista(
     });
   }
 
-  // Distant HDB Blocks silhouette
+  // Distant HDB Heartlands
   const distantHdbCol = isEvening ? '#27314c' : '#8aa6bb';
   const distantWindowCol = isEvening ? 'rgba(255, 214, 118, 0.65)' : 'rgba(225, 240, 250, 0.5)';
   [
@@ -181,7 +181,7 @@ function drawSingaporeSkylineVista(
     }
   });
 
-  // Baycrest SkyDeck Towers (MBS-inspired)
+  // Baycrest SkyDeck Towers
   const mbsBaseY = horizonY - 10;
   const towerXs = [292, 322, 352];
   const towerCol = isEvening ? '#364566' : '#7b97b2';
@@ -211,7 +211,6 @@ function drawSingaporeSkylineVista(
     }
   });
 
-  // Cantilevered boat SkyPark deck
   ctx.fillStyle = isEvening ? '#53678f' : '#9bb3c9';
   ctx.strokeStyle = towerEdge;
   ctx.lineWidth = 1.5;
@@ -228,7 +227,7 @@ function drawSingaporeSkylineVista(
     ctx.fillRect(284, mbsBaseY - 87, 88, 2);
   }
 
-  // GlowTree Supertree Grove
+  // GlowTree Supertrees
   [
     { x: 404, h: 56, w: 24 },
     { x: 428, h: 44, w: 20 },
@@ -295,7 +294,7 @@ function drawSingaporeSkylineVista(
     ctx.stroke();
   });
 
-  // Bay Water & Park Border
+  // Bay water & low park wall hedge
   ctx.fillStyle = isEvening ? '#223354' : '#5d9bc2';
   ctx.fillRect(0, horizonY - 12, maxVistaX, 14);
   ctx.fillStyle = isEvening ? '#314b31' : '#588242';
@@ -309,11 +308,9 @@ function drawMRTViaductAndTrain(
   isEvening: boolean,
   time: number
 ) {
-  // Elevated MRT Viaduct running up-right along gx = -2.2, gy = 7.2 down to -4.2
   const zTrack = 128;
   const pierGys = [6.2, 2.2, -1.6];
 
-  // Concrete T-piers
   pierGys.forEach((gy) => {
     drawIsoBox(
       ctx,
@@ -331,7 +328,6 @@ function drawMRTViaductAndTrain(
     );
   });
 
-  // Viaduct concrete girder deck (gx = -2.85 .. -1.45, gy = -4.2 .. 7.6)
   drawIsoBox(
     ctx,
     -2.85,
@@ -347,7 +343,6 @@ function drawMRTViaductAndTrain(
     2
   );
 
-  // Dark steel rail track strips
   const r1a = isoToScreen(-2.35, -4.0, zTrack + 1);
   const r1b = isoToScreen(-2.35, 7.5, zTrack + 1);
   const r2a = isoToScreen(-1.95, -4.0, zTrack + 1);
@@ -361,8 +356,7 @@ function drawMRTViaductAndTrain(
   ctx.lineTo(r2b.x, r2b.y);
   ctx.stroke();
 
-  // Animated Singapore MRT Train ("Shield Line") gliding smoothly along viaduct!
-  // Train runs smoothly from gy = 9.0 to -6.0 and loops cleanly
+  // Animated Singapore MRT Train
   const cycle = (time * 0.95) % 16;
   const trainHeadGy = 8.2 - cycle;
 
@@ -375,7 +369,6 @@ function drawMRTViaductAndTrain(
     const c2 = Math.min(7.6, carEndGy);
     if (c2 - c1 < 0.35) continue;
 
-    // White/Silver MRT train body
     drawIsoBox(
       ctx,
       -2.62,
@@ -391,7 +384,6 @@ function drawMRTViaductAndTrain(
       1.8
     );
 
-    // Signature Singapore Red & Green MRT Stripe along train side (+gx face)
     const st1 = isoToScreen(-1.67, c1 + 0.08, zTrack + 10);
     const st2 = isoToScreen(-1.67, c2 - 0.08, zTrack + 10);
     ctx.strokeStyle = '#cf3f38';
@@ -401,7 +393,6 @@ function drawMRTViaductAndTrain(
     ctx.lineTo(st2.x, st2.y);
     ctx.stroke();
 
-    // Glowing train passenger windows
     for (let w = 0; w < 3; w++) {
       const wg = c1 + 0.28 + w * 0.52;
       if (wg > c2 - 0.25) continue;
@@ -418,7 +409,6 @@ function drawMRTViaductAndTrain(
       );
     }
 
-    // Lead car front cockpit windshield & warm headlight beam
     if (car === 0 && c1 > -4.0) {
       const nose = isoToScreen(-2.15, c1, zTrack + 14);
       ctx.fillStyle = '#252b36';
@@ -438,58 +428,73 @@ function drawGroundAndRoads(
   isEvening: boolean,
   time: number
 ) {
-  // Base grass / terrain fill
   ctx.fillStyle = isEvening ? '#3c5337' : '#6f9653';
   ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
 
-  // Distant Singapore Skyline Vista
   drawSingaporeSkylineVista(ctx, isEvening, time);
 
-  // Subtle park lawn grid streaks
+  // Subtle estate park grass variation
   for (let i = 1; i < 8; i += 2) {
     drawIsoQuad(
       ctx,
-      -3,
+      -5,
       i,
       3.5,
       i + 0.9,
       0,
-      isEvening ? 'rgba(110,145,88,0.14)' : 'rgba(154,196,112,0.25)'
+      isEvening ? 'rgba(110,145,88,0.12)' : 'rgba(154,196,112,0.22)'
     );
   }
 
-  // Asphalt Road (gy >= 10.6)
+  // Asphalt Road (gy >= 10.65)
   drawIsoQuad(
     ctx,
     -8,
-    10.7,
+    10.68,
     22,
     22,
     0,
-    isEvening ? '#363b47' : '#4a4e57',
+    isEvening ? '#343945' : '#474c56',
     INK,
     2
   );
 
-  // Road curb & gutter along gy = 10.4 .. 10.7
+  // Authentic Singapore Covered Concrete Drain Slab Strip + Kerb (gy = 10.18 .. 10.68)
   drawIsoQuad(
     ctx,
     -6,
-    10.4,
+    10.22,
+    20,
+    10.55,
+    0,
+    isEvening ? '#7a7a78' : '#a8a69e',
+    INK,
+    1.4
+  );
+  // Concrete kerb lip
+  drawIsoQuad(
+    ctx,
+    -6,
+    10.55,
     20,
     10.72,
     0,
-    isEvening ? '#6d6f74' : '#969692',
+    isEvening ? '#5b5e63' : '#858784',
     INK,
     1.5
   );
+  // Rectangular drainage slot openings along covered drain slab!
+  ctx.fillStyle = '#1f232b';
+  for (let gx = -2.5; gx <= 15.5; gx += 1.1) {
+    drawIsoQuad(ctx, gx, 10.33, gx + 0.28, 10.44, 0, '#222630');
+  }
 
   // Double Yellow Road Lines & Bus Bay Markings
-  const lineColor = isEvening ? '#bfa042' : '#e6be4c';
-  drawIsoQuad(ctx, -3, 10.85, 16, 10.97, 0, lineColor);
-  drawIsoQuad(ctx, -3, 11.06, 16, 11.18, 0, lineColor);
+  const lineColor = isEvening ? '#cfa844' : '#ebc24d';
+  drawIsoQuad(ctx, -3, 10.85, 16, 10.96, 0, lineColor);
+  drawIsoQuad(ctx, -3, 11.05, 16, 11.16, 0, lineColor);
 
-  // Bus Bay Box outline (left of Zebra Crossing!)
+  // Bus Bay Box outline
   const b1 = isoToScreen(0.8, 11.45);
   const b2 = isoToScreen(5.2, 11.45);
   const b3 = isoToScreen(5.2, 14.0);
@@ -507,6 +512,19 @@ function drawGroundAndRoads(
   ctx.stroke();
   ctx.restore();
 
+  // Yellow zig-zag warning lines leading into Zebra crossing (right of Zebra crossing!)
+  ctx.strokeStyle = isEvening ? '#e0e3e8' : '#f2f5f7';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  for (let i = 0; i < 6; i++) {
+    const gx = 8.1 + i * 0.45;
+    const gy = i % 2 === 0 ? 11.55 : 11.88;
+    const p = isoToScreen(gx, gy);
+    if (i === 0) ctx.moveTo(p.x, p.y);
+    else ctx.lineTo(p.x, p.y);
+  }
+  ctx.stroke();
+
   // Isometric "BUS" road text inside bus bay
   const busAnchor = isoToScreen(2.8, 12.8);
   ctx.save();
@@ -519,13 +537,13 @@ function drawGroundAndRoads(
   ctx.fillText('BUS', 0, 0);
   ctx.restore();
 
-  // Realistic Singapore White Zebra Crossing (gx = 5.6 .. 7.8, gy = 10.8 .. 14.2)
-  const stripeCol = isEvening ? '#c9ced6' : '#f0f2f5';
+  // White Zebra Crossing (gx = 5.6 .. 7.8, gy = 10.8 .. 14.2)
+  const stripeCol = isEvening ? '#cdd2db' : '#f2f4f7';
   for (let sy = 11.2; sy <= 13.9; sy += 0.62) {
     drawIsoQuad(ctx, 5.65, sy, 7.65, sy + 0.34, 0, stripeCol, INK, 1);
   }
 
-  // Storm drain grate near curb
+  // Storm drain grate near kerb
   const drain1 = isoToScreen(8.2, 10.95);
   const drain2 = isoToScreen(9.1, 10.95);
   const drain3 = isoToScreen(9.1, 11.35);
@@ -542,45 +560,45 @@ function drawGroundAndRoads(
     ctx.stroke();
   }
 
-  // Main Footpath concrete pavement (gy = 4.9 .. 10.4, gx = -3 .. 22)
+  // Main Footpath concrete pavement (gy = 4.9 .. 10.22)
   drawIsoQuad(
     ctx,
     -3.5,
     4.9,
     22,
-    10.4,
+    10.22,
     0,
     isEvening ? '#868583' : '#bcb5a6',
     INK,
     2
   );
 
-  // Subtle paving joints along footpath
+  // Concrete paving grid lines
   ctx.strokeStyle = isEvening ? 'rgba(40,40,48,0.28)' : 'rgba(90,82,70,0.24)';
   ctx.lineWidth = 1;
-  for (let gx = -2; gx <= 21; gx += 2.2) {
+  for (let gx = -2; gx <= 21; gx += 1.8) {
     const s1 = isoToScreen(gx, 5.0);
-    const s2 = isoToScreen(gx, 10.35);
+    const s2 = isoToScreen(gx, 10.18);
     ctx.beginPath();
     ctx.moveTo(s1.x, s1.y);
     ctx.lineTo(s2.x, s2.y);
     ctx.stroke();
   }
 
-  // Kopi Corner Patio Slab (gx = -3.8 .. 1.8, gy = 4.6 .. 10.2)
+  // Kopi Corner Patio Slab
   drawIsoQuad(
     ctx,
     -3.8,
     4.6,
     1.8,
-    10.2,
+    10.1,
     0,
     isEvening ? '#9c9284' : '#cec4b2',
     INK,
     1.5
   );
 
-  // Sheltered Walkway ground slab (running up-right gy = -2.2 .. 5.2, gx = 1.2 .. 4.7)
+  // Sheltered Walkway ground slab
   drawIsoQuad(
     ctx,
     1.2,
@@ -593,27 +611,27 @@ function drawGroundAndRoads(
     1.5
   );
 
-  // Yellow Tactile Paving Strip near crosswalk & bus stop!
+  // Yellow Tactile Paving Strip guiding to Zebra crossing & Bus Stop
   drawIsoQuad(
     ctx,
     4.1,
-    9.2,
-    5.8,
-    10.1,
+    9.1,
+    6.2,
+    10.05,
     0,
     isEvening ? '#cfa844' : '#edc54f',
     '#856623',
     1.5
   );
   ctx.fillStyle = isEvening ? '#9c7826' : '#bd952b';
-  for (let tx = 4.3; tx <= 5.65; tx += 0.25) {
-    for (let ty = 9.35; ty <= 9.95; ty += 0.22) {
+  for (let tx = 4.3; tx <= 6.0; tx += 0.25) {
+    for (let ty = 9.25; ty <= 9.9; ty += 0.22) {
       const p = isoToScreen(tx, ty);
       ctx.fillRect(p.x - 1.5, p.y - 1, 3, 2);
     }
   }
 
-  // Void Deck Concrete Floor (gx = 6.0 .. 14.3, gy = 2.0 .. 4.95)
+  // Void Deck Terrazzo Floor
   drawIsoQuad(
     ctx,
     6.0,
@@ -621,12 +639,12 @@ function drawGroundAndRoads(
     14.3,
     4.95,
     0,
-    isEvening ? '#999289' : '#cbc1b1',
+    isEvening ? '#9e968c' : '#d1c7b8',
     INK,
     1.5
   );
 
-  // Sunshine Minimart Interior Floor (gx = 14.3 .. 21.5, gy = 2.0 .. 5.2)
+  // Sunshine Minimart Interior Floor (checkered SG shop tiles!)
   drawIsoQuad(
     ctx,
     14.3,
@@ -638,21 +656,34 @@ function drawGroundAndRoads(
     INK,
     1.5
   );
+  ctx.strokeStyle = 'rgba(105, 92, 76, 0.24)';
+  ctx.lineWidth = 1;
+  for (let mx = 14.8; mx <= 20.8; mx += 0.8) {
+    const a = isoToScreen(mx, 2.05);
+    const b = isoToScreen(mx, 5.15);
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.stroke();
+  }
 }
 
 function drawFitnessCornerAndPark(
   ctx: CanvasRenderingContext2D,
   isEvening: boolean
 ) {
-  // Visible open-air Singapore HDB Fitness Corner on top-left green park lawn (left of Kopitiam!)
-  drawIsoBox(ctx, -7.2, 6.2, -6.2, 6.7, 0, 12, '#a86b3e', '#85512b', '#6b3e1f', INK, 1.6);
-  drawIsoBox(ctx, -7.2, 6.15, -6.2, 6.26, 12, 12, '#b87848', '#8f5932', '#6b3e1f', INK, 1.5);
+  // Concrete planter bed edging for fitness park corner
+  drawIsoBox(ctx, -7.8, 4.4, -5.8, 7.1, 0, 4, isEvening ? '#526b47' : '#7ba15f', '#6b6861', '#54514b', INK, 1.4);
 
-  // Pull-Up / Chin-Up Bars (purple/teal Singapore park fitness colours!)
-  const f1 = isoToScreen(-7.5, 4.9, 0);
-  const f2 = isoToScreen(-6.5, 4.9, 0);
-  const f1t = isoToScreen(-7.5, 4.9, 44);
-  const f2t = isoToScreen(-6.5, 4.9, 44);
+  // Wooden Park Bench
+  drawIsoBox(ctx, -7.2, 6.2, -6.2, 6.7, 4, 12, '#a86b3e', '#85512b', '#6b3e1f', INK, 1.6);
+  drawIsoBox(ctx, -7.2, 6.15, -6.2, 6.26, 16, 12, '#b87848', '#8f5932', '#6b3e1f', INK, 1.5);
+
+  // Pull-Up / Chin-Up Bars
+  const f1 = isoToScreen(-7.5, 4.9, 4);
+  const f2 = isoToScreen(-6.5, 4.9, 4);
+  const f1t = isoToScreen(-7.5, 4.9, 48);
+  const f2t = isoToScreen(-6.5, 4.9, 48);
   ctx.strokeStyle = INK;
   ctx.lineWidth = 4.5;
   ctx.beginPath();
@@ -671,8 +702,8 @@ function drawFitnessCornerAndPark(
   ctx.lineTo(f2.x, f2.y);
   ctx.stroke();
 
-  // Elliptical Stepper Station beside bench
-  const st = isoToScreen(-6.2, 5.5, 0);
+  // Elliptical Stepper Station
+  const st = isoToScreen(-6.2, 5.5, 4);
   ctx.strokeStyle = INK;
   ctx.lineWidth = 4;
   ctx.beginPath();
@@ -691,7 +722,6 @@ function drawKopitiamStalls(
   isEvening: boolean,
   time: number
 ) {
-  // Kopitiam Building Block on far left (gx = -3.4 .. -1.4, gy = 3.2 .. 7.8)
   drawIsoBox(
     ctx,
     -3.4,
@@ -711,10 +741,12 @@ function drawKopitiamStalls(
     gy1: number,
     gy2: number,
     title: string,
+    subMenu: string,
     signBg: string,
     signText: string,
     counterCol: string
   ) => {
+    // Tiled kitchen backsplash inside stall
     const o1 = isoToScreen(-1.38, gy1, 10);
     const o2 = isoToScreen(-1.38, gy2, 10);
     const o3 = isoToScreen(-1.38, gy2, 74);
@@ -727,20 +759,28 @@ function drawKopitiamStalls(
       1.8
     );
 
+    // Menu strip along stall upper interior
+    const m1 = isoToScreen(-1.37, gy1 + 0.1, 56);
+    const m2 = isoToScreen(-1.37, gy2 - 0.1, 56);
+    const m3 = isoToScreen(-1.37, gy2 - 0.1, 68);
+    const m4 = isoToScreen(-1.37, gy1 + 0.1, 68);
+    drawIsoPoly(ctx, [m1, m2, m3, m4], '#2b323d', INK, 1);
+
+    // Stainless steel / tiled counter
     const c1 = isoToScreen(-1.36, gy1, 10);
     const c2 = isoToScreen(-1.36, gy2, 10);
     const c3 = isoToScreen(-1.36, gy2, 32);
     const c4 = isoToScreen(-1.36, gy1, 32);
     drawIsoPoly(ctx, [c1, c2, c3, c4], counterCol, INK, 1.5);
 
-    // Illuminated Stall Signboard mounted prominently on FRONT AWNING FASCIA (gx = 0.78) so 100% readable!
+    // Front Awning Fascia Signboard (KOPI / SATAY)
     const s1 = isoToScreen(0.78, gy1 - 0.05, 86);
     const s2 = isoToScreen(0.78, gy2 + 0.05, 86);
-    const s3 = isoToScreen(0.78, gy2 + 0.05, 106);
-    const s4 = isoToScreen(0.78, gy1 - 0.05, 106);
+    const s3 = isoToScreen(0.78, gy2 + 0.05, 108);
+    const s4 = isoToScreen(0.78, gy1 - 0.05, 108);
     drawIsoPoly(ctx, [s1, s2, s3, s4], signBg, INK, 1.8);
 
-    const mid = isoToScreen(0.8, (gy1 + gy2) / 2, 95);
+    const mid = isoToScreen(0.8, (gy1 + gy2) / 2, 97);
     ctx.save();
     ctx.translate(mid.x, mid.y);
     ctx.transform(0.89, -0.445, 0, 1, 0, 0);
@@ -748,27 +788,23 @@ function drawKopitiamStalls(
     ctx.font = 'bold 11px "Silkscreen", monospace';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(title, 0, 0);
+    ctx.fillText(title, 0, -2);
+    ctx.font = 'bold 6px "Fredoka", sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    ctx.fillText(subMenu, 0, 7);
     ctx.restore();
   };
 
-  // Kopitiam Awning Roof projecting over tables (drawn before fascia signboards!)
+  // Kopitiam Awning Roof
   const r1 = isoToScreen(-1.4, 3.0, 106);
   const r2 = isoToScreen(0.8, 3.0, 96);
   const r3 = isoToScreen(0.8, 8.0, 96);
   const r4 = isoToScreen(-1.4, 8.0, 106);
-  drawIsoPoly(
-    ctx,
-    [r1, r2, r3, r4],
-    isEvening ? '#6d7380' : '#9c978d',
-    INK,
-    2
-  );
+  drawIsoPoly(ctx, [r1, r2, r3, r4], isEvening ? '#6d7380' : '#9c978d', INK, 2);
 
-  drawStall(3.5, 5.4, 'SATAY', '#b84239', '#fff4d4', '#8f5232');
-  drawStall(5.7, 7.6, 'KOPI', '#3b824f', '#ffe88a', '#63804e');
+  drawStall(3.5, 5.4, 'SATAY', 'CHICKEN • BEEF', '#b84239', '#fff4d4', '#8f5232');
+  drawStall(5.7, 7.6, 'KOPI', 'KOPI-O • TOAST', '#3b824f', '#ffe88a', '#63804e');
 
-  // Glowing string fairy lights along Kopitiam awning edge at 19:15!
   if (isEvening) {
     for (let i = 0; i < 6; i++) {
       const gy = 3.4 + i * 0.85;
@@ -779,24 +815,16 @@ function drawKopitiamStalls(
       ctx.arc(b.x, b.y, 2.5, 0, Math.PI * 2);
       ctx.fill();
     }
+    const kg = isoToScreen(-0.2, 6.2, 40);
+    const kGrad = ctx.createRadialGradient(kg.x, kg.y, 10, kg.x, kg.y, 140);
+    kGrad.addColorStop(0, 'rgba(255, 220, 140, 0.28)');
+    kGrad.addColorStop(1, 'rgba(255, 220, 140, 0)');
+    ctx.fillStyle = kGrad;
+    ctx.fillRect(kg.x - 140, kg.y - 120, 280, 240);
   }
 
-  // Singapore Drink Vending Machine under linkway corner (gx = 1.45, gy = 4.75)
-  drawIsoBox(
-    ctx,
-    1.15,
-    4.5,
-    1.75,
-    5.15,
-    0,
-    66,
-    '#5288b5',
-    '#3d6c96',
-    '#2f5478',
-    INK,
-    2
-  );
-  // Illuminated drink display panel on vending front (+gy)
+  // Singapore Drink Vending Machine under linkway corner
+  drawIsoBox(ctx, 1.15, 4.5, 1.75, 5.15, 0, 66, '#5288b5', '#3d6c96', '#2f5478', INK, 2);
   const v1 = isoToScreen(1.22, 5.16, 22);
   const v2 = isoToScreen(1.68, 5.16, 22);
   const v3 = isoToScreen(1.68, 5.16, 58);
@@ -820,11 +848,9 @@ function drawKopitiamTableWithDiners(
   isEvening: boolean
 ) {
   const p = isoToScreen(gx, gy, 0);
-  // 2 seated diners (one left, one right!)
   const drawSeatedDiner = (dx: number, dy: number, shirt: string, hair: string, skin: string) => {
     const sx = p.x + dx;
     const sy = p.y + dy;
-    // Stool
     ctx.fillStyle = '#cf4d42';
     ctx.strokeStyle = INK;
     ctx.lineWidth = 1.5;
@@ -832,17 +858,14 @@ function drawKopitiamTableWithDiners(
     ctx.ellipse(sx, sy - 6, 7, 4, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
-    // Seated torso
     ctx.fillStyle = shirt;
     ctx.fillRect(sx - 6, sy - 22, 12, 14);
     ctx.strokeRect(sx - 6, sy - 22, 12, 14);
-    // Head
     ctx.fillStyle = skin;
     ctx.beginPath();
     ctx.arc(sx, sy - 29, 6, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
-    // Hair
     ctx.fillStyle = hair;
     ctx.fillRect(sx - 5, sy - 35, 10, 4);
   };
@@ -850,25 +873,32 @@ function drawKopitiamTableWithDiners(
   drawSeatedDiner(-22, -4, '#e6d8c3', '#9aa0ab', '#d49d78');
   drawSeatedDiner(22, -2, '#6fa89b', '#262228', '#d9a47c');
 
-  // Round Kopitiam marble table
+  // Round green-trimmed marble Kopitiam table
   ctx.fillStyle = '#7b746b';
   ctx.strokeStyle = INK;
   ctx.lineWidth = 1.8;
   ctx.fillRect(p.x - 5, p.y - 20, 10, 20);
   ctx.strokeRect(p.x - 5, p.y - 20, 10, 20);
+  ctx.fillStyle = '#3f8a58';
+  ctx.beginPath();
+  ctx.ellipse(p.x, p.y - 19, 24, 13, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
   ctx.fillStyle = isEvening ? '#cfc7b8' : '#efe9dc';
   ctx.beginPath();
-  ctx.ellipse(p.x, p.y - 20, 22, 12, 0, 0, Math.PI * 2);
+  ctx.ellipse(p.x, p.y - 21, 21, 11, 0, 0, Math.PI * 2);
   ctx.fill();
   ctx.stroke();
 
-  // Tiny Kopi cups & plates on table!
+  // Kopi cups, spoon & satay/chicken rice plates
   ctx.fillStyle = '#528f5e';
-  ctx.fillRect(p.x - 8, p.y - 23, 5, 4);
+  ctx.fillRect(p.x - 8, p.y - 24, 5, 4);
   ctx.fillStyle = '#f5f2eb';
   ctx.beginPath();
-  ctx.ellipse(p.x + 6, p.y - 21, 5, 3, 0, 0, Math.PI * 2);
+  ctx.ellipse(p.x + 6, p.y - 22, 5, 3, 0, 0, Math.PI * 2);
   ctx.fill();
+  ctx.fillStyle = '#d1433b';
+  ctx.fillRect(p.x - 1, p.y - 25, 3, 2);
 }
 
 function drawMosaicPillar(
@@ -878,57 +908,74 @@ function drawMosaicPillar(
   height: number,
   isEvening: boolean
 ) {
-  const w = 0.62;
+  const w = 0.64;
   const x1 = gx - w / 2;
   const x2 = gx + w / 2;
   const y1 = gy - w / 2;
   const y2 = gy + w / 2;
 
+  // Chamfered concrete plinth base
+  drawIsoBox(
+    ctx,
+    x1 - 0.04,
+    y1 - 0.04,
+    x2 + 0.04,
+    y2 + 0.04,
+    0,
+    8,
+    isEvening ? '#8c857d' : '#b8b0a3',
+    isEvening ? '#7a746d' : '#a69f92',
+    isEvening ? '#69635d' : '#948d80',
+    INK,
+    1.6
+  );
+
   const upperLeft = isEvening ? '#a79e95' : '#dad1c2';
   const upperRight = isEvening ? '#8d857e' : '#bfb5a6';
 
-  drawIsoBox(ctx, x1, y1, x2, y2, 0, height, upperLeft, upperLeft, upperRight, INK, 2);
+  drawIsoBox(ctx, x1, y1, x2, y2, 8, height - 8, upperLeft, upperLeft, upperRight, INK, 2);
 
-  const tileBaseH = 56;
-  const rows = 5;
-  const cols = 3;
-  const tileColors = ['#c96f4b', '#568d8c', '#d8b482', '#9e624d', '#75a39e'];
+  // Rich 6x4 Glazed Ceramic HDB Mosaic Tiles with mortar seams
+  const tileBaseZ = 8;
+  const tileTopZ = 60;
+  const rows = 6;
+  const cols = 4;
+  const tileColors = ['#c96f4b', '#568d8c', '#d8b482', '#9e624d', '#75a39e', '#b58453'];
 
-  const bl1 = isoToScreen(x1, y2, 0);
-  const bl2 = isoToScreen(x2, y2, 0);
+  const bl1 = isoToScreen(x1, y2, tileBaseZ);
+  const bl2 = isoToScreen(x2, y2, tileBaseZ);
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       const u0 = c / cols;
       const u1 = (c + 1) / cols;
-      const z0 = (r / rows) * tileBaseH;
-      const z1 = ((r + 1) / rows) * tileBaseH;
+      const z0 = (r / rows) * (tileTopZ - tileBaseZ);
+      const z1 = ((r + 1) / rows) * (tileTopZ - tileBaseZ);
       const p00 = { x: bl1.x + (bl2.x - bl1.x) * u0, y: bl1.y + (bl2.y - bl1.y) * u0 - z0 };
       const p10 = { x: bl1.x + (bl2.x - bl1.x) * u1, y: bl1.y + (bl2.y - bl1.y) * u1 - z0 };
       const p11 = { x: p10.x, y: p10.y - (z1 - z0) };
       const p01 = { x: p00.x, y: p00.y - (z1 - z0) };
-      drawIsoPoly(ctx, [p00, p10, p11, p01], tileColors[(r * 2 + c) % tileColors.length], INK, 0.9);
+      drawIsoPoly(ctx, [p00, p10, p11, p01], tileColors[(r * 2 + c) % tileColors.length], '#3b332c', 0.8);
     }
   }
 
-  const br1 = isoToScreen(x2, y2, 0);
-  const br2 = isoToScreen(x2, y1, 0);
+  const br1 = isoToScreen(x2, y2, tileBaseZ);
+  const br2 = isoToScreen(x2, y1, tileBaseZ);
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       const u0 = c / cols;
       const u1 = (c + 1) / cols;
-      const z0 = (r / rows) * tileBaseH;
-      const z1 = ((r + 1) / rows) * tileBaseH;
+      const z0 = (r / rows) * (tileTopZ - tileBaseZ);
+      const z1 = ((r + 1) / rows) * (tileTopZ - tileBaseZ);
       const p00 = { x: br1.x + (br2.x - br1.x) * u0, y: br1.y + (br2.y - br1.y) * u0 - z0 };
       const p10 = { x: br1.x + (br2.x - br1.x) * u1, y: br1.y + (br2.y - br1.y) * u1 - z0 };
       const p11 = { x: p10.x, y: p10.y - (z1 - z0) };
       const p01 = { x: p00.x, y: p00.y - (z1 - z0) };
-      drawIsoPoly(ctx, [p00, p10, p11, p01], tileColors[(r * 3 + c + 1) % tileColors.length], INK, 0.9);
+      drawIsoPoly(ctx, [p00, p10, p11, p01], tileColors[(r * 3 + c + 1) % tileColors.length], '#3b332c', 0.8);
     }
   }
 }
 
 function drawExposedHDBRiserPipes(ctx: CanvasRenderingContext2D, isEvening: boolean) {
-  // Prominent exposed grey HDB service/drainage pipes running down the corner beside Blk 260!
   const pipeCol = isEvening ? '#868f9e' : '#b2b9c4';
   const b1 = isoToScreen(7.42, 4.92, 16);
   const t1 = isoToScreen(7.42, 4.92, 346);
@@ -954,7 +1001,13 @@ function drawExposedHDBRiserPipes(ctx: CanvasRenderingContext2D, isEvening: bool
     ctx.stroke();
   });
 
-  // Junction box near z = 198
+  // Pipe wall clamp rings
+  [80, 150, 260].forEach((pz) => {
+    const clamp = isoToScreen(7.53, 4.93, pz);
+    ctx.fillStyle = '#3b414a';
+    ctx.fillRect(clamp.x - 6, clamp.y - 2, 12, 3);
+  });
+
   const jb = isoToScreen(7.53, 4.94, 204);
   ctx.fillStyle = '#5a6370';
   ctx.strokeStyle = INK;
@@ -980,6 +1033,19 @@ function drawNoSmokingSign(ctx: CanvasRenderingContext2D, gx: number, gy: number
   ctx.moveTo(cx - 4, cy - 3);
   ctx.lineTo(cx + 4, cy + 3);
   ctx.stroke();
+}
+
+function drawHangingSundryRack(ctx: CanvasRenderingContext2D, gx: number, gy: number, z: number) {
+  // Classic SG minimart hanging plastic baskets/feather dusters on entrance pillar!
+  const p = isoToScreen(gx + 0.34, gy + 0.18, z);
+  ctx.fillStyle = '#d9534f';
+  ctx.strokeStyle = INK;
+  ctx.lineWidth = 1.3;
+  ctx.fillRect(p.x - 4, p.y - 12, 8, 12);
+  ctx.strokeRect(p.x - 4, p.y - 12, 8, 12);
+  ctx.fillStyle = '#f0ad4e';
+  ctx.fillRect(p.x - 3, p.y + 2, 7, 11);
+  ctx.strokeRect(p.x - 3, p.y + 2, 7, 11);
 }
 
 function drawVoidDeckBackdropAndMinimart(
@@ -1053,10 +1119,36 @@ function drawVoidDeckBackdropAndMinimart(
     }
   }
 
-  // Parcel / Cardboard box beside letterboxes
-  drawIsoBox(ctx, 6.2, 2.35, 6.85, 2.95, 82, 22, '#cfa065', '#b38249', '#946733', INK, 1.5);
+  // Parcel / Delivery Cardboard Box on letterboxes + Newspaper stack below
+  drawIsoBox(ctx, 6.18, 2.35, 6.75, 2.95, 82, 20, '#cfa065', '#b38249', '#946733', INK, 1.5);
 
-  // Cork Community Notice Board (z = 12 .. 55 so RC NOTICE is 100% unclipped below ceiling!)
+  // HDB Lift Lobby Alcove (between Letterboxes & RC Notice Board: gx = 6.95 .. 8.05, gy = 2.04)
+  const ld1 = isoToScreen(6.95, 2.04, 0);
+  const ld2 = isoToScreen(8.05, 2.04, 0);
+  const ld3 = isoToScreen(8.05, 2.04, 72);
+  const ld4 = isoToScreen(6.95, 2.04, 72);
+  drawIsoPoly(ctx, [ld1, ld2, ld3, ld4], '#4b5361', INK, 2);
+  const ldi1 = isoToScreen(7.08, 2.05, 0);
+  const ldi2 = isoToScreen(7.92, 2.05, 0);
+  const ldi3 = isoToScreen(7.92, 2.05, 66);
+  const ldi4 = isoToScreen(7.08, 2.05, 66);
+  drawIsoPoly(ctx, [ldi1, ldi2, ldi3, ldi4], isEvening ? '#8793a3' : '#aab5c4', INK, 1.5);
+  // Lift door center seam & glowing red floor display ("2")
+  const lMidB = isoToScreen(7.5, 2.06, 0);
+  const lMidT = isoToScreen(7.5, 2.06, 66);
+  ctx.strokeStyle = '#2c323d';
+  ctx.lineWidth = 1.8;
+  ctx.beginPath();
+  ctx.moveTo(lMidB.x, lMidB.y);
+  ctx.lineTo(lMidT.x, lMidT.y);
+  ctx.stroke();
+  const ind = isoToScreen(7.5, 2.06, 69);
+  ctx.fillStyle = '#1b1d24';
+  ctx.fillRect(ind.x - 6, ind.y - 4, 12, 7);
+  ctx.fillStyle = '#ff6b57';
+  ctx.fillRect(ind.x - 2, ind.y - 2, 4, 3);
+
+  // Glass-Encased RC Community Notice Board (z = 12 .. 55)
   const nb1 = isoToScreen(8.4, 2.06, 12);
   const nb2 = isoToScreen(11.9, 2.06, 12);
   const nb3 = isoToScreen(11.9, 2.06, 55);
@@ -1108,83 +1200,88 @@ function drawVoidDeckBackdropAndMinimart(
       10,
       glowCenter.x,
       glowCenter.y,
-      230
+      235
     );
-    grad.addColorStop(0, 'rgba(255, 214, 128, 0.35)');
+    grad.addColorStop(0, 'rgba(255, 214, 128, 0.36)');
     grad.addColorStop(1, 'rgba(255, 214, 128, 0)');
     ctx.fillStyle = grad;
     ctx.fillRect(620, 210, 660, 480);
   }
 
-  // Void Deck Corner Crate near pillar
+  // Void Deck Corner Crate + Potted Plant
   drawIsoBox(ctx, 13.3, 3.85, 13.9, 4.4, 0, 28, '#55606e', '#3d4552', '#2e3540', INK, 1.8);
 
-  // SUNSHINE MINIMART INTERIOR
-  drawIsoBox(
-    ctx,
-    14.9,
-    2.1,
-    16.6,
-    2.85,
-    0,
-    92,
-    '#7b8899',
-    '#4a5568',
-    '#343d4b',
-    INK,
-    2
-  );
-  const fr1 = isoToScreen(15.02, 2.86, 10);
-  const fr2 = isoToScreen(16.48, 2.86, 10);
-  const fr3 = isoToScreen(16.48, 2.86, 84);
-  const fr4 = isoToScreen(15.02, 2.86, 84);
+  // SUNSHINE MINIMART INTERIOR (Deeper shop cutaway + dense goods!)
+  // Double-door Illuminated Beverage Chiller Fridge
+  drawIsoBox(ctx, 14.9, 2.08, 16.75, 2.85, 0, 96, '#7b8899', '#4a5568', '#343d4b', INK, 2);
+  const fr1 = isoToScreen(15.0, 2.86, 10);
+  const fr2 = isoToScreen(16.65, 2.86, 10);
+  const fr3 = isoToScreen(16.65, 2.86, 88);
+  const fr4 = isoToScreen(15.0, 2.86, 88);
   drawIsoPoly(ctx, [fr1, fr2, fr3, fr4], isEvening ? '#e8f5ff' : '#d2e9f7', INK, 1.5);
-  const shelfCols = ['#d9534f', '#5cb85c', '#f0ad4e', '#428bca', '#e8836b'];
-  for (let row = 0; row < 4; row++) {
-    const zShelf = 20 + row * 17;
-    const sL = isoToScreen(15.08, 2.87, zShelf);
-    const sR = isoToScreen(16.42, 2.87, zShelf);
+  // Center vertical glass door frame
+  const fd1 = isoToScreen(15.82, 2.87, 10);
+  const fd2 = isoToScreen(15.82, 2.87, 88);
+  ctx.strokeStyle = '#364152';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(fd1.x, fd1.y);
+  ctx.lineTo(fd2.x, fd2.y);
+  ctx.stroke();
+
+  const shelfCols = ['#d9534f', '#5cb85c', '#f0ad4e', '#428bca', '#7a4b31', '#f7e17c'];
+  for (let row = 0; row < 5; row++) {
+    const zShelf = 18 + row * 15;
+    const sL = isoToScreen(15.06, 2.87, zShelf);
+    const sR = isoToScreen(16.58, 2.87, zShelf);
     ctx.strokeStyle = '#3f5366';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 1.8;
     ctx.beginPath();
     ctx.moveTo(sL.x, sL.y);
     ctx.lineTo(sR.x, sR.y);
     ctx.stroke();
-    for (let c = 0; c < 5; c++) {
-      const u = (c + 0.5) / 5;
+    for (let c = 0; c < 7; c++) {
+      const u = (c + 0.5) / 7;
       const cx = sL.x + (sR.x - sL.x) * u;
       const cy = sL.y + (sR.y - sL.y) * u;
       ctx.fillStyle = shelfCols[(row + c) % shelfCols.length];
-      ctx.fillRect(cx - 4, cy - 11, 8, 10);
+      ctx.fillRect(cx - 3.5, cy - 10, 7, 9);
       ctx.strokeStyle = INK;
-      ctx.lineWidth = 1;
-      ctx.strokeRect(cx - 4, cy - 11, 8, 10);
+      ctx.lineWidth = 0.8;
+      ctx.strokeRect(cx - 3.5, cy - 10, 7, 9);
     }
   }
 
-  drawIsoBox(ctx, 15.1, 2.15, 16.0, 2.75, 92, 16, '#d4a66a', '#b8884d', '#996e3a', INK, 1.5);
+  // Stock cardboard box on top of chiller
+  drawIsoBox(ctx, 15.1, 2.15, 16.1, 2.75, 96, 16, '#d4a66a', '#b8884d', '#996e3a', INK, 1.5);
 
-  // Stacked Blue & Green Drink Crates
+  // Stacked Blue & Green F&N/Milk Drink Crates
   drawIsoBox(ctx, 14.55, 3.25, 15.2, 3.9, 0, 17, '#4c77b8', '#395d96', '#2b4775', INK, 1.5);
   drawIsoBox(ctx, 14.55, 3.25, 15.2, 3.9, 17, 17, '#539e66', '#3d7d4d', '#2e613b', INK, 1.5);
   drawIsoBox(ctx, 14.55, 3.25, 15.2, 3.9, 34, 17, '#4c77b8', '#395d96', '#2b4775', INK, 1.5);
 
-  // Minimart Snack Shelves along back wall
-  drawIsoBox(ctx, 16.85, 2.1, 19.15, 2.8, 0, 86, '#c78a4e', '#a36b36', '#7d5026', INK, 2);
+  // Sliding-Glass Ice-Cream Chest Freezer beside crates!
+  drawIsoBox(ctx, 15.35, 3.3, 16.4, 3.95, 0, 30, '#e8f1f8', '#d4dee8', '#b8c5d4', INK, 1.8);
+  const icTop = isoToScreen(15.88, 3.62, 30);
+  ctx.fillStyle = '#cf4928';
+  ctx.fillRect(icTop.x - 10, icTop.y - 3, 20, 5);
+
+  // Minimart Sundry Shelves along back wall (densely stocked!)
+  drawIsoBox(ctx, 16.85, 2.08, 19.35, 2.8, 0, 90, '#c78a4e', '#a36b36', '#7d5026', INK, 2);
   for (let row = 0; row < 4; row++) {
-    const zR = 14 + row * 17;
-    for (let s = 0; s < 4; s++) {
-      const gxPos = 17.1 + s * 0.52;
+    const zR = 14 + row * 18;
+    for (let s = 0; s < 5; s++) {
+      const gxPos = 17.05 + s * 0.48;
       const p = isoToScreen(gxPos, 2.82, zR);
       ctx.fillStyle = shelfCols[(row * 2 + s) % shelfCols.length];
-      ctx.fillRect(p.x - 5, p.y - 11, 10, 11);
+      ctx.fillRect(p.x - 5, p.y - 12, 9, 12);
       ctx.strokeStyle = INK;
       ctx.lineWidth = 1;
-      ctx.strokeRect(p.x - 5, p.y - 11, 10, 11);
+      ctx.strokeRect(p.x - 5, p.y - 12, 9, 12);
     }
   }
 
-  // Front "SNACKS" Chip Rack
+  // Front "SNACKS" Chip Rack & Red Plastic Shop Stool
   drawIsoBox(ctx, 17.3, 3.3, 19.0, 3.95, 0, 42, '#e0a94f', '#c78834', '#9e6821', INK, 1.8);
   const snackSignPos = isoToScreen(18.15, 4.0, 40);
   ctx.save();
@@ -1203,11 +1300,11 @@ function drawVoidDeckBackdropAndMinimart(
 
   if (isEvening) {
     const mg = isoToScreen(17.3, 3.1, 45);
-    const mGrad = ctx.createRadialGradient(mg.x, mg.y, 15, mg.x, mg.y, 175);
-    mGrad.addColorStop(0, 'rgba(255, 226, 150, 0.34)');
-    mGrad.addColorStop(1, 'rgba(255, 226, 150, 0)');
+    const mGrad = ctx.createRadialGradient(mg.x, mg.y, 15, mg.x, mg.y, 185);
+    mGrad.addColorStop(0, 'rgba(255, 228, 158, 0.42)');
+    mGrad.addColorStop(1, 'rgba(255, 228, 158, 0)');
     ctx.fillStyle = mGrad;
-    ctx.fillRect(mg.x - 185, mg.y - 155, 370, 310);
+    ctx.fillRect(mg.x - 190, mg.y - 160, 380, 320);
   }
 }
 
@@ -1218,69 +1315,85 @@ function drawHDBUpperBuilding(
   const wallBaseZ = 198;
   const wallTopZ = 560;
 
+  // Main warm cream structural concrete wall
   const f1 = isoToScreen(6.0, 4.8, wallBaseZ);
   const f2 = isoToScreen(24.0, 4.8, wallBaseZ);
   const f3 = isoToScreen(24.0, 4.8, wallTopZ);
   const f4 = isoToScreen(6.0, 4.8, wallTopZ);
-  drawIsoPoly(ctx, [f1, f2, f3, f4], isEvening ? '#b7afa7' : '#eae2d6', INK, 2);
+  drawIsoPoly(ctx, [f1, f2, f3, f4], isEvening ? '#b8b0a6' : '#ede4d5', INK, 2);
 
-  const floorBand1 = [
-    isoToScreen(6.0, 4.82, 198),
-    isoToScreen(24.0, 4.82, 198),
-    isoToScreen(24.0, 4.82, 220),
-    isoToScreen(6.0, 4.82, 220),
-  ];
-  drawIsoPoly(ctx, floorBand1, isEvening ? '#875742' : '#c97855', INK, 1.5);
+  // Horizontal HDB Floor Slab Beams with subtle bevel shadow
+  [198, 330].forEach((beamZ, idx) => {
+    const band = [
+      isoToScreen(6.0, 4.83, beamZ),
+      isoToScreen(24.0, 4.83, beamZ),
+      isoToScreen(24.0, 4.83, beamZ + 24),
+      isoToScreen(6.0, 4.83, beamZ + 24),
+    ];
+    drawIsoPoly(
+      ctx,
+      band,
+      idx === 0
+        ? isEvening ? '#8f5944' : '#cf7a56'
+        : isEvening ? '#49688a' : '#5e88b5',
+      INK,
+      1.6
+    );
+  });
 
-  const floorBand2 = [
-    isoToScreen(6.0, 4.82, 330),
-    isoToScreen(24.0, 4.82, 330),
-    isoToScreen(24.0, 4.82, 354),
-    isoToScreen(6.0, 4.82, 354),
-  ];
-  drawIsoPoly(ctx, floorBand2, isEvening ? '#476484' : '#5e88b5', INK, 1.5);
+  // Vertical cream concrete structural pilasters between bays (adds realistic HDB grid frame!)
+  [7.6, 11.7, 15.9, 20.1].forEach((px) => {
+    const pil = [
+      isoToScreen(px, 4.83, 198),
+      isoToScreen(px + 0.35, 4.83, 198),
+      isoToScreen(px + 0.35, 4.83, 560),
+      isoToScreen(px, 4.83, 560),
+    ];
+    drawIsoPoly(ctx, pil, isEvening ? '#c4bcb0' : '#f2eadc', INK, 1.2);
+  });
 
   const drawCorridorBay = (gxStart: number, gxEnd: number, zLow: number, zHigh: number, accentCol: string) => {
+    // Deep recessed corridor pocket
     const r1 = isoToScreen(gxStart, 4.82, zLow);
     const r2 = isoToScreen(gxEnd, 4.82, zLow);
     const r3 = isoToScreen(gxEnd, 4.82, zHigh);
     const r4 = isoToScreen(gxStart, 4.82, zHigh);
-    drawIsoPoly(ctx, [r1, r2, r3, r4], isEvening ? '#523b32' : '#7a6357', INK, 2);
+    drawIsoPoly(ctx, [r1, r2, r3, r4], isEvening ? '#4a352d' : '#735c51', INK, 2);
 
+    // Recessed corridor sidewall on left of pocket for real architectural depth!
+    const sw1 = isoToScreen(gxStart, 4.82, zLow);
+    const sw2 = isoToScreen(gxStart + 0.35, 4.82, zLow + 8);
+    const sw3 = isoToScreen(gxStart + 0.35, 4.82, zHigh);
+    const sw4 = isoToScreen(gxStart, 4.82, zHigh);
+    drawIsoPoly(ctx, [sw1, sw2, sw3, sw4], isEvening ? '#695249' : '#947c70', INK, 1.2);
+
+    // Multi-pane HDB windows & grilles
     const w1 = isoToScreen(gxStart + 0.5, 4.83, zLow + 22);
     const w2 = isoToScreen(gxStart + 1.7, 4.83, zLow + 22);
     const w3 = isoToScreen(gxStart + 1.7, 4.83, zHigh - 12);
     const w4 = isoToScreen(gxStart + 0.5, 4.83, zHigh - 12);
-    drawIsoPoly(
-      ctx,
-      [w1, w2, w3, w4],
-      isEvening ? '#ffcb5c' : '#8da3b8',
-      INK,
-      1.5
-    );
+    drawIsoPoly(ctx, [w1, w2, w3, w4], isEvening ? '#ffcb5c' : '#8da3b8', INK, 1.5);
 
     const w21 = isoToScreen(gxStart + 2.1, 4.83, zLow + 26);
     const w22 = isoToScreen(gxEnd - 0.3, 4.83, zLow + 26);
     const w23 = isoToScreen(gxEnd - 0.3, 4.83, zHigh - 14);
     const w24 = isoToScreen(gxStart + 2.1, 4.83, zHigh - 14);
-    drawIsoPoly(
-      ctx,
-      [w21, w22, w23, w24],
-      isEvening ? '#ffd978' : '#7d93a8',
-      INK,
-      1.5
-    );
+    drawIsoPoly(ctx, [w21, w22, w23, w24], isEvening ? '#ffd978' : '#7d93a8', INK, 1.5);
 
-    // Classic HDB security window grilles across second window
-    const gr1 = isoToScreen(gxStart + 2.4, 4.84, zLow + 26);
-    const gr2 = isoToScreen(gxStart + 2.4, 4.84, zHigh - 14);
-    ctx.strokeStyle = 'rgba(40,42,50,0.6)';
-    ctx.lineWidth = 1.2;
-    ctx.beginPath();
-    ctx.moveTo(gr1.x, gr1.y);
-    ctx.lineTo(gr2.x, gr2.y);
-    ctx.stroke();
+    // Window vertical & horizontal grilles
+    for (let g = 0.28; g <= 0.72; g += 0.38) {
+      const gxPos = gxStart + 2.1 + (gxEnd - 0.3 - (gxStart + 2.1)) * g;
+      const gA = isoToScreen(gxPos, 4.84, zLow + 26);
+      const gB = isoToScreen(gxPos, 4.84, zHigh - 14);
+      ctx.strokeStyle = 'rgba(35,38,46,0.65)';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(gA.x, gA.y);
+      ctx.lineTo(gB.x, gB.y);
+      ctx.stroke();
+    }
 
+    // Balcony parapet + painted horizontal vent slats
     const b1 = isoToScreen(gxStart, 4.84, zLow);
     const b2 = isoToScreen(gxEnd, 4.84, zLow);
     const b3 = isoToScreen(gxEnd, 4.84, zLow + 32);
@@ -1296,8 +1409,9 @@ function drawHDBUpperBuilding(
     ctx.lineTo(m2.x, m2.y);
     ctx.stroke();
 
+    // Angled Bamboo Laundry Poles with clothes & towel hangers
     const poleBase = isoToScreen(gxStart + 1.6, 4.84, zLow + 26);
-    const poleTip = { x: poleBase.x - 42, y: poleBase.y + 18 };
+    const poleTip = { x: poleBase.x - 44, y: poleBase.y + 19 };
     ctx.strokeStyle = '#a37b4b';
     ctx.lineWidth = 3.5;
     ctx.beginPath();
@@ -1307,7 +1421,7 @@ function drawHDBUpperBuilding(
 
     const shirtColors = ['#d96459', '#f2e8cf', '#4f7cac', '#e8b954'];
     for (let k = 0; k < 3; k++) {
-      const t = 0.25 + k * 0.28;
+      const t = 0.24 + k * 0.28;
       const hx = poleBase.x + (poleTip.x - poleBase.x) * t;
       const hy = poleBase.y + (poleTip.y - poleBase.y) * t;
       ctx.fillStyle = shirtColors[(Math.floor(gxStart) + k) % shirtColors.length];
@@ -1320,15 +1434,15 @@ function drawHDBUpperBuilding(
     }
   };
 
-  drawCorridorBay(7.8, 11.2, 230, 326, isEvening ? '#46688a' : '#5c87b5');
-  drawCorridorBay(12.0, 15.4, 230, 326, isEvening ? '#a35e45' : '#cf7c59');
-  drawCorridorBay(16.2, 19.6, 230, 326, isEvening ? '#46688a' : '#5c87b5');
+  drawCorridorBay(7.95, 11.35, 230, 326, isEvening ? '#46688a' : '#5c87b5');
+  drawCorridorBay(12.15, 15.55, 230, 326, isEvening ? '#a35e45' : '#cf7c59');
+  drawCorridorBay(16.35, 19.75, 230, 326, isEvening ? '#46688a' : '#5c87b5');
 
   drawCorridorBay(8.0, 11.4, 364, 458, isEvening ? '#9b5a42' : '#c97855');
   drawCorridorBay(12.2, 15.6, 364, 458, isEvening ? '#46688a' : '#5c87b5');
   drawCorridorBay(16.4, 19.8, 364, 458, isEvening ? '#9b5a42' : '#c97855');
 
-  // Staircase window + HDB Block Number "260"
+  // Staircase louvered window + HDB Block Number "260"
   const ew1 = isoToScreen(6.25, 4.83, 240);
   const ew2 = isoToScreen(7.35, 4.83, 240);
   const ew3 = isoToScreen(7.35, 4.83, 305);
@@ -1346,34 +1460,34 @@ function drawHDBUpperBuilding(
   ctx.fillText('260', 0, 0);
   ctx.restore();
 
-  // Air-con compressor ledges
-  [7.8, 12.0, 16.2].forEach((bx) => {
+  // Detailed Outdoor Air-Con Compressor Units with brackets & fan grille
+  [7.95, 12.15, 16.35].forEach((bx) => {
     const ac1 = isoToScreen(bx + 0.15, 4.86, 224);
-    const ac2 = isoToScreen(bx + 0.72, 4.86, 224);
-    const ac3 = isoToScreen(bx + 0.72, 4.86, 242);
-    const ac4 = isoToScreen(bx + 0.15, 4.86, 242);
-    drawIsoPoly(ctx, [ac1, ac2, ac3, ac4], isEvening ? '#98a0a8' : '#d2d7de', INK, 1.4);
-    ctx.fillStyle = '#39404a';
+    const ac2 = isoToScreen(bx + 0.78, 4.86, 224);
+    const ac3 = isoToScreen(bx + 0.78, 4.86, 244);
+    const ac4 = isoToScreen(bx + 0.15, 4.86, 244);
+    drawIsoPoly(ctx, [ac1, ac2, ac3, ac4], isEvening ? '#98a0a8' : '#d8dde3', INK, 1.4);
+    ctx.fillStyle = '#333a45';
     ctx.beginPath();
-    ctx.arc((ac1.x + ac2.x) / 2, (ac1.y + ac3.y) / 2, 4, 0, Math.PI * 2);
+    ctx.arc((ac1.x + ac2.x) / 2 - 2, (ac1.y + ac3.y) / 2, 4.5, 0, Math.PI * 2);
     ctx.fill();
   });
 
-  // SUNSHINE MINIMART YELLOW SIGNBOARD
+  // SUNSHINE MINIMART ILLUMINATED FASCIA SIGNBOARD
   const s1 = isoToScreen(14.3, 4.88, 146);
   const s2 = isoToScreen(22.2, 4.88, 146);
-  const s3 = isoToScreen(22.2, 4.88, 186);
-  const s4 = isoToScreen(14.3, 4.88, 186);
-  drawIsoPoly(ctx, [s1, s2, s3, s4], isEvening ? '#f2d36b' : '#f7e17c', INK, 2);
-  const sg1 = isoToScreen(14.3, 4.88, 139);
-  const sg2 = isoToScreen(22.2, 4.88, 139);
-  drawIsoPoly(ctx, [sg1, sg2, s2, s1], '#4d8f58', INK, 1.5);
+  const s3 = isoToScreen(22.2, 4.88, 188);
+  const s4 = isoToScreen(14.3, 4.88, 188);
+  drawIsoPoly(ctx, [s1, s2, s3, s4], isEvening ? '#fae078' : '#f7e17c', INK, 2);
+  const sg1 = isoToScreen(14.3, 4.88, 138);
+  const sg2 = isoToScreen(22.2, 4.88, 138);
+  drawIsoPoly(ctx, [sg1, sg2, s2, s1], '#3f8a54', INK, 1.5);
 
-  const signMid = isoToScreen(17.55, 4.9, 165);
+  const signMid = isoToScreen(17.55, 4.9, 167);
   ctx.save();
   ctx.translate(signMid.x, signMid.y);
   ctx.transform(0.89, 0.445, 0, 1, 0, 0);
-  ctx.fillStyle = '#cf4928';
+  ctx.fillStyle = '#c94122';
   ctx.font = 'bold 22px "Fredoka", sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
@@ -1454,7 +1568,7 @@ function drawShelteredWalkway(
   }
 }
 
-function drawTree(
+function drawRainTree(
   ctx: CanvasRenderingContext2D,
   gx: number,
   gy: number,
@@ -1462,63 +1576,99 @@ function drawTree(
   isEvening: boolean,
   time: number
 ) {
+  // Authentic Singapore Rain Tree (Samanea saman): spreading umbrella canopy & Y-forking trunk!
   const base = isoToScreen(gx, gy, 0);
-  const sway = Math.sin(time * 1.5 + gx) * 2;
+  const sway = Math.sin(time * 1.4 + gx) * 1.5;
 
-  ctx.fillStyle = isEvening ? 'rgba(18,22,30,0.38)' : 'rgba(40,48,28,0.28)';
+  // Wide ground shadow
+  ctx.fillStyle = isEvening ? 'rgba(18,22,30,0.38)' : 'rgba(35,45,25,0.28)';
   ctx.beginPath();
-  ctx.ellipse(base.x, base.y + 4, 42 * scale, 18 * scale, 0, 0, Math.PI * 2);
+  ctx.ellipse(base.x, base.y + 4, 58 * scale, 22 * scale, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  ctx.fillStyle = isEvening ? '#523a29' : '#734f35';
+  // Natural flared bark trunk splitting into spreading branches
+  ctx.fillStyle = isEvening ? '#4e3727' : '#6e4b32';
   ctx.strokeStyle = INK;
   ctx.lineWidth = 2.2;
   ctx.beginPath();
-  ctx.moveTo(base.x - 10 * scale, base.y + 2);
-  ctx.quadraticCurveTo(base.x - 6 * scale, base.y - 45 * scale, base.x - 24 * scale, base.y - 84 * scale);
-  ctx.lineTo(base.x - 14 * scale, base.y - 88 * scale);
-  ctx.lineTo(base.x, base.y - 62 * scale);
-  ctx.lineTo(base.x + 20 * scale, base.y - 86 * scale);
-  ctx.lineTo(base.x + 26 * scale, base.y - 78 * scale);
-  ctx.quadraticCurveTo(base.x + 8 * scale, base.y - 42 * scale, base.x + 12 * scale, base.y + 2);
+  ctx.moveTo(base.x - 11 * scale, base.y + 2);
+  ctx.quadraticCurveTo(base.x - 6 * scale, base.y - 38 * scale, base.x - 36 * scale, base.y - 76 * scale);
+  ctx.lineTo(base.x - 24 * scale, base.y - 80 * scale);
+  ctx.lineTo(base.x - 1, base.y - 54 * scale);
+  ctx.lineTo(base.x + 28 * scale, base.y - 78 * scale);
+  ctx.lineTo(base.x + 36 * scale, base.y - 70 * scale);
+  ctx.quadraticCurveTo(base.x + 8 * scale, base.y - 38 * scale, base.x + 12 * scale, base.y + 2);
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
 
-  const darkLeaf = isEvening ? '#2b4a33' : '#4a7337';
-  const midLeaf = isEvening ? '#3c6340' : '#6b9c46';
-  const lightLeaf = isEvening ? '#4e7d4b' : '#8ec25b';
+  // Broad horizontal umbrella canopy (layered organic foliage pads, NOT lollipop circles!)
+  const deepLeaf = isEvening ? '#243d2b' : '#3d632c';
+  const midLeaf = isEvening ? '#345737' : '#5d8c3c';
+  const hiLeaf = isEvening ? '#467343' : '#82b54f';
 
-  const clusters = [
-    { dx: -40, dy: -88, r: 34 },
-    { dx: 40, dy: -86, r: 32 },
-    { dx: -20, dy: -118, r: 36 },
-    { dx: 26, dy: -114, r: 35 },
-    { dx: 0, dy: -96, r: 40 },
-    { dx: 2, dy: -136, r: 32 },
+  const pads = [
+    { dx: -44, dy: -78, rx: 32, ry: 18 },
+    { dx: 42, dy: -76, rx: 31, ry: 17 },
+    { dx: 0, dy: -74, rx: 40, ry: 20 },
+    { dx: -26, dy: -94, rx: 34, ry: 19 },
+    { dx: 26, dy: -92, rx: 34, ry: 18 },
+    { dx: 0, dy: -104, rx: 38, ry: 20 },
   ];
 
-  clusters.forEach((c) => {
-    const cx = base.x + c.dx * scale + sway * 0.4;
-    const cy = base.y + c.dy * scale;
-    const r = c.r * scale;
-    ctx.fillStyle = darkLeaf;
+  pads.forEach((p) => {
+    const cx = base.x + p.dx * scale + sway * 0.4;
+    const cy = base.y + p.dy * scale;
+    const rx = p.rx * scale;
+    const ry = p.ry * scale;
+    ctx.fillStyle = deepLeaf;
     ctx.strokeStyle = INK;
-    ctx.lineWidth = 2.2;
+    ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
 
     ctx.fillStyle = midLeaf;
     ctx.beginPath();
-    ctx.arc(cx - r * 0.08, cy - r * 0.14, r * 0.82, 0, Math.PI * 2);
+    ctx.ellipse(cx - rx * 0.05, cy - ry * 0.18, rx * 0.86, ry * 0.78, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.fillStyle = lightLeaf;
+    ctx.fillStyle = hiLeaf;
     ctx.beginPath();
-    ctx.arc(cx - r * 0.18, cy - r * 0.3, r * 0.48, 0, Math.PI * 2);
+    ctx.ellipse(cx - rx * 0.14, cy - ry * 0.35, rx * 0.56, ry * 0.48, 0, 0, Math.PI * 2);
     ctx.fill();
+  });
+}
+
+function drawPlantingBedWithBougainvillea(
+  ctx: CanvasRenderingContext2D,
+  gx: number,
+  gy: number,
+  isEvening: boolean
+) {
+  const base = isoToScreen(gx, gy, 0);
+  // Concrete low planter ring
+  drawIsoBox(ctx, gx - 0.5, gy - 0.35, gx + 0.5, gy + 0.35, 0, 8, '#4a3d31', '#857e73', '#6b655c', INK, 1.4);
+
+  const leafCol = isEvening ? '#2e5233' : '#4e8040';
+  const bloomCol = isEvening ? '#c24c7e' : '#e85d99';
+  [
+    [-10, -14, 11],
+    [10, -13, 10],
+    [0, -20, 12],
+  ].forEach(([dx, dy, r]) => {
+    ctx.fillStyle = leafCol;
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.arc(base.x + dx, base.y + dy, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    // Bougainvillea blossoms
+    ctx.fillStyle = bloomCol;
+    ctx.fillRect(base.x + dx - 3, base.y + dy - 4, 3, 3);
+    ctx.fillRect(base.x + dx + 2, base.y + dy, 3, 3);
   });
 }
 
@@ -1533,12 +1683,12 @@ function drawFootpathLamp(ctx: CanvasRenderingContext2D, gx: number, gy: number,
   const lx = base.x;
   const ly = base.y - 94;
   if (isEvening) {
-    const g = ctx.createRadialGradient(lx, ly, 4, lx, ly + 15, 78);
-    g.addColorStop(0, 'rgba(255, 214, 110, 0.52)');
+    const g = ctx.createRadialGradient(lx, ly, 4, lx, ly + 15, 86);
+    g.addColorStop(0, 'rgba(255, 214, 110, 0.56)');
     g.addColorStop(1, 'rgba(255, 214, 110, 0)');
     ctx.fillStyle = g;
     ctx.beginPath();
-    ctx.arc(lx, ly + 15, 78, 0, Math.PI * 2);
+    ctx.arc(lx, ly + 15, 86, 0, Math.PI * 2);
     ctx.fill();
   }
   ctx.fillStyle = isEvening ? '#ffe073' : '#dde4eb';
@@ -1554,10 +1704,28 @@ function drawFootpathLamp(ctx: CanvasRenderingContext2D, gx: number, gy: number,
   ctx.stroke();
 }
 
+function drawZebraBeaconPole(ctx: CanvasRenderingContext2D, gx: number, gy: number, isEvening: boolean) {
+  const base = isoToScreen(gx, gy, 0);
+  // Black-and-white striped Singapore crossing beacon pole
+  for (let i = 0; i < 5; i++) {
+    ctx.fillStyle = i % 2 === 0 ? '#f4f6f9' : '#242933';
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = 1.2;
+    ctx.fillRect(base.x - 2.5, base.y - (i + 1) * 9, 5, 9);
+    ctx.strokeRect(base.x - 2.5, base.y - (i + 1) * 9, 5, 9);
+  }
+  ctx.fillStyle = isEvening ? '#ffbd4a' : '#f29f24';
+  ctx.strokeStyle = INK;
+  ctx.lineWidth = 1.6;
+  ctx.beginPath();
+  ctx.arc(base.x, base.y - 50, 5.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+}
+
 function drawPedestrianRailing(ctx: CanvasRenderingContext2D, isEvening: boolean) {
-  // Leaves zebra crossing gap at gx = 5.4 .. 7.8 open!
   const drawRailSegment = (gxStart: number, gxEnd: number) => {
-    const gy = 10.15;
+    const gy = 10.12;
     const h = 36;
     const railColor = isEvening ? '#767d87' : '#a4aab3';
     const pStartT = isoToScreen(gxStart, gy, h);
@@ -1595,8 +1763,46 @@ function drawPedestrianRailing(ctx: CanvasRenderingContext2D, isEvening: boolean
     });
   };
 
-  drawRailSegment(2.2, 5.2);
+  drawRailSegment(2.2, 5.1);
   drawRailSegment(8.0, 15.0);
+}
+
+function drawBusStopShelterAndPole(ctx: CanvasRenderingContext2D, isEvening: boolean) {
+  // Compact LTA-style Bus Stop Bench & Route Board (gx = 2.1 .. 3.6, gy = 9.25) — clear of Player!
+  drawIsoBox(ctx, 2.2, 9.2, 3.55, 9.6, 0, 13, '#4c8f6e', '#387054', '#2b5942', INK, 1.5);
+  // Route timetable board behind bench
+  drawIsoBox(ctx, 2.0, 9.0, 2.55, 9.15, 0, 56, '#485263', '#2e3540', '#232830', INK, 1.6);
+  const tb = isoToScreen(2.28, 9.17, 36);
+  ctx.fillStyle = isEvening ? '#e8f5ff' : '#d2e4f2';
+  ctx.fillRect(tb.x - 8, tb.y - 12, 16, 20);
+
+  // Orange & Cream Singapore Bus Stop Pole (Stop 26019 — BUS 88 · 138)
+  const gx = 4.9;
+  const gy = 10.0;
+  const base = isoToScreen(gx, gy, 0);
+  ctx.fillStyle = isEvening ? '#5b6370' : '#858d99';
+  ctx.strokeStyle = INK;
+  ctx.lineWidth = 1.8;
+  ctx.fillRect(base.x - 2.5, base.y - 76, 5, 76);
+  ctx.strokeRect(base.x - 2.5, base.y - 76, 5, 76);
+
+  ctx.fillStyle = '#e88e35';
+  ctx.strokeStyle = INK;
+  ctx.lineWidth = 1.8;
+  ctx.beginPath();
+  ctx.roundRect(base.x - 16, base.y - 102, 32, 26, 4);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = '#fff7e6';
+  ctx.fillRect(base.x - 13, base.y - 98, 26, 18);
+  ctx.fillStyle = '#231a16';
+  ctx.font = 'bold 8px "Silkscreen", monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('BUS', base.x, base.y - 90);
+  ctx.fillStyle = '#b53a35';
+  ctx.font = 'bold 8.5px "Silkscreen", monospace';
+  ctx.fillText('88', base.x, base.y - 82);
 }
 
 function drawRecyclingBin(ctx: CanvasRenderingContext2D, gx: number, gy: number, isEvening: boolean) {
@@ -1662,7 +1868,6 @@ function drawStoneTableAndStools(ctx: CanvasRenderingContext2D, gx: number, gy: 
   drawRoundPiece(gx + stoolOffsets[0].dx, gy + stoolOffsets[0].dy, 12, 7, 14);
   drawRoundPiece(gx, gy, 30, 17, 24);
 
-  // Xiangqi grid on stone table
   const tc = isoToScreen(gx, gy, 24);
   ctx.strokeStyle = '#9c4338';
   ctx.lineWidth = 1.1;
@@ -1674,7 +1879,6 @@ function drawStoneTableAndStools(ctx: CanvasRenderingContext2D, gx: number, gy: 
   ctx.lineTo(tc.x, tc.y + 5);
   ctx.stroke();
 
-  // Chope white-and-blue pocket tissue packet!
   ctx.fillStyle = '#f8f5ef';
   ctx.strokeStyle = INK;
   ctx.lineWidth = 1;
@@ -1683,33 +1887,6 @@ function drawStoneTableAndStools(ctx: CanvasRenderingContext2D, gx: number, gy: 
 
   drawRoundPiece(gx + stoolOffsets[1].dx, gy + stoolOffsets[1].dy, 12, 7, 14);
   drawRoundPiece(gx + stoolOffsets[3].dx, gy + stoolOffsets[3].dy, 12, 7, 14);
-}
-
-function drawBusStopPole(ctx: CanvasRenderingContext2D, gx: number, gy: number, isEvening: boolean) {
-  const base = isoToScreen(gx, gy, 0);
-  ctx.fillStyle = isEvening ? '#5b6370' : '#858d99';
-  ctx.strokeStyle = INK;
-  ctx.lineWidth = 1.8;
-  ctx.fillRect(base.x - 2.5, base.y - 76, 5, 76);
-  ctx.strokeRect(base.x - 2.5, base.y - 76, 5, 76);
-
-  ctx.fillStyle = '#e88e35';
-  ctx.strokeStyle = INK;
-  ctx.lineWidth = 1.8;
-  ctx.beginPath();
-  ctx.roundRect(base.x - 16, base.y - 102, 32, 26, 4);
-  ctx.fill();
-  ctx.stroke();
-
-  ctx.fillStyle = '#fff7e6';
-  ctx.fillRect(base.x - 13, base.y - 98, 26, 18);
-  ctx.fillStyle = '#231a16';
-  ctx.font = 'bold 8px "Silkscreen", monospace';
-  ctx.textAlign = 'center';
-  ctx.fillText('BUS', base.x, base.y - 90);
-  ctx.fillStyle = '#b53a35';
-  ctx.font = 'bold 8.5px "Silkscreen", monospace';
-  ctx.fillText('88', base.x, base.y - 82);
 }
 
 function drawBlkSignPlaque(ctx: CanvasRenderingContext2D, gx: number, gy: number, z: number) {
@@ -1736,7 +1913,6 @@ function drawSingaporePublicBus(
   gy: number,
   isEvening: boolean
 ) {
-  // Realistic Singapore Maroon/Purple-Cream City Bus parked cleanly at Stop 26019 bus bay!
   drawIsoBox(
     ctx,
     gx - 1.45,
@@ -1752,21 +1928,18 @@ function drawSingaporePublicBus(
     2
   );
 
-  // Cream upper window band along +gy side
   const w1 = isoToScreen(gx - 1.32, gy + 0.6, 30);
   const w2 = isoToScreen(gx + 1.32, gy + 0.6, 30);
   const w3 = isoToScreen(gx + 1.32, gy + 0.6, 52);
   const w4 = isoToScreen(gx - 1.32, gy + 0.6, 52);
   drawIsoPoly(ctx, [w1, w2, w3, w4], isEvening ? '#e8d49c' : '#43586e', INK, 1.5);
 
-  // Bus front windshield (+gx) & LED route number "88"
   const fw1 = isoToScreen(gx + 1.46, gy - 0.45, 24);
   const fw2 = isoToScreen(gx + 1.46, gy + 0.45, 24);
   const fw3 = isoToScreen(gx + 1.46, gy + 0.45, 52);
   const fw4 = isoToScreen(gx + 1.46, gy - 0.45, 52);
   drawIsoPoly(ctx, [fw1, fw2, fw3, fw4], '#2c3847', INK, 1.5);
 
-  // Glowing Amber "88" LED route display on front top
   const led = isoToScreen(gx + 1.48, gy, 55);
   ctx.fillStyle = '#1b1d24';
   ctx.fillRect(led.x - 10, led.y - 5, 20, 9);
@@ -1775,7 +1948,6 @@ function drawSingaporePublicBus(
   ctx.textAlign = 'center';
   ctx.fillText('88', led.x, led.y + 2);
 
-  // Warm headlights at evening
   if (isEvening) {
     const hl = isoToScreen(gx + 1.5, gy + 0.35, 14);
     ctx.fillStyle = '#fff0a6';
@@ -1784,7 +1956,6 @@ function drawSingaporePublicBus(
     ctx.fill();
   }
 
-  // Wheels
   [-0.85, 0.85].forEach((wx) => {
     const wp = isoToScreen(gx + wx, gy + 0.6, 7);
     ctx.fillStyle = '#21242b';
@@ -1964,10 +2135,12 @@ function drawCharacterSprite(
     pantsColor: string;
     hairStyle?: AvatarConfig['hairStyle'];
     hasShieldBackpack?: boolean;
+    hasBackpack?: boolean;
     shieldColor?: string;
     hasPlasticBag?: boolean;
     hasTrolley?: boolean;
     hasApron?: boolean;
+    pattern?: 'plaid' | 'floral' | 'stripe' | 'pe';
     isBald?: boolean;
     showGreenMarker?: boolean;
     time: number;
@@ -2011,7 +2184,7 @@ function drawCharacterSprite(
     ctx.fillRect(sx - 3, sy - 4, 6, 7);
   };
 
-  // Legs + Shoes / Slippers
+  // Legs + Local Footwear (Slippers vs Sneakers)
   ctx.fillStyle = opts.pantsColor;
   ctx.strokeStyle = INK;
   ctx.lineWidth = 1.8;
@@ -2028,12 +2201,40 @@ function drawCharacterSprite(
 
   if (!facingBack) drawShield(false);
 
-  // Torso
+  // Student Backpack
+  if (opts.hasBackpack && !opts.hasShieldBackpack) {
+    ctx.fillStyle = '#3c4b66';
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = 1.6;
+    ctx.fillRect(x - 8, y - 33, 16, 15);
+    ctx.strokeRect(x - 8, y - 33, 16, 15);
+  }
+
+  // Torso + Local Pattern Details!
   ctx.fillStyle = opts.shirtColor;
   ctx.fillRect(x - 9, y - 34, 18, 19);
   ctx.strokeRect(x - 9, y - 34, 18, 19);
 
-  // Hawker Apron
+  if (opts.pattern === 'plaid') {
+    ctx.fillStyle = 'rgba(55, 72, 92, 0.35)';
+    ctx.fillRect(x - 5, y - 33, 2, 17);
+    ctx.fillRect(x + 3, y - 33, 2, 17);
+    ctx.fillRect(x - 8, y - 27, 16, 2);
+    ctx.fillRect(x - 8, y - 21, 16, 2);
+  } else if (opts.pattern === 'floral') {
+    ctx.fillStyle = '#f5e19a';
+    ctx.fillRect(x - 5, y - 30, 3, 3);
+    ctx.fillRect(x + 2, y - 25, 3, 3);
+    ctx.fillStyle = '#f7c5cf';
+    ctx.fillRect(x - 4, y - 21, 3, 3);
+  } else if (opts.pattern === 'pe') {
+    ctx.fillStyle = '#2d4e73';
+    ctx.fillRect(x - 8, y - 28, 16, 4);
+  } else if (opts.pattern === 'stripe') {
+    ctx.fillStyle = '#e8c468';
+    ctx.fillRect(x - 8, y - 33, 16, 3);
+  }
+
   if (opts.hasApron) {
     ctx.fillStyle = '#385c4a';
     ctx.fillRect(x - 7, y - 30, 14, 17);
@@ -2053,7 +2254,6 @@ function drawCharacterSprite(
   ctx.fillRect(x + 8, y - 33, 5, 6);
   ctx.strokeRect(x + 8, y - 33, 5, 6);
 
-  // Reusable Singapore Grocery Bag
   if (opts.hasPlasticBag) {
     const bx = x + 12;
     const by = y - 19;
@@ -2068,10 +2268,16 @@ function drawCharacterSprite(
     ctx.fillRect(bx - 2, by + 3, 4, 5);
   }
 
-  // Silver Metal FairMart Grocery Shopping Trolley pushed by Auntie!
+  // Silver FairMart Trolley stocked with local groceries!
   if (opts.hasTrolley) {
     const tx = facingRight ? x + 16 : x - 28;
     const ty = y - 22;
+    // Groceries peeking inside basket (veggie greens + bread)
+    ctx.fillStyle = '#539e66';
+    ctx.fillRect(tx + 2, ty - 4, 6, 5);
+    ctx.fillStyle = '#d99b52';
+    ctx.fillRect(tx + 9, ty - 5, 5, 6);
+
     ctx.strokeStyle = INK;
     ctx.lineWidth = 2;
     ctx.fillStyle = 'rgba(190, 215, 228, 0.55)';
@@ -2079,7 +2285,6 @@ function drawCharacterSprite(
     ctx.rect(tx, ty, 16, 12);
     ctx.fill();
     ctx.stroke();
-    // Wire grid inside basket
     ctx.strokeStyle = '#687687';
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -2088,7 +2293,6 @@ function drawCharacterSprite(
     ctx.moveTo(tx + 11, ty);
     ctx.lineTo(tx + 11, ty + 12);
     ctx.stroke();
-    // Handle & Wheels
     ctx.strokeStyle = '#231a16';
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -2283,35 +2487,43 @@ function drawLowBush(
   isEvening: boolean
 ) {
   const base = isoToScreen(gx, gy, 0);
-  const darkLeaf = isEvening ? '#2b4a33' : '#4a7337';
-  const midLeaf = isEvening ? '#3c6340' : '#6b9c46';
-  const lightLeaf = isEvening ? '#4e7d4b' : '#8ec25b';
+  const darkLeaf = isEvening ? '#253f2b' : '#3d632c';
+  const midLeaf = isEvening ? '#365a38' : '#5e8f3e';
+  const lightLeaf = isEvening ? '#497846' : '#84b852';
 
+  // Layered tropical ixora hedge pads (organic horizontal tufts + tiny red blossoms)
   [
-    { dx: -24, dy: -18, r: 22 },
-    { dx: 22, dy: -16, r: 20 },
-    { dx: 0, dy: -28, r: 26 },
+    { dx: -24, dy: -13, rx: 22, ry: 12 },
+    { dx: 22, dy: -12, rx: 20, ry: 11 },
+    { dx: -6, dy: -22, rx: 24, ry: 13 },
+    { dx: 12, dy: -20, rx: 20, ry: 12 },
   ].forEach((b) => {
     const cx = base.x + b.dx * scale;
     const cy = base.y + b.dy * scale;
-    const r = b.r * scale;
+    const rx = b.rx * scale;
+    const ry = b.ry * scale;
     ctx.fillStyle = darkLeaf;
     ctx.strokeStyle = INK;
-    ctx.lineWidth = 2.2;
+    ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
 
     ctx.fillStyle = midLeaf;
     ctx.beginPath();
-    ctx.arc(cx - r * 0.08, cy - r * 0.14, r * 0.8, 0, Math.PI * 2);
+    ctx.ellipse(cx - rx * 0.06, cy - ry * 0.16, rx * 0.82, ry * 0.76, 0, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.fillStyle = lightLeaf;
     ctx.beginPath();
-    ctx.arc(cx - r * 0.18, cy - r * 0.28, r * 0.45, 0, Math.PI * 2);
+    ctx.ellipse(cx - rx * 0.15, cy - ry * 0.34, rx * 0.5, ry * 0.44, 0, 0, Math.PI * 2);
     ctx.fill();
+
+    // Tiny Singapore Ixora red flower clusters
+    ctx.fillStyle = isEvening ? '#bd4642' : '#e65853';
+    ctx.fillRect(cx - 4, cy - 4, 3, 3);
+    ctx.fillRect(cx + 5, cy - 2, 3, 3);
   });
 }
 
@@ -2323,7 +2535,7 @@ export function renderIsometricWorld(
 
   ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
 
-  // 1. Ground, Skyline Vista, Road, Zebra Crossing & Footpaths
+  // 1. Ground, Skyline Vista, Road, Covered Drain, Zebra Crossing & Footpaths
   drawGroundAndRoads(ctx, isEvening, state.time);
 
   // 2. Elevated MRT Viaduct & Moving Train + Park Fitness Corner
@@ -2336,18 +2548,19 @@ export function renderIsometricWorld(
   // 4. Kopi Corner & Sengkang Satay Hawker Stalls
   drawKopitiamStalls(ctx, isEvening, state.time);
 
-  // 5. Void Deck Interior, Letterboxes, RC Notice Board & Minimart
+  // 5. Void Deck Interior, Lift Lobby, Letterboxes, RC Notice & Minimart
   drawVoidDeckBackdropAndMinimart(ctx, isEvening);
 
-  // 6. Upper HDB Block Facade + Exposed Pipes + Corridors + Yellow Minimart Sign
+  // 6. Upper HDB Block Facade + Structural Grid + Exposed Pipes + Minimart Sign
   drawHDBUpperBuilding(ctx, isEvening);
   drawExposedHDBRiserPipes(ctx, isEvening);
 
-  // 7. Park Rain Trees (framing left fitness park & Kopi Corner cleanly!)
-  drawTree(ctx, -0.5, 2.2, 0.78, isEvening, state.time);
-  drawTree(ctx, -3.2, 9.2, 0.88, isEvening, state.time);
+  // 7. Tropical Singapore Rain Trees & Bougainvillea Planting Bed
+  drawPlantingBedWithBougainvillea(ctx, -4.4, 8.8, isEvening);
+  drawRainTree(ctx, -0.5, 2.2, 0.78, isEvening, state.time);
+  drawRainTree(ctx, -3.2, 9.2, 0.9, isEvening, state.time);
 
-  // 8. Click-to-walk destination marker
+  // 8. Click-to-walk marker
   if (state.walkTargetMarker) {
     const age = state.time - state.walkTargetMarker.createdAt;
     if (age < 1.1) {
@@ -2360,14 +2573,14 @@ export function renderIsometricWorld(
     }
   }
 
-  // 9. Depth-sorted Isometric Objects (Tables, Diners, Bus, EV, Cats, NPCs, Player, Railings)
+  // 9. Depth-sorted Isometric Objects
   interface SortableDraw {
     depth: number;
     draw: () => void;
   }
   const drawables: SortableDraw[] = [];
 
-  // Kopitiam outdoor round tables with seated SG diners!
+  // Kopitiam outdoor round tables with seated SG diners
   drawables.push({
     depth: -0.2 + 6.4,
     draw: () => drawKopitiamTableWithDiners(ctx, -0.2, 6.4, isEvening),
@@ -2377,7 +2590,7 @@ export function renderIsometricWorld(
     draw: () => drawKopitiamTableWithDiners(ctx, 0.4, 8.3, isEvening),
   });
 
-  // Mosaic HDB Pillars
+  // Mosaic HDB Pillars + Hanging Sundry Rack
   drawables.push({
     depth: 6.0 + 4.8,
     draw: () => {
@@ -2390,6 +2603,7 @@ export function renderIsometricWorld(
     draw: () => {
       drawMosaicPillar(ctx, 14.2, 4.8, 198, isEvening);
       drawNoSmokingSign(ctx, 14.2, 4.82, 58);
+      drawHangingSundryRack(ctx, 14.2, 4.8, 36);
     },
   });
   drawables.push({
@@ -2400,13 +2614,21 @@ export function renderIsometricWorld(
     },
   });
 
-  // Bus Stop Pole (Stop 26019 — BUS 88)
+  // Bus Stop Bench, Timetable & Pole + Zebra Beacon Poles
   drawables.push({
-    depth: 4.9 + 10.0,
-    draw: () => drawBusStopPole(ctx, 4.9, 10.0, isEvening),
+    depth: 2.8 + 9.4,
+    draw: () => drawBusStopShelterAndPole(ctx, isEvening),
+  });
+  drawables.push({
+    depth: 5.45 + 10.3,
+    draw: () => drawZebraBeaconPole(ctx, 5.45, 10.3, isEvening),
+  });
+  drawables.push({
+    depth: 7.95 + 10.3,
+    draw: () => drawZebraBeaconPole(ctx, 7.95, 10.3, isEvening),
   });
 
-  // Green Recycling Bins (near Uncle & near Kopi Corner)
+  // Green NEA Recycling Bins
   drawables.push({
     depth: 5.5 + 5.7,
     draw: () => drawRecyclingBin(ctx, 5.5, 5.7, isEvening),
@@ -2416,7 +2638,7 @@ export function renderIsometricWorld(
     draw: () => drawRecyclingBin(ctx, 2.3, 4.8, isEvening),
   });
 
-  // Round Stone Xiangqi Table & Stools
+  // Stone Xiangqi Table & Stools
   drawables.push({
     depth: 9.8 + 3.0,
     draw: () => drawStoneTableAndStools(ctx, 9.8, 3.0, isEvening),
@@ -2432,7 +2654,7 @@ export function renderIsometricWorld(
     draw: () => drawCommunityCat(ctx, 13.0, 5.3, '#e39649', '#b86825', state.time, 2.2),
   });
 
-  // Collectible Realistic SG Items on Ground (until picked up!)
+  // Collectible Realistic SG Items
   if (!state.ezLinkPickedUp) {
     drawables.push({
       depth: 8.6 + 3.8,
@@ -2458,26 +2680,24 @@ export function renderIsometricWorld(
     draw: () => drawFootpathLamp(ctx, 9.8, 9.4, isEvening),
   });
 
-  // Pedestrian Metal Railing (split neatly around Zebra Crossing!)
+  // Pedestrian Metal Railing
   drawables.push({
-    depth: 10.2 + 10.15,
+    depth: 10.2 + 10.12,
     draw: () => drawPedestrianRailing(ctx, isEvening),
   });
 
-  // Singapore Public Bus (ShieldBus 88) parked in bus bay!
+  // ShieldBus 88 & Cruising Micro EV
   drawables.push({
     depth: 2.8 + 12.6,
     draw: () => drawSingaporePublicBus(ctx, 2.8, 12.6, isEvening),
   });
-
-  // Animated Micro EV cruising on Left-Hand lane!
   const evGx = 14.0 - ((state.time * 1.15) % 16);
   drawables.push({
     depth: evGx + 13.4,
     draw: () => drawMicroEVCar(ctx, evGx, 13.4, isEvening),
   });
 
-  // Foreground right low bushes
+  // Foreground right low shrubs
   drawables.push({
     depth: 14.8 + 11.4,
     draw: () => drawLowBush(ctx, 14.8, 11.4, 1.05, isEvening),
@@ -2533,6 +2753,8 @@ export function renderIsometricWorld(
           hasPlasticBag: npc.hasBag,
           hasTrolley: npc.hasTrolley,
           hasApron: npc.hasApron,
+          hasBackpack: npc.hasBackpack,
+          pattern: npc.pattern,
           isBald: npc.isBald,
           time: state.time,
           label: state.hoveredTarget === npc.id ? npc.name : undefined,
@@ -2544,7 +2766,7 @@ export function renderIsometricWorld(
   drawables.forEach((item) => item.draw());
 
   if (isEvening) {
-    ctx.fillStyle = 'rgba(20, 26, 52, 0.22)';
+    ctx.fillStyle = 'rgba(20, 26, 52, 0.2)';
     ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
   }
 

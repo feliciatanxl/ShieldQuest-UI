@@ -47,7 +47,7 @@ export interface ShieldSkillState {
 }
 
 export interface NPCEntity {
-  id: 'uncle' | 'auntie' | 'jun' | 'cashier' | 'hawker' | 'commuter';
+  id: 'uncle' | 'auntie' | 'jun' | 'cashier' | 'hawker' | 'commuter' | 'student';
   name: string;
   role: string;
   gx: number;
@@ -60,6 +60,8 @@ export interface NPCEntity {
   hasBag?: boolean;
   hasTrolley?: boolean;
   hasApron?: boolean;
+  hasBackpack?: boolean;
+  pattern?: 'plaid' | 'floral' | 'stripe' | 'pe';
   isBald?: boolean;
   speechText?: string;
   speechIcon?: 'ezlink' | 'alert' | 'shop';

@@ -37,9 +37,10 @@ const PREVIEW_NPCS: NPCEntity[] = [
     gy: 6.3,
     dir: 'SW',
     shirtColor: '#c9d4db',
-    pantsColor: '#6b5344',
+    pantsColor: '#8c7258',
     hairColor: '#c8cdd4',
     skinTone: '#d49d78',
+    pattern: 'plaid',
     isBald: true,
   },
   {
@@ -53,6 +54,7 @@ const PREVIEW_NPCS: NPCEntity[] = [
     pantsColor: '#48454f',
     hairColor: '#2d2930',
     skinTone: '#d6a07b',
+    pattern: 'floral',
     hasTrolley: true,
   },
   {
@@ -67,6 +69,20 @@ const PREVIEW_NPCS: NPCEntity[] = [
     hairColor: '#5c5856',
     skinTone: '#d49d78',
     hasApron: true,
+  },
+  {
+    id: 'student',
+    name: 'Wei Ming (Student)',
+    role: 'Secondary Student',
+    gx: 2.9,
+    gy: 8.85,
+    dir: 'SE',
+    shirtColor: '#ece9e1',
+    pantsColor: '#364d69',
+    hairColor: '#1f1d24',
+    skinTone: '#d9a47c',
+    pattern: 'pe',
+    hasBackpack: true,
   },
 ];
 
@@ -111,6 +127,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
               PREVIEW_NPCS[0],
               { ...PREVIEW_NPCS[1], gx: auntieGx, dir: auntieDir },
               PREVIEW_NPCS[2],
+              PREVIEW_NPCS[3],
             ],
             ezLinkFound: false,
             ezLinkPickedUp: false,
