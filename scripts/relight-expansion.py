@@ -61,7 +61,8 @@ SURFACES = {
 
 def relight(day_path):
     district = day_path.stem.removesuffix("-day")
-    day = Image.open(day_path).convert("RGB")
+    source = Image.open(day_path)
+    day = source.convert("RGB")
     red, green, blue = day.split()
     ambient = Image.merge("RGB", (
         red.point(lambda value: round(value * 0.48 + 12)),
@@ -75,13 +76,18 @@ def relight(day_path):
     ))
     light = Image.new("L", day.size)
     draw = ImageDraw.Draw(light)
-    for x, y, rx, ry in POOLS[district]:
+    for x, y, rx, ry in POOLS.get(district, []):
         draw.ellipse((x - rx, y - ry, x + rx, y + ry), fill=138)
         draw.ellipse((x - rx // 2, y - ry // 2, x + rx // 2, y + ry // 2), fill=205)
     pools = light.filter(ImageFilter.GaussianBlur(14)).point(lambda value: value // 8 * 8)
-    for polygon in SURFACES[district]:
+    for polygon in SURFACES.get(district, []):
         ImageDraw.Draw(pools).polygon(polygon, fill=218)
-    Image.composite(warm, ambient, pools).save(day_path.with_name(f"{district}-night.png"), optimize=True)
+    night = Image.composite(warm, ambient, pools)
+    if "A" in source.getbands():
+        alpha = source.getchannel("A")
+        if alpha.getextrema()[0] < 255:
+            night.putalpha(alpha)
+    night.save(day_path.with_name(f"{district}-night.png"), optimize=True)
 
 
 for path in sorted(ASSETS.glob("*-day.png")):

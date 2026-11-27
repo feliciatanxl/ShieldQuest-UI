@@ -1,10 +1,10 @@
 import { Point } from '../data/districts';
-import { CANVAS_H, CANVAS_W } from './sceneRenderer';
+import { WORLD_HEIGHT, WORLD_WIDTH } from '../data/worldMap';
 
 type Walkable = (x: number, y: number) => boolean;
 const GRID = 16;
-const COLS = CANVAS_W / GRID + 1;
-const ROWS = CANVAS_H / GRID + 1;
+const COLS = Math.floor(WORLD_WIDTH / GRID) + 1;
+const ROWS = Math.floor(WORLD_HEIGHT / GRID) + 1;
 const STEPS = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
 
 /** Reuse normal movement for tap-to-walk, with waypoints around painted obstacles. */

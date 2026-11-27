@@ -1,6 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { DISTRICT_NAMES, DistrictId, districtExits, exitTowardBlock260, readDistrict } from '../data/districts';
-import { expansionWalkable, landmarkNear } from '../game/expansionGeometry';
+import { DISTRICT_NAMES, DistrictId, readDistrict } from '../data/districts';
+import {
+  DISTRICTS, WORLD_HEIGHT, WORLD_WIDTH, districtAt, localPoint, worldPoint,
+} from '../data/worldMap';
+import { landmarkNear } from '../game/expansionGeometry';
+import { canWalkAt, canWalkIn } from '../game/neighbourhoodCollision';
 import { districtResidents } from '../game/districtResidents';
 import { findWalkRoute } from '../game/districtNavigation';
 import {
@@ -8,7 +12,6 @@ import {
   CANVAS_H,
   CANVAS_W,
   directionFor,
-  isWalkable,
   ITEM_POS,
   MINIMART_ZONE,
   PLAYER_START,
@@ -56,11 +59,6 @@ interface GameWorldProps {
 
 const WALK_SPEED = 170; // canvas px per second
 const RUN_SPEED = 280;
-const TRANSITION_TIME = 0.28;
-
-function canWalkIn(district: DistrictId, x: number, y: number) {
-  return district === 'block260' ? isWalkable(x, y) : expansionWalkable(district, x, y);
-}
 
 /** Auntie Mei paces the footpath between the two AUNTIE_PATH points. */
 function auntieAt(t: number): NPCEntity {
@@ -128,12 +126,17 @@ export const GameWorld: React.FC<GameWorldProps> = ({
   const start = initialWorld;
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const savedDistrict = readDistrict(start?.district);
-  const savedPosition = start && canWalkIn(savedDistrict, start.player.x, start.player.y) ? start.player : null;
-  const [district, setDistrict] = useState<DistrictId>(savedPosition ? savedDistrict : 'block260');
+  const legacyPosition = start && canWalkIn(savedDistrict, start.player.x, start.player.y)
+    ? worldPoint(savedDistrict, start.player)
+    : null;
+  const storedPosition = start?.worldPosition;
+  const savedPosition = storedPosition && canWalkAt(storedPosition.x, storedPosition.y) ? storedPosition : legacyPosition;
+  const [district, setDistrict] = useState<DistrictId>(
+    savedPosition ? districtAt(savedPosition.x, savedPosition.y) ?? savedDistrict : 'block260',
+  );
   const districtRef = useRef(district);
-  const districtTransition = useRef(-1);
   const residentClocks = useRef(new Map<string, number>());
-  const currentNpcs = useRef<NPCEntity[]>([]);
+  const currentNpcs = useRef<RenderState['npcs']>([]);
   const route = useRef<Pt[]>([]);
 
   const [activeDrawer, setActiveDrawer] = useState<DrawerType>(null);
@@ -153,7 +156,7 @@ export const GameWorld: React.FC<GameWorldProps> = ({
   const keysPressed = useRef<Set<string>>(new Set());
   const touchMovement = useRef<TouchMovement>({ x: 0, y: 0, running: false });
   const playerRef = useRef({
-    ...(savedPosition ?? PLAYER_START),
+    ...(savedPosition ?? worldPoint('block260', PLAYER_START)),
     dir: 'north-east' as Direction,
     isMoving: false,
     walkPhase: 0,
@@ -168,7 +171,7 @@ export const GameWorld: React.FC<GameWorldProps> = ({
   );
   const simTimeRef = useRef(0);
   const auntieTimeRef = useRef(0);
-  const cameraRef = useRef({ x: 0.5, y: 0.5, ready: false, view: [0, CANVAS_W] as [number, number] });
+  const cameraRef = useRef({ x: 0, y: 0, ready: false });
   const minimartCooldownRef = useRef(-10);
   const nextHawkerMeal = useRef(0);
 
@@ -200,7 +203,10 @@ export const GameWorld: React.FC<GameWorldProps> = ({
     confidencePct,
     energyPct,
     district: districtRef.current,
-    player: { x: Math.round(playerRef.current.x), y: Math.round(playerRef.current.y) },
+    player: localPoint(districtRef.current, {
+      x: Math.round(playerRef.current.x), y: Math.round(playerRef.current.y),
+    }),
+    worldPosition: { x: Math.round(playerRef.current.x), y: Math.round(playerRef.current.y) },
   });
   const onWorldChangeRef = useRef(onWorldChange);
   onWorldChangeRef.current = onWorldChange;
@@ -311,33 +317,35 @@ export const GameWorld: React.FC<GameWorldProps> = ({
 
       const p = playerRef.current;
       const sync = stateSyncRef.current;
-      const area = districtRef.current;
-      const original = area === 'block260';
-      const exits = districtExits(area);
-      const npcs = original ? [...STATIC_NPCS] : districtResidents(area, p, dt, residentClocks.current);
+      const originalPlayer = localPoint('block260', p);
 
       // Auntie Mei waits instead of walking into the player.
-      if (original) {
-        const auntieNext = auntieAt(auntieTimeRef.current + dt);
-        const auntieFoot = { c: auntieNext, f: NPC_FOOT };
-        const auntieNow = { c: auntieAt(auntieTimeRef.current), f: NPC_FOOT };
-        const auntieBlocked = footDist(p.x, p.y, auntieFoot) < 1.2 && footDist(p.x, p.y, auntieFoot) < footDist(p.x, p.y, auntieNow);
-        if (!auntieBlocked) auntieTimeRef.current += dt;
-        npcs.push({ ...auntieAt(auntieTimeRef.current), walking: !auntieBlocked });
-      }
+      const auntieNext = { c: auntieAt(auntieTimeRef.current + dt), f: NPC_FOOT };
+      const auntieNow = { c: auntieAt(auntieTimeRef.current), f: NPC_FOOT };
+      const auntieDistance = footDist(originalPlayer.x, originalPlayer.y, auntieNext);
+      const auntieBlocked = auntieDistance < 1.2 && auntieDistance < footDist(originalPlayer.x, originalPlayer.y, auntieNow);
+      if (!auntieBlocked) auntieTimeRef.current += dt;
+      const npcs = DISTRICTS.flatMap((area) => {
+        const residents = area === 'block260'
+          ? [...STATIC_NPCS, { ...auntieAt(auntieTimeRef.current), walking: !auntieBlocked }]
+          : districtResidents(area, localPoint(area, p), dt, residentClocks.current);
+        return residents.map((npc) => ({
+          ...npc, ...worldPoint(area, npc), worldKey: `${area}:${npc.id}`,
+        }));
+      });
       currentNpcs.current = npcs;
 
       const solids: Solid[] = npcs.map((n) => ({ c: n, f: NPC_FOOT }));
-      if (original && !sync.ezLinkPickedUp) solids.push({ c: ITEM_POS.ezlink, f: ITEM_FOOT });
-      if (original && !sync.kopiPickedUp) solids.push({ c: ITEM_POS.kopi, f: ITEM_FOOT });
-      if (original && !sync.chopePickedUp) solids.push({ c: ITEM_POS.chope, f: ITEM_FOOT });
+      if (!sync.ezLinkPickedUp) solids.push({ c: worldPoint('block260', ITEM_POS.ezlink), f: ITEM_FOOT });
+      if (!sync.kopiPickedUp) solids.push({ c: worldPoint('block260', ITEM_POS.kopi), f: ITEM_FOOT });
+      if (!sync.chopePickedUp) solids.push({ c: worldPoint('block260', ITEM_POS.chope), f: ITEM_FOOT });
       const canStand = (nx: number, ny: number) =>
-        canWalkIn(area, nx, ny)
-        && (original || canWalkIn(area, (p.x + nx) / 2, (p.y + ny) / 2))
+        canWalkAt(nx, ny)
+        && canWalkAt((p.x + nx) / 2, (p.y + ny) / 2)
         && clearOfSolids(nx, ny, p.x, p.y, solids);
 
       const keys = keysPressed.current;
-      const paused = !!activeDrawer || showLookoutModal || t < districtTransition.current;
+      const paused = !!activeDrawer || showLookoutModal;
       const touch = touchMovement.current;
       const running = keys.has('shift') || touch.running;
       const speed = running ? RUN_SPEED : WALK_SPEED;
@@ -405,22 +413,15 @@ export const GameWorld: React.FC<GameWorldProps> = ({
         p.isMoving = false;
       }
 
-      const near = (q: Pt, r: number) => Math.hypot(p.x - q.x, p.y - q.y) < r;
-      const exit = !paused && (dx !== 0 || dy !== 0) && exits.find((gate) => near(gate.at, 17));
-      if (exit) {
-        districtRef.current = exit.district;
-        Object.assign(p, exit.arrival, { target: null, isMoving: false });
-        route.current = [];
-        currentNpcs.current = [];
-        walkMarkerRef.current = null;
-        hoveredTargetRef.current = null;
-        cameraRef.current.ready = false;
-        districtTransition.current = t + TRANSITION_TIME;
-        setDistrict(exit.district);
-        showToast(DISTRICT_NAMES[exit.district]);
-        rafId = requestAnimationFrame(step);
-        return;
+      const area = districtAt(p.x, p.y);
+      if (area && area !== districtRef.current) {
+        districtRef.current = area;
+        setDistrict(area);
+        showToast(DISTRICT_NAMES[area]);
       }
+      const original = area === 'block260';
+      const local = localPoint('block260', p);
+      const near = (q: Pt, r: number) => Math.hypot(local.x - q.x, local.y - q.y) < r;
 
       if (original && !sync.ezLinkPickedUp && near(ITEM_POS.ezlink, 44)) pickupEzLink();
       if (original && !sync.kopiPickedUp && near(ITEM_POS.kopi, 40)) pickupSideItem('kopi', 'Kopi-O Dabao Packet');
@@ -430,12 +431,14 @@ export const GameWorld: React.FC<GameWorldProps> = ({
       if (original && sync.ezLinkPickedUp && !sync.ezLinkReturned && near(UNCLE_POS, 70)) returnEzLinkToUncle();
 
       const z = MINIMART_ZONE;
+      const destination = route.current.at(-1) ?? p.target ?? p;
       if (
         original &&
-        p.x >= z.x0 &&
-        p.x <= z.x1 &&
-        p.y >= z.y0 &&
-        p.y <= z.y1 &&
+        local.x >= z.x0 &&
+        local.x <= z.x1 &&
+        local.y >= z.y0 &&
+        local.y <= z.y1 &&
+        districtAt(destination.x, destination.y) === 'block260' &&
         t - minimartCooldownRef.current > 4 &&
         !showLookoutModal &&
         !activeDrawer
@@ -446,34 +449,27 @@ export const GameWorld: React.FC<GameWorldProps> = ({
       }
 
       const items: RenderState['items'] = [];
-      if (original && !sync.ezLinkPickedUp) items.push({ kind: 'ezlink' });
-      if (original && !sync.kopiPickedUp) items.push({ kind: 'kopi' });
-      if (original && !sync.chopePickedUp) items.push({ kind: 'chope' });
+      if (!sync.ezLinkPickedUp) items.push({ kind: 'ezlink' });
+      if (!sync.kopiPickedUp) items.push({ kind: 'kopi' });
+      if (!sync.chopePickedUp) items.push({ kind: 'chope' });
 
-      // Camera: when the screen crops the 16:9 scene (phones), slide object-position to keep the player in view.
+      // The same camera follows the player across every district and connecting path.
       const canvas = canvasRef.current;
-      if (canvas && canvas.clientWidth > 0) {
+      const ctx = canvas?.getContext('2d');
+      if (ctx && canvas) {
         const scale = Math.max(canvas.clientWidth / CANVAS_W, canvas.clientHeight / CANVAS_H);
-        const visW = canvas.clientWidth / scale;
-        const visH = canvas.clientHeight / scale;
-        const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
-        const tx = visW < CANVAS_W - 1 ? clamp01((p.x - visW / 2) / (CANVAS_W - visW)) : 0.5;
-        const ty = visH < CANVAS_H - 1 ? clamp01((p.y - 60 - visH / 2) / (CANVAS_H - visH)) : 0.5;
+        const insetX = scale > 0 ? Math.max(0, (CANVAS_W - canvas.clientWidth / scale) / 2) : 0;
+        const insetY = scale > 0 ? Math.max(0, (CANVAS_H - canvas.clientHeight / scale) / 2) : 0;
         const cam = cameraRef.current;
-        const k = cam.ready ? Math.min(1, dt * 4) : 1;
+        const tx = Math.max(-insetX, Math.min(WORLD_WIDTH - CANVAS_W + insetX, p.x - CANVAS_W / 2));
+        const ty = Math.max(-insetY, Math.min(WORLD_HEIGHT - CANVAS_H + insetY, p.y - CANVAS_H / 2 - 45));
+        const k = cam.ready ? 1 - Math.exp(-dt * 9) : 1;
         cam.x += (tx - cam.x) * k;
         cam.y += (ty - cam.y) * k;
         cam.ready = true;
-        const x0 = Math.max(0, CANVAS_W - visW) * cam.x;
-        cam.view = [x0, x0 + Math.min(visW, CANVAS_W)];
-        canvas.style.objectPosition = `${(cam.x * 100).toFixed(2)}% ${(cam.y * 100).toFixed(2)}%`;
-      }
-
-      const ctx = canvas?.getContext('2d');
-      if (ctx) {
+        const camera = { x: Math.round(cam.x / 2) * 2, y: Math.round(cam.y / 2) * 2 };
         renderScene(ctx, {
-          district: area,
-          arrivalFade: Math.max(0, (districtTransition.current - t) / TRANSITION_TIME),
+          camera,
           time: t,
           timeOfDay: sync.timeOfDay,
           player: { x: p.x, y: p.y, dir: p.dir, isMoving: p.isMoving, walkPhase: p.walkPhase, avatar: sync.avatar },
@@ -482,7 +478,7 @@ export const GameWorld: React.FC<GameWorldProps> = ({
           hoveredTarget: hoveredTargetRef.current,
           speech: original ? speechBubbleRef.current : null,
           walkTargetMarker: walkMarkerRef.current,
-          viewX: cameraRef.current.view,
+          viewX: [camera.x + insetX, camera.x + CANVAS_W - insetX],
         });
       }
 
@@ -499,21 +495,17 @@ export const GameWorld: React.FC<GameWorldProps> = ({
     if (!canvas) return null;
     const rect = canvas.getBoundingClientRect();
     const scale = Math.max(rect.width / CANVAS_W, rect.height / CANVAS_H);
-    const offsetX = (rect.width - CANVAS_W * scale) * cameraRef.current.x;
-    const offsetY = (rect.height - CANVAS_H * scale) * cameraRef.current.y;
+    const offsetX = (rect.width - CANVAS_W * scale) / 2;
+    const offsetY = (rect.height - CANVAS_H * scale) / 2;
     return {
-      x: (clientX - rect.left - offsetX) / scale,
-      y: (clientY - rect.top - offsetY) / scale,
+      x: (clientX - rect.left - offsetX) / scale + Math.round(cameraRef.current.x / 2) * 2,
+      y: (clientY - rect.top - offsetY) / scale + Math.round(cameraRef.current.y / 2) * 2,
     };
   };
 
   const walkTo = (target: Pt) => {
     const p = playerRef.current;
-    const area = districtRef.current;
-    const gate = districtExits(area).some(({ at }) => at.x === target.x && at.y === target.y);
-    route.current = area !== 'block260' || gate
-      ? findWalkRoute(p, target, (x, y) => canWalkIn(area, x, y))
-      : [target];
+    route.current = findWalkRoute(p, target, canWalkAt);
     p.target = route.current.shift() ?? null;
     if (!p.target) return;
     walkMarkerRef.current = { ...target, createdAt: simTimeRef.current };
@@ -521,21 +513,22 @@ export const GameWorld: React.FC<GameWorldProps> = ({
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (activeDrawer || showLookoutModal) return;
-    const pt = getCanvasPoint(e.clientX, e.clientY);
-    if (!pt) return;
-    const area = districtRef.current;
-    const gate = districtExits(area).find(({ at }) => Math.hypot(at.x - pt.x, at.y - pt.y) < 44);
-    if (gate) {
-      walkTo(gate.at);
+    const point = getCanvasPoint(e.clientX, e.clientY);
+    if (!point) return;
+    const area = districtAt(point.x, point.y);
+    if (!area) {
+      if (canWalkAt(point.x, point.y)) walkTo(point);
       return;
     }
+    const pt = localPoint(area, point);
     if (area !== 'block260') {
-      const resident = currentNpcs.current.find((npc) => hitsCharacter(pt, npc));
+      const resident = currentNpcs.current.find((npc) => hitsCharacter(point, npc));
       const landmark = landmarkNear(area, pt);
       if (landmark?.refreshment) {
         const p = playerRef.current;
-        if (Math.hypot(p.x - landmark.x, p.y - landmark.y) > 85) {
-          walkTo(landmark);
+        const serving = worldPoint(area, landmark);
+        if (Math.hypot(p.x - serving.x, p.y - serving.y) > 85) {
+          walkTo(serving);
           showToast('Walk up to the dining hall and tap again for a meal.');
         } else if (simTimeRef.current >= nextHawkerMeal.current) {
           nextHawkerMeal.current = simTimeRef.current + 45;
@@ -554,7 +547,7 @@ export const GameWorld: React.FC<GameWorldProps> = ({
         sfx.click();
         showToast(landmark.detail);
       }
-      if (canWalkIn(area, pt.x, pt.y)) walkTo(pt);
+      if (canWalkAt(point.x, point.y)) walkTo(point);
       return;
     }
 
@@ -622,14 +615,14 @@ export const GameWorld: React.FC<GameWorldProps> = ({
       return;
     }
 
-    if (isWalkable(pt.x, pt.y)) walkTo(pt);
+    if (canWalkAt(point.x, point.y)) walkTo(point);
   };
 
   const handleCanvasMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const pt = getCanvasPoint(e.clientX, e.clientY);
     if (!pt) return;
     const hovered =
-      currentNpcs.current.find((n) => hitsCharacter(pt, n))?.id ?? null;
+      currentNpcs.current.find((n) => hitsCharacter(pt, n))?.worldKey ?? null;
     hoveredTargetRef.current = hovered;
     setCursor(hovered ? 'pointer' : 'default');
   };
@@ -723,10 +716,12 @@ export const GameWorld: React.FC<GameWorldProps> = ({
           if (sfx.enabled) sfx.click();
         }}
         squadCode={squadCode}
-        playerPos={{ x: playerRef.current.x, y: playerRef.current.y }}
+        playerPos={localPoint(district, playerRef.current)}
+        worldPosition={playerRef.current}
         district={district}
-        onWalkToLandmark={walkTo}
-        onWalkToQuest={(target) => walkTo(district === 'block260' ? target : exitTowardBlock260(district).at)}
+        onWalkToLandmark={(target) => walkTo(worldPoint(district, target))}
+        onWalkToWorldPoint={walkTo}
+        onWalkToQuest={(target) => walkTo(worldPoint('block260', target))}
         wallet={wallet}
         onBuyItem={onBuyItem}
         onStartLookoutMission={() => setShowLookoutModal(true)}

@@ -13,6 +13,7 @@ export interface WorldSave {
   energyPct: number;
   player: { x: number; y: number };
   district?: DistrictId;
+  worldPosition?: { x: number; y: number };
 }
 
 /** Coins plus which one-time rewards were claimed and which shop items are owned. */
@@ -89,6 +90,7 @@ export function loadSave(): SaveData | null {
   if (isObj(raw.world)) {
     const w = raw.world;
     const p = isObj(w.player) ? w.player : {};
+    const worldPosition = isObj(w.worldPosition) ? w.worldPosition : null;
     world = {
       questId: QUESTS.find((q) => q === w.questId) ?? 'ezlink',
       ezLinkPickedUp: bool(w.ezLinkPickedUp),
@@ -99,6 +101,9 @@ export function loadSave(): SaveData | null {
       energyPct: Math.max(0, Math.min(100, num(w.energyPct, 66))),
       player: { x: num(p.x, NaN), y: num(p.y, NaN) },
       district: readDistrict(w.district),
+      worldPosition: worldPosition
+        ? { x: num(worldPosition.x, NaN), y: num(worldPosition.y, NaN) }
+        : undefined,
     };
   }
 

@@ -1,11 +1,15 @@
 import { AvatarConfig, Direction, NPCEntity, TimeOfDay } from '../types/game';
 import { drawCharacter, getPlayerSheet, getSheet, loadImage } from './sprites';
-import { DISTRICT_NAMES, DistrictId, ExpansionId, districtArt, districtExits } from '../data/districts';
+import { districtArt } from '../data/districts';
+import {
+  DISTRICTS, DISTRICT_ORIGINS, NEIGHBOURHOOD_PATHS, NORTH_LINK_GARDEN, SCENE_HEIGHT, SCENE_WIDTH,
+  VERGE_TREES, worldPoint,
+} from '../data/worldMap';
 import { expansionForeground } from './expansionGeometry';
 
 // The street scene is one 640x360 PixelLab painting shown at 2x on a 1280x720 canvas.
-export const CANVAS_W = 1280;
-export const CANVAS_H = 720;
+export const CANVAS_W = SCENE_WIDTH;
+export const CANVAS_H = SCENE_HEIGHT;
 const ART_SCALE = 2;
 
 export type Pt = { x: number; y: number };
@@ -28,6 +32,14 @@ export const ITEM_POS = {
  * traced from the art; anyone whose feet are above `frontY` is drawn behind the prop.
  */
 const FOREGROUND_PROPS: { outline: Pt[]; frontY: number }[] = [
+  {
+    // Roof above the north linkway. Walkers on its far side pass under the roof.
+    outline: [
+      { x: 257, y: 158 }, { x: 314, y: 109 }, { x: 586, y: 0 },
+      { x: 644, y: 0 }, { x: 644, y: 103 }, { x: 355, y: 215 }, { x: 258, y: 184 },
+    ],
+    frontY: 171,
+  },
   {
     // Minimart snack rack (bottom right)
     outline: [
@@ -120,26 +132,64 @@ export function directionFor(dx: number, dy: number): Direction {
 
 const backgrounds = new Map<string, HTMLImageElement>();
 const loading = new Set<string>();
-function prepareScene(district: DistrictId, timeOfDay: TimeOfDay) {
-  const path = districtArt(district, timeOfDay === 'evening');
+function prepareImage(path: string) {
   if (!loading.has(path)) {
     loading.add(path);
     loadImage(path).then((img) => backgrounds.set(path, img)).catch(console.error);
   }
   return backgrounds.get(path);
 }
-prepareScene('block260', 'afternoon');
-prepareScene('block260', 'evening');
+for (const district of DISTRICTS) {
+  prepareImage(districtArt(district, false));
+}
+
+const patterns = new WeakMap<HTMLImageElement, CanvasPattern>();
+function groundPattern(ctx: CanvasRenderingContext2D, src: string, fallback: string) {
+  const image = prepareImage(src);
+  if (!image) return fallback;
+  let pattern = patterns.get(image);
+  if (!pattern) {
+    pattern = ctx.createPattern(image, 'repeat') ?? undefined;
+    if (pattern) {
+      pattern.setTransform(new DOMMatrix().scale(ART_SCALE));
+      patterns.set(image, pattern);
+    }
+  }
+  return pattern ?? fallback;
+}
+
+function drawConnectingPaths(ctx: CanvasRenderingContext2D, camera: Pt, night: boolean) {
+  const mode = night ? 'night' : 'day';
+  ctx.fillStyle = groundPattern(ctx, `/assets/expansion/verge-${mode}.png`, night ? '#30343b' : '#737449');
+  ctx.fillRect(camera.x, camera.y, CANVAS_W, CANVAS_H);
+  const paving = groundPattern(ctx, `/assets/expansion/linkway-${mode}.png`, night ? '#56505b' : '#b7a484');
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  for (const path of NEIGHBOURHOOD_PATHS) {
+    ctx.beginPath();
+    path.points.forEach((pt, i) => (i ? ctx.lineTo(pt.x, pt.y) : ctx.moveTo(pt.x, pt.y)));
+    ctx.lineWidth = path.radius * 2 + 8;
+    ctx.strokeStyle = night ? '#3a383b' : '#938772';
+    ctx.stroke();
+    ctx.lineWidth = path.radius * 2;
+    ctx.strokeStyle = paving;
+    ctx.stroke();
+  }
+  const garden = prepareImage(`/assets/expansion/north-link-garden-${mode}.png`);
+  if (garden) {
+    ctx.drawImage(garden, NORTH_LINK_GARDEN.x, NORTH_LINK_GARDEN.y,
+      garden.width * ART_SCALE, garden.height * ART_SCALE);
+  }
+}
 
 // ---------- Render ----------
 
 export interface RenderState {
-  district: DistrictId;
-  arrivalFade: number;
+  camera: Pt;
   time: number;
   timeOfDay: TimeOfDay;
   player: Pt & { dir: Direction; isMoving: boolean; walkPhase: number; avatar: AvatarConfig };
-  npcs: NPCEntity[];
+  npcs: (NPCEntity & { worldKey: string })[];
   items: { kind: keyof typeof ITEM_POS }[];
   hoveredTarget: string | null;
   speech: { npcId: string; text: string; icon?: 'ezlink' | 'alert' | 'shop' } | null;
@@ -155,17 +205,21 @@ export function renderScene(ctx: CanvasRenderingContext2D, s: RenderState) {
   const night = s.timeOfDay === 'evening';
   ctx.imageSmoothingEnabled = false;
 
-  const bg = prepareScene(s.district, s.timeOfDay);
-  const exits = districtExits(s.district);
-  for (const exit of exits) prepareScene(exit.district, s.timeOfDay);
-  if (bg) ctx.drawImage(bg, 0, 0, bg.width * ART_SCALE, bg.height * ART_SCALE);
-  else {
-    ctx.fillStyle = '#161a24';
-    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+  ctx.save();
+  ctx.translate(-s.camera.x, -s.camera.y);
+  drawConnectingPaths(ctx, s.camera, night);
+  const scenes = [];
+  for (const district of DISTRICTS) {
+    const origin = DISTRICT_ORIGINS[district];
+    const image = prepareImage(districtArt(district, night)) ?? backgrounds.get(districtArt(district, !night));
+    if (!image || origin.x + CANVAS_W < s.camera.x || origin.x > s.camera.x + CANVAS_W
+      || origin.y + CANVAS_H < s.camera.y || origin.y > s.camera.y + CANVAS_H) continue;
+    ctx.drawImage(image, origin.x, origin.y, CANVAS_W, CANVAS_H);
+    scenes.push({ district, origin, image });
   }
 
   if (s.walkTargetMarker) drawWalkMarker(ctx, s.walkTargetMarker, s.time);
-  for (const item of s.items) drawPickup(ctx, ITEM_POS[item.kind], item.kind, s.time);
+  for (const item of s.items) drawPickup(ctx, worldPoint('block260', ITEM_POS[item.kind]), item.kind, s.time);
 
   // Depth sort: lower on screen = closer to camera = drawn later.
   type Actor = { y: number; draw: () => void };
@@ -175,10 +229,29 @@ export function renderScene(ctx: CanvasRenderingContext2D, s: RenderState) {
       const sheet = getSheet(npc.id);
       if (!sheet) return;
       drawShadow(ctx, npc.x, npc.y);
-      if (s.hoveredTarget === npc.id) drawHoverRing(ctx, npc.x, npc.y);
+      if (s.hoveredTarget === npc.worldKey) drawHoverRing(ctx, npc.x, npc.y);
       drawCharacter(ctx, sheet, npc.x, npc.y, npc.dir, npc.walking ? s.time * 9 : null);
     },
   }));
+  const tree = prepareImage('/assets/expansion/linkway-tree.png');
+  if (tree) {
+    const size = tree.width * ART_SCALE;
+    for (const [i, root] of VERGE_TREES.entries()) {
+      if (root.x + size / 2 < s.camera.x || root.x - size / 2 > s.camera.x + CANVAS_W
+        || root.y < s.camera.y || root.y - size > s.camera.y + CANVAS_H) continue;
+      actors.push({
+        y: root.y,
+        draw: () => {
+          ctx.save();
+          if (night) ctx.filter = 'brightness(0.53) saturate(0.77)';
+          ctx.translate(root.x, root.y);
+          if (i % 2) ctx.scale(-1, 1);
+          ctx.drawImage(tree, -size / 2, -size, size, size);
+          ctx.restore();
+        },
+      });
+    }
+  }
   const p = s.player;
   actors.push({
     y: p.y,
@@ -192,18 +265,19 @@ export function renderScene(ctx: CanvasRenderingContext2D, s: RenderState) {
 
   // Painted props that stand in front of characters: redraw their shape from the
   // background, sorted by their front edge like any other actor.
-  if (bg) {
-    for (const fg of s.district === 'block260' ? FOREGROUND_PROPS : expansionForeground(s.district as ExpansionId)) {
+  for (const { district, origin, image } of scenes) {
+    for (const fg of district === 'block260' ? FOREGROUND_PROPS : expansionForeground(district)) {
       actors.push({
-        y: fg.frontY,
+        y: fg.frontY + origin.y,
         draw: () => {
           ctx.save();
           ctx.filter = 'none';
+          ctx.translate(origin.x, origin.y);
           ctx.beginPath();
           fg.outline.forEach((pt, i) => (i ? ctx.lineTo(pt.x, pt.y) : ctx.moveTo(pt.x, pt.y)));
           ctx.closePath();
           ctx.clip();
-          ctx.drawImage(bg, 0, 0, bg.width * ART_SCALE, bg.height * ART_SCALE);
+          ctx.drawImage(image, 0, 0, CANVAS_W, CANVAS_H);
           ctx.restore();
         },
       });
@@ -218,35 +292,17 @@ export function renderScene(ctx: CanvasRenderingContext2D, s: RenderState) {
   drawPlayerMarker(ctx, p.x, p.y - 132 + Math.sin(s.time * 4) * 3);
 
   if (s.speech) {
-    const npc = s.npcs.find((n) => n.id === s.speech!.npcId);
+    const npc = s.npcs.find((n) => n.worldKey === `block260:${s.speech!.npcId}`);
     if (npc) drawSpeechBubble(ctx, npc, s.speech.text, s.speech.icon, night, s.viewX ?? [0, CANVAS_W]);
   }
 
-  for (const exit of exits) {
-    if (Math.hypot(exit.at.x - p.x, exit.at.y - p.y) > 168) continue;
+  if (DEBUG) {
     ctx.save();
-    ctx.font = 'bold 15px monospace';
-    ctx.textAlign = 'center';
-    const label = DISTRICT_NAMES[exit.district];
-    const width = ctx.measureText(label).width + 20;
-    const x = Math.max(width / 2 + 4, Math.min(CANVAS_W - width / 2 - 4, exit.at.x));
-    const y = exit.at.y - 25;
-    ctx.fillStyle = '#231a16e8';
-    ctx.fillRect(x - width / 2, y - 21, width, 28);
-    ctx.fillStyle = '#ffdd92';
-    ctx.fillText(label, x, y - 3);
-    ctx.beginPath();
-    ctx.moveTo(exit.at.x - 5, exit.at.y - 11);
-    ctx.lineTo(exit.at.x + 5, exit.at.y - 11);
-    ctx.lineTo(exit.at.x, exit.at.y - 3);
-    ctx.fill();
+    ctx.translate(DISTRICT_ORIGINS.block260.x, DISTRICT_ORIGINS.block260.y);
+    drawDebug(ctx);
     ctx.restore();
   }
-  if (DEBUG && s.district === 'block260') drawDebug(ctx);
-  if (s.arrivalFade > 0) {
-    ctx.fillStyle = `rgba(22,26,36,${s.arrivalFade})`;
-    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
-  }
+  ctx.restore();
 }
 
 function drawShadow(ctx: CanvasRenderingContext2D, x: number, y: number) {

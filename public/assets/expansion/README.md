@@ -17,3 +17,16 @@ Six jobs used 150 plan generations. The alternate SUNhub candidate (`11e466a8-e4
 Night paintings are reproduced with `python scripts/relight-expansion.py` and Pillow. Lighting masks are traced over windows, signs and pools of light. The night paintings share the day paintings' pixel locations, dimensions, collision and occlusion geometry.
 
 The routes connect the residential linkway and park connector to the bus bay, SUNhub, and market before returning to Blk 260. Reference material includes the supplied photographs, the [HDB Ang Mo Kio Town Design Guide](https://www.hdb.gov.sg/-/media/about-us/our-role/plan-and-design-towns/town-design-guides/Ang-Mo-Kio-Town-Design-Guide.pdf), [HDB's Ang Mo Kio Town Centre guide](https://www.hdb.gov.sg/managing-my-home/living-in-my-community/exploring-my-neighbourhood/explore-my-town), and the [NParks Ang Mo Kio Town Garden West Park Connector](https://pcn.nparks.gov.sg/explore-park-connectors/ang-mo-kio-town-garden-west-pc/).
+
+## Continuous map additions
+
+The district paintings retain their original sizes. New PixelLab paving and verge textures fill the spaces between the paintings, and the rain tree is depth-sorted with walkers.
+
+| Asset | Reference | PixelLab tool | Job ID | Generations |
+| --- | --- | --- | --- | --- |
+| `linkway-day.png` (640×360) | Blk 260 street | `create_image_pro` | `cf2b7b1e-2398-4f81-bf2e-52054e6dfd99` | 25 |
+| `verge-day.png` (256×256) | Emerald Dragon Community Park | `create_image_pro` | `140a68fc-d62a-4d78-8bc8-e81b6cd5fe6f` | 10 |
+| `linkway-tree.png` (128×128) | Tree cropped from Blk 260 street | `create_image_pro_flash` | `13e2d8a6-0e06-41a5-b4d3-be6f235b8230` | 6 |
+| `north-link-garden-day.png` (512×180) | Blk 260 and Shield View edge crops around the new path | `inpaint_image_pro_flash` | `8ec9d076-d177-4c5e-b06b-750beef3c511`, `cca29e74-8f55-45a6-a065-3c11bee3b83f` | 18 |
+
+The relighting script also creates the night ground textures and garden. The continuous-map assets used 59 plan generations.
