@@ -10,11 +10,18 @@ import {
   SHIRT_COLORS,
   SKIN_TONES,
 } from '../data/gameData';
-import { DISTRICT_NAMES, DistrictId, Point, districtArt } from '../data/districts';
+import { DISTRICT_NAMES, DistrictId, Point } from '../data/districts';
 import {
-  DISTRICTS, DISTRICT_DESTINATIONS, DISTRICT_ORIGINS, NEIGHBOURHOOD_PATHS, SCENE_HEIGHT, SCENE_WIDTH,
-  WORLD_HEIGHT, WORLD_WIDTH,
+  DISTRICTS, DISTRICT_DESTINATIONS, WORLD_HEIGHT, WORLD_WIDTH,
 } from '../data/worldMap';
+import {
+  ALL_LANDMARKS,
+  isTileWalkable,
+  TILES,
+  WORLD_PROPS,
+} from '../data/singaporeWorld';
+import { isoToWorld, MAP_COLS, MAP_ROWS, TileId, worldToIso } from '../game/isoGrid';
+import { ITEM_POS, UNCLE_POS } from '../game/sceneRenderer';
 import { expansionLandmarks } from '../game/expansionGeometry';
 import {
   AvatarConfig,
@@ -389,15 +396,63 @@ const WardrobePanel: React.FC<GameDrawersProps> = ({ avatar, setAvatar, wallet }
 
 // ---------- Area map ----------
 
+const TILE_MAP_COLOR: Record<TileId, [string, string]> = {
+  grass: ['#7f8c46', '#2c3329'],
+  grass_tuft: ['#73803e', '#282f25'],
+  grass_flower: ['#8fa052', '#343c2e'],
+  pavement: ['#cbb898', '#58534d'],
+  pavement_alt: ['#bfa988', '#4f4a45'],
+  void_deck: ['#d5cab8', '#605c58'],
+  plaza: ['#d9c29e', '#655c50'],
+  plaza_alt: ['#c6ae89', '#575046'],
+  road_plain: ['#4b494e', '#25262e'],
+  road_se: ['#59575d', '#2b2d36'],
+  road_sw: ['#59575d', '#2b2d36'],
+  road_busbay: ['#8c743a', '#4d4126'],
+  road_taxibay: ['#c49a3a', '#594822'],
+  road_yellowbox: ['#c49a3a', '#594822'],
+  zebra_sw: ['#d8d4ca', '#6c6b6d'],
+  zebra_se: ['#d8d4ca', '#6c6b6d'],
+  drain_se: ['#8c8578', '#3c3c40'],
+  drain_sw: ['#8c8578', '#3c3c40'],
+  tactile: ['#e0b247', '#7a622a'],
+  pcn_red: ['#b85249', '#5e2e2c'],
+  pcn_green: ['#458a66', '#284a3c'],
+  playground_orange: ['#d97e4a', '#6b422d'],
+  playground_blue: ['#4b88ad', '#2b475c'],
+  sandpit: ['#e3ca94', '#6b6049'],
+  court_orange: ['#d47344', '#683b28'],
+  court_cream: ['#e5c48e', '#6e6049'],
+  hawker_floor: ['#b5a38d', '#544d46'],
+  market_floor: ['#9fa39f', '#4a4e50'],
+};
+
+function propMapColor(id: string, night: boolean): string {
+  if (id.startsWith('hdb_blk')) return night ? '#b89468' : '#e6cfb0';
+  if (id === 'minimart_front') return night ? '#ffd45e' : '#f5c242';
+  if (id === 'dragon_playground') return '#e6583e';
+  if (id === 'sunhub_atrium') return night ? '#82d8e8' : '#6ab6c4';
+  if (id.startsWith('shop_')) return night ? '#b89872' : '#d9c5a3';
+  if (id.startsWith('hawker_stall')) return night ? '#e0894a' : '#d96443';
+  if (id.startsWith('market_stall')) return '#5da662';
+  if (id === 'sg_bus') return '#66b850';
+  if (id === 'sg_taxi') return '#d9483b';
+  if (id.includes('tree')) return night ? '#385728' : '#649642';
+  if (id.startsWith('linkway_roof')) return night ? '#69666b' : '#9c958b';
+  if (id.startsWith('pavilion')) return '#b05a3e';
+  return night ? '#7e7874' : '#9c9286';
+}
+
 const MapPanel: React.FC<GameDrawersProps> = ({
-  clock, playerPos, district, worldPosition, onWalkToLandmark, onWalkToWorldPoint, onClose,
+  clock, district, worldPosition, onWalkToWorldPoint, onClose,
 }) => {
-  const pct = (p: { x: number; y: number }) => ({ left: `${(p.x / 1280) * 100}%`, top: `${(p.y / 720) * 100}%` });
-  const landmarks = district === 'block260' ? MAP_LANDMARKS : expansionLandmarks(district);
+  const mapCanvasRef = React.useRef<HTMLCanvasElement | null>(null);
   const night = clock.timeOfDay === 'evening';
-  const walk = (point: { x: number; y: number }) => {
+  const landmarks = district === 'block260' ? MAP_LANDMARKS : expansionLandmarks(district);
+
+  const walkToWorld = (point: { x: number; y: number }) => {
     sfx.click();
-    onWalkToLandmark(point);
+    onWalkToWorldPoint(point);
     onClose();
   };
   const walkToDistrict = (area: DistrictId) => {
@@ -405,36 +460,124 @@ const MapPanel: React.FC<GameDrawersProps> = ({
     onWalkToWorldPoint(DISTRICT_DESTINATIONS[area]);
     onClose();
   };
+
+  useEffect(() => {
+    const canvas = mapCanvasRef.current;
+    const ctx = canvas?.getContext('2d');
+    if (!ctx || !canvas) return;
+    const sx = canvas.width / WORLD_WIDTH;
+    const sy = canvas.height / WORLD_HEIGHT;
+
+    ctx.fillStyle = night ? '#1b2030' : '#647338';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw 64x64 isometric tiles
+    for (let row = 0; row < MAP_ROWS; row++) {
+      for (let col = 0; col < MAP_COLS; col++) {
+        const pt = isoToWorld(col, row);
+        const cx = pt.x * sx;
+        const cy = pt.y * sy;
+        const hw = 32 * sx + 0.6;
+        const hh = 16 * sy + 0.6;
+        ctx.fillStyle = TILE_MAP_COLOR[TILES[row][col]][night ? 1 : 0];
+        ctx.beginPath();
+        ctx.moveTo(cx, cy - hh);
+        ctx.lineTo(cx + hw, cy);
+        ctx.lineTo(cx, cy + hh);
+        ctx.lineTo(cx - hw, cy);
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
+
+    // Draw building & landmark footprints
+    for (const prop of WORLD_PROPS) {
+      const p0 = isoToWorld(prop.col - 0.45, prop.row - 0.45);
+      const p1 = isoToWorld(prop.col + prop.footCols - 0.55, prop.row - 0.45);
+      const p2 = isoToWorld(prop.col + prop.footCols - 0.55, prop.row + prop.footRows - 0.55);
+      const p3 = isoToWorld(prop.col - 0.45, prop.row + prop.footRows - 0.55);
+      ctx.fillStyle = propMapColor(prop.id, night);
+      ctx.beginPath();
+      ctx.moveTo(p0.x * sx, p0.y * sy);
+      ctx.lineTo(p1.x * sx, p1.y * sy);
+      ctx.lineTo(p2.x * sx, p2.y * sy);
+      ctx.lineTo(p3.x * sx, p3.y * sy);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#231a16';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+  }, [night]);
+
+  const pctWorld = (p: Point) => ({
+    left: `${(p.x / WORLD_WIDTH) * 100}%`,
+    top: `${(p.y / WORLD_HEIGHT) * 100}%`,
+  });
+
+  const handleMinimapClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const wx = ((e.clientX - rect.left) / rect.width) * WORLD_WIDTH;
+    const wy = ((e.clientY - rect.top) / rect.height) * WORLD_HEIGHT;
+    const { col, row } = worldToIso(wx, wy);
+    const ic = Math.floor(col + 0.5);
+    const ir = Math.floor(row + 0.5);
+    if (isTileWalkable(ic, ir)) {
+      walkToWorld({ x: wx, y: wy });
+    }
+  };
+
   return (
     <div style={{ display: 'grid', gap: 12 }}>
       <span className="pill" style={{ justifySelf: 'start' }}>
         📍 {DISTRICT_NAMES[district]}
       </span>
       <div className="cream-card" style={{ padding: 10 }}>
-        <div className="area-map">
-          <svg role="img" aria-label="Neighbourhood map, north up" viewBox={`0 0 ${WORLD_WIDTH} ${WORLD_HEIGHT}`}
-            style={{ background: night ? '#353840' : '#737449', display: 'block', width: '100%', maxHeight: '48dvh' }}>
-            {NEIGHBOURHOOD_PATHS.map(({ points, radius }, index) => (
-              <polyline key={index} points={points.map(({ x, y }) => `${x},${y}`).join(' ')}
-                fill="none" stroke={night ? '#77717a' : '#d3bb8d'} strokeWidth={radius * 2}
-                strokeLinecap="round" strokeLinejoin="round" />
-            ))}
-            {DISTRICTS.map((area) => {
-              const { x, y } = DISTRICT_ORIGINS[area];
-              return (
-                <g key={area}>
-                  <image href={districtArt(area, night)} x={x} y={y} width={SCENE_WIDTH} height={SCENE_HEIGHT} />
-                  <text x={x + SCENE_WIDTH / 2} y={y + SCENE_HEIGHT / 2} textAnchor="middle"
-                    fontSize="190" fill="#fff4dc" stroke="#2c2634" strokeWidth="22" paintOrder="stroke">
-                    {DISTRICT_SHORT_NAMES[area]}
-                  </text>
-                </g>
-              );
-            })}
-            <path d="M4620 160 l-65 125 h130 z" fill="#fff4dc" />
-            <text x="4620" y="410" textAnchor="middle" fontSize="135" fill="#fff4dc">N</text>
-            <circle cx={worldPosition.x} cy={worldPosition.y} r="57" fill="#f3c46b" stroke="#2c2634" strokeWidth="25" />
-          </svg>
+        <div className="area-map" style={{ position: 'relative', maxWidth: 680, margin: '0 auto' }}>
+          <canvas
+            ref={mapCanvasRef}
+            width={1088}
+            height={660}
+            onClick={handleMinimapClick}
+            aria-label="Isometric Singapore neighbourhood map"
+            style={{ display: 'block', width: '100%', height: 'auto', cursor: 'pointer', imageRendering: 'pixelated' }}
+          />
+          {DISTRICTS.map((area) => {
+            const dest = DISTRICT_DESTINATIONS[area];
+            const pos = pctWorld(dest);
+            return (
+              <button
+                key={area}
+                type="button"
+                className="map-marker"
+                style={{ left: pos.left, top: pos.top, transform: 'translate(-50%, -185%)', zIndex: 2 }}
+                title={`Walk to ${DISTRICT_NAMES[area]}`}
+                onClick={() => walkToDistrict(area)}
+              >
+                <span className="map-label" style={{ display: 'inline-block' }}>
+                  {DISTRICT_SHORT_NAMES[area]}
+                </span>
+              </button>
+            );
+          })}
+          {ALL_LANDMARKS.filter((l) => l.district === district).map((loc) => (
+            <button
+              key={loc.id}
+              type="button"
+              className="map-marker"
+              style={{ ...pctWorld(loc), zIndex: 3 }}
+              title={`Walk to ${loc.name}`}
+              aria-label={`Walk to ${loc.name}`}
+              onClick={() => walkToWorld(loc)}
+            >
+              <span className="map-dot" style={{ background: loc.color }}>
+                {loc.name[0]}
+              </span>
+            </button>
+          ))}
+          <div className="map-you" style={{ ...pctWorld(worldPosition), zIndex: 4 }} aria-label="You are here">
+            YOU
+          </div>
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
           {DISTRICTS.map((area) => (
@@ -444,48 +587,23 @@ const MapPanel: React.FC<GameDrawersProps> = ({
           ))}
         </div>
       </div>
-      <div className="cream-card" style={{ padding: 10 }}>
-        <div className="area-map">
-          <img
-            src={districtArt(district, clock.timeOfDay === 'evening')}
-            alt={DISTRICT_NAMES[district]}
-          />
+
+      <div className="cream-card" style={{ display: 'grid', gap: 8, padding: 12 }}>
+        <div style={{ fontWeight: 800, fontSize: 15 }}>Landmarks in {DISTRICT_SHORT_NAMES[district]}</div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {landmarks.map((loc) => (
             <button
               key={loc.id}
               type="button"
-              className="map-marker"
-              style={pct(loc)}
-              title={`Walk to ${loc.name}`}
-              aria-label={`Walk to ${loc.name}`}
-              onClick={() => walk(loc)}
+              className="pixel-secondary-btn"
+              onClick={() => walkToWorld(loc)}
             >
-              <span className="map-dot" style={{ background: loc.color }}>
-                {loc.name[0]}
-              </span>
-              <span className="map-label">{loc.name}</span>
+              ● {loc.name}
             </button>
           ))}
-          {playerPos.x >= 0 && playerPos.x < SCENE_WIDTH && playerPos.y >= 0 && playerPos.y < SCENE_HEIGHT && (
-            <div className="map-you" style={pct(playerPos)} aria-label="You are here">YOU</div>
-          )}
         </div>
+        <div className="cream-muted">Tap anywhere on the isometric map, a district button, or a landmark to walk there.</div>
       </div>
-
-      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', fontSize: 13 }}>
-        <span>
-          <span className="map-you map-you-inline">YOU</span> You
-        </span>
-        {landmarks.map((loc) => (
-          <span key={loc.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <span className="map-dot" style={{ background: loc.color, position: 'static' }}>
-              {loc.name[0]}
-            </span>
-            {loc.name}
-          </span>
-        ))}
-      </div>
-      <div className="cream-muted">Tap a marker to walk there.</div>
     </div>
   );
 };
@@ -521,7 +639,7 @@ const QuestPanel: React.FC<GameDrawersProps> = ({
           className="pixel-secondary-btn"
           onClick={() => {
             sfx.click();
-            onWalkToQuest(ezLinkPickedUp ? { x: 600, y: 480 } : { x: 790, y: 478 });
+            onWalkToQuest(ezLinkPickedUp ? UNCLE_POS : ITEM_POS.ezlink);
             onClose();
           }}
         >

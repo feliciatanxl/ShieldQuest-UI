@@ -163,30 +163,29 @@ export const INITIAL_SHIELD_SKILLS: Record<ShieldLetter, ShieldSkillState> = {
   },
 };
 
-// x/y are walk targets in the 1280x720 street scene.
+import { isoToWorld } from '../game/isoGrid';
+
+// x/y are walk targets in the unified isometric Singapore world.
 export const MAP_LANDMARKS = [
   {
     id: 'busstop',
     name: 'Blk 260 Bus Stop (Stop 26019)',
-    detail: 'Sheltered bus stop — Uncle Tan is looking for his missing EZ-Link card. Someone left a kopi packet here too.',
-    x: 520,
-    y: 380,
+    detail: 'Bus bay along Ang Mo Kio Ave 3 — Uncle Tan is looking for his missing EZ-Link card.',
+    ...isoToWorld(19, 26),
     color: '#6bb09e',
   },
   {
     id: 'voiddeck',
     name: 'Blk 260 Shield View Void Deck',
-    detail: 'RC Notice Board, letterboxes, chope-d stone table & community cats.',
-    x: 800,
-    y: 500,
+    detail: 'Spacious sunlit Blk 260 void deck & heartland courtyard.',
+    ...isoToWorld(22, 20),
     color: '#d89b52',
   },
   {
     id: 'minimart',
     name: 'Sunshine Minimart',
     detail: 'Anchor Quest: "The Lookout Dilemma" — practise all 6 S.H.I.E.L.D. choices.',
-    x: 1100,
-    y: 635,
+    ...isoToWorld(25, 25),
     color: '#e6b84c',
   },
 ];

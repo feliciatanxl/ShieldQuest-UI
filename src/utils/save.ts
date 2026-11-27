@@ -14,6 +14,7 @@ export interface WorldSave {
   player: { x: number; y: number };
   district?: DistrictId;
   worldPosition?: { x: number; y: number };
+  isoVersion?: number;
 }
 
 /** Coins plus which one-time rewards were claimed and which shop items are owned. */
@@ -104,6 +105,7 @@ export function loadSave(): SaveData | null {
       worldPosition: worldPosition
         ? { x: num(worldPosition.x, NaN), y: num(worldPosition.y, NaN) }
         : undefined,
+      isoVersion: typeof w.isoVersion === 'number' ? w.isoVersion : undefined,
     };
   }
 

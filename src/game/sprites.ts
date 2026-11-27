@@ -69,7 +69,21 @@ export function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
-/** Draws a character with feet at (x, y). Walk frames fall back to idle when a direction has no walk row. */
+const MIRROR_DIR: Partial<Record<Direction, Direction>> = {
+  'south-west': 'south-east',
+  'south-east': 'south-west',
+  'north-east': 'north-west',
+  'north-west': 'north-east',
+  west: 'east',
+  east: 'west',
+};
+
+/**
+ * Draws a character with feet at (x, y).
+ * - Uses native walk frames when available (and mirrors diagonal/horizontal rows if missing).
+ * - For idle-only NPC sheets, synthesizes a crisp integer-pixel leg stride + bounce when walking.
+ * - Adds a subtle 1px breathing pulse while standing idle when `idleTime > 0`.
+ */
 export function drawCharacter(
   ctx: CanvasRenderingContext2D,
   sheet: Sheet,
@@ -77,21 +91,65 @@ export function drawCharacter(
   y: number,
   dir: Direction,
   walkPhase: number | null,
-  scale = 2
+  scale = 2,
+  idleTime = 0,
 ) {
   const c = sheet.cell;
-  const walk = walkPhase !== null ? sheet.walk[dir] : undefined;
-  let sx: number;
-  let sy: number;
-  if (walk) {
-    sx = (Math.floor(walkPhase!) % walk.frames) * c;
-    sy = walk.row * c;
-  } else {
-    sx = (sheet.idle[dir] ?? sheet.idle.south ?? 0) * c;
-    sy = 0;
-  }
   const w = c * scale;
-  ctx.drawImage(sheet.img, sx, sy, c, c, Math.round(x - w / 2), Math.round(y - w + 2 * scale), w, w);
+  const dx = Math.round(x - w / 2);
+  const dy = Math.round(y - w + 2 * scale);
+
+  if (walkPhase !== null) {
+    const nativeWalk = sheet.walk[dir];
+    if (nativeWalk) {
+      const sx = (Math.floor(walkPhase) % nativeWalk.frames) * c;
+      const sy = nativeWalk.row * c;
+      ctx.drawImage(sheet.img, sx, sy, c, c, dx, dy, w, w);
+      return;
+    }
+
+    const mirrorDir = MIRROR_DIR[dir];
+    const mirrorWalk = mirrorDir ? sheet.walk[mirrorDir] : undefined;
+    if (mirrorWalk) {
+      const sx = (Math.floor(walkPhase) % mirrorWalk.frames) * c;
+      const sy = mirrorWalk.row * c;
+      ctx.save();
+      ctx.translate(Math.round(x), dy);
+      ctx.scale(-1, 1);
+      ctx.drawImage(sheet.img, sx, sy, c, c, -w / 2, 0, w, w);
+      ctx.restore();
+      return;
+    }
+
+    // Crisp multi-part leg stride synthesis for single-row NPC sheets (uncle, cashier, student)
+    const sx = (sheet.idle[dir] ?? sheet.idle.south ?? 0) * c;
+    const stride = Math.sin(walkPhase * 0.85);
+    const bob = Math.round(-Math.abs(stride) * 1.2) * scale;
+    const splitY = 43; // hip/shorts seam on 64x64 PixelLab character frames
+    const legH = c - splitY;
+    const shiftL = Math.round(stride * 2) * scale;
+    const shiftR = -shiftL;
+    const liftL = Math.round(Math.max(0, stride) * 1.6) * scale;
+    const liftR = Math.round(Math.max(0, -stride) * 1.6) * scale;
+
+    // Left & right legs with alternating stride and foot lift (+2px overlap prevents any waist seam)
+    ctx.drawImage(sheet.img, sx, splitY - 2, 32, legH + 2, dx + shiftL, dy + (splitY - 2) * scale - liftL, 32 * scale, (legH + 2) * scale);
+    ctx.drawImage(sheet.img, sx + 32, splitY - 2, 32, legH + 2, dx + 32 * scale + shiftR, dy + (splitY - 2) * scale - liftR, 32 * scale, (legH + 2) * scale);
+    // Upper torso & head
+    ctx.drawImage(sheet.img, sx, 0, c, splitY + 1, dx, dy + bob, w, (splitY + 1) * scale);
+    return;
+  }
+
+  const sx = (sheet.idle[dir] ?? sheet.idle.south ?? 0) * c;
+  if (idleTime > 0) {
+    const breath = Math.sin(idleTime * 2.4 + x * 0.03) > 0.65 ? -scale : 0;
+    const splitY = 39;
+    ctx.drawImage(sheet.img, sx, splitY - 2, c, c - (splitY - 2), dx, dy + (splitY - 2) * scale, w, (c - (splitY - 2)) * scale);
+    ctx.drawImage(sheet.img, sx, 0, c, splitY + 1, dx, dy + breath, w, (splitY + 1) * scale);
+    return;
+  }
+
+  ctx.drawImage(sheet.img, sx, 0, c, c, dx, dy, w, w);
 }
 
 // ---------- Player recolouring ----------

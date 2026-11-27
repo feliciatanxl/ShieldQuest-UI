@@ -1,0 +1,606 @@
+{
+  "tiles": {
+    "grass": {
+      "day": "/assets/iso/tiles/grass-day.png",
+      "night": "/assets/iso/tiles/grass-night.png",
+      "w": 32,
+      "h": 16
+    },
+    "grass_tuft": {
+      "day": "/assets/iso/tiles/grass_tuft-day.png",
+      "night": "/assets/iso/tiles/grass_tuft-night.png",
+      "w": 32,
+      "h": 16
+    },
+    "grass_flower": {
+      "day": "/assets/iso/tiles/grass_flower-day.png",
+      "night": "/assets/iso/tiles/grass_flower-night.png",
+      "w": 32,
+      "h": 16
+    },
+    "pavement": {
+      "day": "/assets/iso/tiles/pavement-day.png",
+      "night": "/assets/iso/tiles/pavement-night.png",
+      "w": 32,
+      "h": 16
+    },
+    "pavement_alt": {
+      "day": "/assets/iso/tiles/pavement_alt-day.png",
+      "night": "/assets/iso/tiles/pavement_alt-night.png",
+      "w": 32,
+      "h": 16
+    },
+    "void_deck": {
+      "day": "/assets/iso/tiles/void_deck-day.png",
+      "night": "/assets/iso/tiles/void_deck-night.png",
+      "w": 32,
+      "h": 16
+    },
+    "plaza": {
+      "day": "/assets/iso/tiles/plaza-day.png",
+      "night": "/assets/iso/tiles/plaza-night.png",
+      "w": 32,
+      "h": 16
+    },
+    "plaza_alt": {
+      "day": "/assets/iso/tiles/plaza_alt-day.png",
+      "night": "/assets/iso/tiles/plaza_alt-night.png",
+      "w": 32,
+      "h": 16
+    },
+    "road_plain": {
+      "day": "/assets/iso/tiles/road_plain-day.png",
+      "night": "/assets/iso/tiles/road_plain-night.png",
+      "w": 32,
+      "h": 16
+    },
+    "road_se": {
+      "day": "/assets/iso/tiles/road_se-day.png",
+      "night": "/assets/iso/tiles/road_se-night.png",
+      "w": 32,
+      "h": 16
+    },
+    "road_sw": {
+      "day": "/assets/iso/tiles/road_sw-day.png",
+      "night": "/assets/iso/tiles/road_sw-night.png",
+      "w": 32,
+      "h": 16
+    },
+    "road_busbay": {
+      "day": "/assets/iso/tiles/road_busbay-day.png",
+      "night": "/assets/iso/tiles/road_busbay-night.png",
+      "w": 32,
+      "h": 16
+    },
+    "road_taxibay": {
+      "day": "/assets/iso/tiles/road_taxibay-day.png",
+      "night": "/assets/iso/tiles/road_taxibay-night.png",
+      "w": 32,
+      "h": 16
+    },
+    "road_yellowbox": {
+      "day": "/assets/iso/tiles/road_yellowbox-day.png",
+      "night": "/assets/iso/tiles/road_yellowbox-night.png",
+      "w": 32,
+      "h": 16
+    },
+    "zebra_sw": {
+      "day": "/assets/iso/tiles/zebra_sw-day.png",
+      "night": "/assets/iso/tiles/zebra_sw-night.png",
+      "w": 32,
+      "h": 16
+    },
+    "zebra_se": {
+      "day": "/assets/iso/tiles/zebra_se-day.png",
+      "night": "/assets/iso/tiles/zebra_se-night.png",
+      "w": 32,
+      "h": 16
+    },
+    "drain_se": {
+      "day": "/assets/iso/tiles/drain_se-day.png",
+      "night": "/assets/iso/tiles/drain_se-night.png",
+      "w": 32,
+      "h": 16
+    },
+    "drain_sw": {
+      "day": "/assets/iso/tiles/drain_sw-day.png",
+      "night": "/assets/iso/tiles/drain_sw-night.png",
+      "w": 32,
+      "h": 16
+    },
+    "tactile": {
+      "day": "/assets/iso/tiles/tactile-day.png",
+      "night": "/assets/iso/tiles/tactile-night.png",
+      "w": 32,
+      "h": 16
+    },
+    "pcn_red": {
+      "day": "/assets/iso/tiles/pcn_red-day.png",
+      "night": "/assets/iso/tiles/pcn_red-night.png",
+      "w": 32,
+      "h": 16
+    },
+    "pcn_green": {
+      "day": "/assets/iso/tiles/pcn_green-day.png",
+      "night": "/assets/iso/tiles/pcn_green-night.png",
+      "w": 32,
+      "h": 16
+    },
+    "playground_orange": {
+      "day": "/assets/iso/tiles/playground_orange-day.png",
+      "night": "/assets/iso/tiles/playground_orange-night.png",
+      "w": 32,
+      "h": 16
+    },
+    "playground_blue": {
+      "day": "/assets/iso/tiles/playground_blue-day.png",
+      "night": "/assets/iso/tiles/playground_blue-night.png",
+      "w": 32,
+      "h": 16
+    },
+    "sandpit": {
+      "day": "/assets/iso/tiles/sandpit-day.png",
+      "night": "/assets/iso/tiles/sandpit-night.png",
+      "w": 32,
+      "h": 16
+    },
+    "court_orange": {
+      "day": "/assets/iso/tiles/court_orange-day.png",
+      "night": "/assets/iso/tiles/court_orange-night.png",
+      "w": 32,
+      "h": 16
+    },
+    "court_cream": {
+      "day": "/assets/iso/tiles/court_cream-day.png",
+      "night": "/assets/iso/tiles/court_cream-night.png",
+      "w": 32,
+      "h": 16
+    },
+    "hawker_floor": {
+      "day": "/assets/iso/tiles/hawker_floor-day.png",
+      "night": "/assets/iso/tiles/hawker_floor-night.png",
+      "w": 32,
+      "h": 16
+    },
+    "market_floor": {
+      "day": "/assets/iso/tiles/market_floor-day.png",
+      "night": "/assets/iso/tiles/market_floor-night.png",
+      "w": 32,
+      "h": 16
+    }
+  },
+  "props": {
+    "hdb_pillar": {
+      "day": "/assets/iso/props/hdb_pillar-day.png",
+      "night": "/assets/iso/props/hdb_pillar-night.png",
+      "w": 24,
+      "h": 48,
+      "ax": 12,
+      "ay": 38
+    },
+    "hdb_blk260": {
+      "day": "/assets/iso/props/hdb_blk260-day.png",
+      "night": "/assets/iso/props/hdb_blk260-night.png",
+      "w": 176,
+      "h": 181,
+      "ax": 72,
+      "ay": 141
+    },
+    "hdb_blk261": {
+      "day": "/assets/iso/props/hdb_blk261-day.png",
+      "night": "/assets/iso/props/hdb_blk261-night.png",
+      "w": 152,
+      "h": 169,
+      "ax": 68,
+      "ay": 137
+    },
+    "hdb_blk262": {
+      "day": "/assets/iso/props/hdb_blk262-day.png",
+      "night": "/assets/iso/props/hdb_blk262-night.png",
+      "w": 152,
+      "h": 179,
+      "ax": 68,
+      "ay": 147
+    },
+    "minimart_front": {
+      "day": "/assets/iso/props/minimart_front-day.png",
+      "night": "/assets/iso/props/minimart_front-night.png",
+      "w": 136,
+      "h": 140,
+      "ax": 60,
+      "ay": 108
+    },
+    "snack_rack": {
+      "day": "/assets/iso/props/snack_rack-day.png",
+      "night": "/assets/iso/props/snack_rack-night.png",
+      "w": 36,
+      "h": 36,
+      "ax": 18,
+      "ay": 26
+    },
+    "stone_table": {
+      "day": "/assets/iso/props/stone_table-day.png",
+      "night": "/assets/iso/props/stone_table-night.png",
+      "w": 44,
+      "h": 34,
+      "ax": 22,
+      "ay": 22
+    },
+    "letterboxes": {
+      "day": "/assets/iso/props/letterboxes-day.png",
+      "night": "/assets/iso/props/letterboxes-night.png",
+      "w": 42,
+      "h": 40,
+      "ax": 21,
+      "ay": 30
+    },
+    "noticeboard": {
+      "day": "/assets/iso/props/noticeboard-day.png",
+      "night": "/assets/iso/props/noticeboard-night.png",
+      "w": 42,
+      "h": 42,
+      "ax": 21,
+      "ay": 32
+    },
+    "recycle_bin": {
+      "day": "/assets/iso/props/recycle_bin-day.png",
+      "night": "/assets/iso/props/recycle_bin-night.png",
+      "w": 28,
+      "h": 34,
+      "ax": 14,
+      "ay": 24
+    },
+    "cat_tabby": {
+      "day": "/assets/iso/props/cat_tabby-day.png",
+      "night": "/assets/iso/props/cat_tabby-night.png",
+      "w": 20,
+      "h": 18,
+      "ax": 10,
+      "ay": 13
+    },
+    "cat_calico": {
+      "day": "/assets/iso/props/cat_calico-day.png",
+      "night": "/assets/iso/props/cat_calico-night.png",
+      "w": 20,
+      "h": 18,
+      "ax": 10,
+      "ay": 13
+    },
+    "linkway_post": {
+      "day": "/assets/iso/props/linkway_post-day.png",
+      "night": "/assets/iso/props/linkway_post-night.png",
+      "w": 16,
+      "h": 46,
+      "ax": 8,
+      "ay": 38
+    },
+    "linkway_roof_se": {
+      "day": "/assets/iso/props/linkway_roof_se-day.png",
+      "night": "/assets/iso/props/linkway_roof_se-night.png",
+      "w": 40,
+      "h": 56,
+      "ax": 20,
+      "ay": 46
+    },
+    "linkway_roof_sw": {
+      "day": "/assets/iso/props/linkway_roof_sw-day.png",
+      "night": "/assets/iso/props/linkway_roof_sw-night.png",
+      "w": 40,
+      "h": 56,
+      "ax": 20,
+      "ay": 46
+    },
+    "linkway_roof_corner": {
+      "day": "/assets/iso/props/linkway_roof_corner-day.png",
+      "night": "/assets/iso/props/linkway_roof_corner-night.png",
+      "w": 40,
+      "h": 56,
+      "ax": 20,
+      "ay": 46
+    },
+    "railing_se": {
+      "day": "/assets/iso/props/railing_se-day.png",
+      "night": "/assets/iso/props/railing_se-night.png",
+      "w": 36,
+      "h": 28,
+      "ax": 18,
+      "ay": 20
+    },
+    "railing_sw": {
+      "day": "/assets/iso/props/railing_sw-day.png",
+      "night": "/assets/iso/props/railing_sw-night.png",
+      "w": 36,
+      "h": 28,
+      "ax": 18,
+      "ay": 20
+    },
+    "lamp_post": {
+      "day": "/assets/iso/props/lamp_post-day.png",
+      "night": "/assets/iso/props/lamp_post-night.png",
+      "w": 20,
+      "h": 48,
+      "ax": 10,
+      "ay": 40
+    },
+    "park_bench": {
+      "day": "/assets/iso/props/park_bench-day.png",
+      "night": "/assets/iso/props/park_bench-night.png",
+      "w": 36,
+      "h": 28,
+      "ax": 18,
+      "ay": 20
+    },
+    "bike_rack": {
+      "day": "/assets/iso/props/bike_rack-day.png",
+      "night": "/assets/iso/props/bike_rack-night.png",
+      "w": 42,
+      "h": 30,
+      "ax": 21,
+      "ay": 22
+    },
+    "planter_box": {
+      "day": "/assets/iso/props/planter_box-day.png",
+      "night": "/assets/iso/props/planter_box-night.png",
+      "w": 36,
+      "h": 28,
+      "ax": 18,
+      "ay": 20
+    },
+    "bollard": {
+      "day": "/assets/iso/props/bollard-day.png",
+      "night": "/assets/iso/props/bollard-night.png",
+      "w": 16,
+      "h": 24,
+      "ax": 8,
+      "ay": 17
+    },
+    "bus_shelter": {
+      "day": "/assets/iso/props/bus_shelter-day.png",
+      "night": "/assets/iso/props/bus_shelter-night.png",
+      "w": 86,
+      "h": 68,
+      "ax": 36,
+      "ay": 54
+    },
+    "bus_pole": {
+      "day": "/assets/iso/props/bus_pole-day.png",
+      "night": "/assets/iso/props/bus_pole-night.png",
+      "w": 18,
+      "h": 36,
+      "ax": 9,
+      "ay": 28
+    },
+    "sg_bus": {
+      "day": "/assets/iso/props/sg_bus-day.png",
+      "night": "/assets/iso/props/sg_bus-night.png",
+      "w": 146,
+      "h": 126,
+      "ax": 49,
+      "ay": 94
+    },
+    "sg_taxi": {
+      "day": "/assets/iso/props/sg_taxi-day.png",
+      "night": "/assets/iso/props/sg_taxi-night.png",
+      "w": 68,
+      "h": 46,
+      "ax": 28,
+      "ay": 34
+    },
+    "traffic_light": {
+      "day": "/assets/iso/props/traffic_light-day.png",
+      "night": "/assets/iso/props/traffic_light-night.png",
+      "w": 20,
+      "h": 44,
+      "ax": 10,
+      "ay": 36
+    },
+    "mama_shop": {
+      "day": "/assets/iso/props/mama_shop-day.png",
+      "night": "/assets/iso/props/mama_shop-night.png",
+      "w": 86,
+      "h": 68,
+      "ax": 36,
+      "ay": 56
+    },
+    "dragon_playground": {
+      "day": "/assets/iso/props/dragon_playground-day.png",
+      "night": "/assets/iso/props/dragon_playground-night.png",
+      "w": 172,
+      "h": 139,
+      "ax": 70,
+      "ay": 100
+    },
+    "climbing_frame": {
+      "day": "/assets/iso/props/climbing_frame-day.png",
+      "night": "/assets/iso/props/climbing_frame-night.png",
+      "w": 48,
+      "h": 42,
+      "ax": 24,
+      "ay": 32
+    },
+    "fitness_station": {
+      "day": "/assets/iso/props/fitness_station-day.png",
+      "night": "/assets/iso/props/fitness_station-night.png",
+      "w": 36,
+      "h": 36,
+      "ax": 18,
+      "ay": 27
+    },
+    "pavilion_base": {
+      "day": "/assets/iso/props/pavilion_base-day.png",
+      "night": "/assets/iso/props/pavilion_base-night.png",
+      "w": 76,
+      "h": 54,
+      "ax": 38,
+      "ay": 40
+    },
+    "pavilion_roof": {
+      "day": "/assets/iso/props/pavilion_roof-day.png",
+      "night": "/assets/iso/props/pavilion_roof-night.png",
+      "w": 92,
+      "h": 68,
+      "ax": 46,
+      "ay": 52
+    },
+    "basketball_hoop": {
+      "day": "/assets/iso/props/basketball_hoop-day.png",
+      "night": "/assets/iso/props/basketball_hoop-night.png",
+      "w": 32,
+      "h": 48,
+      "ax": 16,
+      "ay": 38
+    },
+    "rain_tree": {
+      "day": "/assets/iso/props/rain_tree-day.png",
+      "night": "/assets/iso/props/rain_tree-night.png",
+      "w": 108,
+      "h": 107,
+      "ax": 54,
+      "ay": 100
+    },
+    "palm_tree": {
+      "day": "/assets/iso/props/palm_tree-day.png",
+      "night": "/assets/iso/props/palm_tree-night.png",
+      "w": 68,
+      "h": 84,
+      "ax": 34,
+      "ay": 70
+    },
+    "potted_plant": {
+      "day": "/assets/iso/props/potted_plant-day.png",
+      "night": "/assets/iso/props/potted_plant-night.png",
+      "w": 24,
+      "h": 30,
+      "ax": 12,
+      "ay": 22
+    },
+    "hawker_stall_chicken": {
+      "day": "/assets/iso/props/hawker_stall_chicken-day.png",
+      "night": "/assets/iso/props/hawker_stall_chicken-night.png",
+      "w": 98,
+      "h": 122,
+      "ax": 49,
+      "ay": 98
+    },
+    "hawker_stall_caifan": {
+      "day": "/assets/iso/props/hawker_stall_caifan-day.png",
+      "night": "/assets/iso/props/hawker_stall_caifan-night.png",
+      "w": 102,
+      "h": 117,
+      "ax": 51,
+      "ay": 93
+    },
+    "hawker_stall_noodles": {
+      "day": "/assets/iso/props/hawker_stall_noodles-day.png",
+      "night": "/assets/iso/props/hawker_stall_noodles-night.png",
+      "w": 102,
+      "h": 133,
+      "ax": 51,
+      "ay": 109
+    },
+    "hawker_stall_kopi": {
+      "day": "/assets/iso/props/hawker_stall_kopi-day.png",
+      "night": "/assets/iso/props/hawker_stall_kopi-night.png",
+      "w": 90,
+      "h": 74,
+      "ax": 38,
+      "ay": 60
+    },
+    "hawker_table": {
+      "day": "/assets/iso/props/hawker_table-day.png",
+      "night": "/assets/iso/props/hawker_table-night.png",
+      "w": 46,
+      "h": 34,
+      "ax": 23,
+      "ay": 22
+    },
+    "tray_return": {
+      "day": "/assets/iso/props/tray_return-day.png",
+      "night": "/assets/iso/props/tray_return-night.png",
+      "w": 42,
+      "h": 40,
+      "ax": 21,
+      "ay": 28
+    },
+    "market_stall_fruit": {
+      "day": "/assets/iso/props/market_stall_fruit-day.png",
+      "night": "/assets/iso/props/market_stall_fruit-night.png",
+      "w": 92,
+      "h": 68,
+      "ax": 38,
+      "ay": 54
+    },
+    "market_stall_veg": {
+      "day": "/assets/iso/props/market_stall_veg-day.png",
+      "night": "/assets/iso/props/market_stall_veg-night.png",
+      "w": 92,
+      "h": 68,
+      "ax": 38,
+      "ay": 54
+    },
+    "sunhub_atrium": {
+      "day": "/assets/iso/props/sunhub_atrium-day.png",
+      "night": "/assets/iso/props/sunhub_atrium-night.png",
+      "w": 192,
+      "h": 195,
+      "ax": 80,
+      "ay": 156
+    },
+    "shop_bakery": {
+      "day": "/assets/iso/props/shop_bakery-day.png",
+      "night": "/assets/iso/props/shop_bakery-night.png",
+      "w": 90,
+      "h": 86,
+      "ax": 36,
+      "ay": 68
+    },
+    "shop_pharmacy": {
+      "day": "/assets/iso/props/shop_pharmacy-day.png",
+      "night": "/assets/iso/props/shop_pharmacy-night.png",
+      "w": 90,
+      "h": 86,
+      "ax": 36,
+      "ay": 68
+    },
+    "shop_bubbletea": {
+      "day": "/assets/iso/props/shop_bubbletea-day.png",
+      "night": "/assets/iso/props/shop_bubbletea-night.png",
+      "w": 90,
+      "h": 86,
+      "ax": 36,
+      "ay": 68
+    },
+    "sg_bus_f0": {
+      "day": "/assets/iso/props/sg_bus_f0-day.png",
+      "night": "/assets/iso/props/sg_bus_f0-night.png",
+      "w": 146,
+      "h": 126,
+      "ax": 49,
+      "ay": 94
+    },
+    "sg_bus_f1": {
+      "day": "/assets/iso/props/sg_bus_f1-day.png",
+      "night": "/assets/iso/props/sg_bus_f1-night.png",
+      "w": 146,
+      "h": 126,
+      "ax": 49,
+      "ay": 94
+    },
+    "sg_bus_f2": {
+      "day": "/assets/iso/props/sg_bus_f2-day.png",
+      "night": "/assets/iso/props/sg_bus_f2-night.png",
+      "w": 146,
+      "h": 126,
+      "ax": 49,
+      "ay": 94
+    },
+    "sg_bus_f3": {
+      "day": "/assets/iso/props/sg_bus_f3-day.png",
+      "night": "/assets/iso/props/sg_bus_f3-night.png",
+      "w": 146,
+      "h": 126,
+      "ax": 49,
+      "ay": 94
+    }
+  }
+}

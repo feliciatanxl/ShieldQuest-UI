@@ -3,6 +3,12 @@ import { DISTRICT_NAMES, DistrictId, readDistrict } from '../data/districts';
 import {
   DISTRICTS, WORLD_HEIGHT, WORLD_WIDTH, districtAt, localPoint, worldPoint,
 } from '../data/worldMap';
+import {
+  ISO_MINIMART_CENTER,
+  ISO_MR_LIM_POS,
+  ISO_WEI_MING_POS,
+} from '../data/singaporeWorld';
+import { isoToWorld, tileAtWorld } from '../game/isoGrid';
 import { landmarkNear } from '../game/expansionGeometry';
 import { canWalkAt, canWalkIn } from '../game/neighbourhoodCollision';
 import { districtResidents } from '../game/districtResidents';
@@ -77,8 +83,8 @@ function auntieAt(t: number): NPCEntity {
 
 const STATIC_NPCS: NPCEntity[] = [
   { id: 'uncle', name: 'Uncle Tan', role: 'Heartland Elder', ...UNCLE_POS, dir: 'south-west' },
-  { id: 'student', name: 'Wei Ming (Student)', role: 'Secondary Student', x: 335, y: 372, dir: 'south-east' },
-  { id: 'cashier', name: 'Mr Lim (Cashier)', role: 'Sunshine Minimart Staff', x: 1160, y: 618, dir: 'south-west' },
+  { id: 'student', name: 'Wei Ming (Student)', role: 'Secondary Student', ...ISO_WEI_MING_POS, dir: 'south-east' },
+  { id: 'cashier', name: 'Mr Lim (Cashier)', role: 'Sunshine Minimart Staff', ...ISO_MR_LIM_POS, dir: 'south-west' },
 ];
 
 /** Feet footprints (canvas px ellipses) the player cannot walk into. */
@@ -126,10 +132,11 @@ export const GameWorld: React.FC<GameWorldProps> = ({
   const start = initialWorld;
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const savedDistrict = readDistrict(start?.district);
-  const legacyPosition = start && canWalkIn(savedDistrict, start.player.x, start.player.y)
+  const isIsoSave = start?.isoVersion === 4;
+  const legacyPosition = isIsoSave && start && canWalkIn(savedDistrict, start.player.x, start.player.y)
     ? worldPoint(savedDistrict, start.player)
     : null;
-  const storedPosition = start?.worldPosition;
+  const storedPosition = isIsoSave ? start?.worldPosition : undefined;
   const savedPosition = storedPosition && canWalkAt(storedPosition.x, storedPosition.y) ? storedPosition : legacyPosition;
   const [district, setDistrict] = useState<DistrictId>(
     savedPosition ? districtAt(savedPosition.x, savedPosition.y) ?? savedDistrict : 'block260',
@@ -164,6 +171,7 @@ export const GameWorld: React.FC<GameWorldProps> = ({
   });
   const walkMarkerRef = useRef<(Pt & { createdAt: number }) | null>(null);
   const hoveredTargetRef = useRef<string | null>(null);
+  const hoveredTileRef = useRef<{ col: number; row: number } | null>(null);
   const speechBubbleRef = useRef<RenderState['speech']>(
     start?.ezLinkReturned
       ? { npcId: 'uncle', text: 'Thanks again! Go check Sunshine Minimart!', icon: 'shop' }
@@ -207,6 +215,7 @@ export const GameWorld: React.FC<GameWorldProps> = ({
       x: Math.round(playerRef.current.x), y: Math.round(playerRef.current.y),
     }),
     worldPosition: { x: Math.round(playerRef.current.x), y: Math.round(playerRef.current.y) },
+    isoVersion: 4,
   });
   const onWorldChangeRef = useRef(onWorldChange);
   onWorldChangeRef.current = onWorldChange;
@@ -476,6 +485,7 @@ export const GameWorld: React.FC<GameWorldProps> = ({
           npcs,
           items,
           hoveredTarget: hoveredTargetRef.current,
+          hoveredTile: hoveredTileRef.current,
           speech: original ? speechBubbleRef.current : null,
           walkTargetMarker: walkMarkerRef.current,
           viewX: [camera.x + insetX, camera.x + CANVAS_W - insetX],
@@ -591,27 +601,23 @@ export const GameWorld: React.FC<GameWorldProps> = ({
 
     // Mr Lim or the shop front open the anchor mission
     const cashier = STATIC_NPCS.find((n) => n.id === 'cashier')!;
-    if (hitsCharacter(pt, cashier) || Math.hypot(pt.x - 1170, pt.y - 400) < 110) {
+    if (hitsCharacter(pt, cashier) || Math.hypot(pt.x - ISO_MINIMART_CENTER.x, pt.y - (ISO_MINIMART_CENTER.y - 36)) < 78) {
       sfx.click();
       setShowLookoutModal(true);
       return;
     }
 
-    if (Math.hypot(pt.x - 930, pt.y - 280) < 75) {
+    const voidDeckPos = isoToWorld(22, 20);
+    if (Math.hypot(pt.x - voidDeckPos.x, pt.y - (voidDeckPos.y - 24)) < 56) {
       sfx.click();
-      showToast('RC Notice Board: "Block 260 Neighbourhood Watch — look out for one another!"');
+      showToast('Blk 260 Shield View Void Deck — check nearby for Uncle Tan\'s missing EZ-Link card!');
       return;
     }
 
-    if (Math.hypot(pt.x - 875, pt.y - 430) < 60) {
+    const busPos = isoToWorld(17, 27);
+    if (Math.hypot(pt.x - busPos.x, pt.y - (busPos.y - 12)) < 64) {
       sfx.click();
-      showToast('Someone chope-d the stone table with a tissue packet! Look beside it!');
-      return;
-    }
-
-    if (Math.hypot(pt.x - 380, pt.y - 680) < 80) {
-      sfx.click();
-      showToast('Bus Stop 26019 — ShieldBus 88 toward Baycrest SkyDeck & Shiok Hawker Square.');
+      showToast('Bus Stop 26019 — SBS Bus 88 along Ang Mo Kio Ave 3 toward SUNhub.');
       return;
     }
 
@@ -621,6 +627,7 @@ export const GameWorld: React.FC<GameWorldProps> = ({
   const handleCanvasMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const pt = getCanvasPoint(e.clientX, e.clientY);
     if (!pt) return;
+    hoveredTileRef.current = tileAtWorld(pt.x, pt.y);
     const hovered =
       currentNpcs.current.find((n) => hitsCharacter(pt, n))?.worldKey ?? null;
     hoveredTargetRef.current = hovered;

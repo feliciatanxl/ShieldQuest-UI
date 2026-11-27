@@ -1,124 +1,42 @@
 import { AvatarConfig, Direction, NPCEntity, TimeOfDay } from '../types/game';
 import { drawCharacter, getPlayerSheet, getSheet, loadImage } from './sprites';
-import { districtArt } from '../data/districts';
 import {
-  DISTRICTS, DISTRICT_ORIGINS, NEIGHBOURHOOD_PATHS, NORTH_LINK_GARDEN, SCENE_HEIGHT, SCENE_WIDTH,
-  VERGE_TREES, worldPoint,
-} from '../data/worldMap';
-import { expansionForeground } from './expansionGeometry';
+  ART_SCALE,
+  HALF_H,
+  HALF_W,
+  isoToWorld,
+  MAP_COLS,
+  MAP_ROWS,
+  TILE_H,
+  TILE_W,
+  worldToIso,
+} from './isoGrid';
+import {
+  ISO_AUNTIE_PATH,
+  ISO_ITEM_POS,
+  ISO_MINIMART_ZONE,
+  ISO_PLAYER_START,
+  ISO_UNCLE_POS,
+  isTileWalkable,
+  isWorldPointWalkable,
+  TILES,
+  WORLD_PROPS,
+} from '../data/singaporeWorld';
+import { SCENE_HEIGHT, SCENE_WIDTH } from '../data/worldMap';
 
-// The street scene is one 640x360 PixelLab painting shown at 2x on a 1280x720 canvas.
 export const CANVAS_W = SCENE_WIDTH;
 export const CANVAS_H = SCENE_HEIGHT;
-const ART_SCALE = 2;
 
 export type Pt = { x: number; y: number };
 
-// ---------- Scene layout (1280x720 canvas pixels, feet positions) ----------
-
-export const PLAYER_START: Pt = { x: 470, y: 485 };
-export const UNCLE_POS: Pt = { x: 560, y: 455 };
-export const AUNTIE_PATH: [Pt, Pt] = [
-  { x: 540, y: 535 },
-  { x: 740, y: 605 },
-];
-export const ITEM_POS = {
-  ezlink: { x: 790, y: 478 },
-  chope: { x: 965, y: 470 },
-  kopi: { x: 480, y: 330 },
-};
-/**
- * Props painted into the background that characters can stand behind. The outline is
- * traced from the art; anyone whose feet are above `frontY` is drawn behind the prop.
- */
-const FOREGROUND_PROPS: { outline: Pt[]; frontY: number }[] = [
-  {
-    // Roof above the north linkway. Walkers on its far side pass under the roof.
-    outline: [
-      { x: 257, y: 158 }, { x: 314, y: 109 }, { x: 586, y: 0 },
-      { x: 644, y: 0 }, { x: 644, y: 103 }, { x: 355, y: 215 }, { x: 258, y: 184 },
-    ],
-    frontY: 171,
-  },
-  {
-    // Minimart snack rack (bottom right)
-    outline: [
-      { x: 1203, y: 600 },
-      { x: 1212, y: 574 },
-      { x: 1236, y: 558 },
-      { x: 1250, y: 548 },
-      { x: 1280, y: 546 },
-      { x: 1280, y: 700 },
-      { x: 1250, y: 680 },
-      { x: 1220, y: 668 },
-      { x: 1203, y: 668 },
-    ],
-    frontY: 660,
-  },
-];
-
-/** Walking into this box (the Sunshine Minimart shop front) opens the Lookout Dilemma. */
-export const MINIMART_ZONE = { x0: 1050, y0: 590, x1: 1210, y1: 650 };
-
-const WALK_AREA: Pt[] = [
-  { x: 590, y: 120 },
-  { x: 655, y: 120 },
-  { x: 655, y: 330 },
-  { x: 712, y: 356 },
-  { x: 835, y: 346 },
-  { x: 860, y: 336 },
-  { x: 1005, y: 372 },
-  { x: 1010, y: 470 },
-  { x: 1060, y: 600 },
-  { x: 1205, y: 650 },
-  { x: 1205, y: 705 },
-  { x: 1070, y: 705 },
-  { x: 1045, y: 640 },
-  { x: 860, y: 622 },
-  { x: 420, y: 568 },
-  { x: 300, y: 540 },
-  { x: 245, y: 515 },
-  { x: 232, y: 468 },
-  { x: 300, y: 420 },
-  { x: 292, y: 372 },
-  { x: 440, y: 250 },
-];
-
-// Ellipses (cx, cy, rx, ry) and boxes the player cannot stand in.
-const BLOCK_ELLIPSES: [number, number, number, number][] = [
-  [275, 346, 16, 10], // shelter posts
-  [382, 398, 16, 10],
-  [468, 248, 14, 9],
-  [575, 300, 14, 9],
-  [628, 396, 34, 20], // recycling bin
-  [875, 445, 72, 40], // stone table + stools
-  [262, 505, 14, 9], // night lamp posts (harmless by day)
-  [760, 565, 14, 9],
-];
-const BLOCK_BOXES: [number, number, number, number][] = [
-  [648, 330, 716, 446], // mosaic pillar (left)
-  [972, 470, 1132, 612], // minimart pillar, bin, drink crates
-];
-
-function insidePolygon(x: number, y: number, poly: Pt[]) {
-  let inside = false;
-  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-    const a = poly[i];
-    const b = poly[j];
-    if (a.y > y !== b.y > y && x < ((b.x - a.x) * (y - a.y)) / (b.y - a.y) + a.x) inside = !inside;
-  }
-  return inside;
-}
+export const PLAYER_START: Pt = ISO_PLAYER_START;
+export const UNCLE_POS: Pt = ISO_UNCLE_POS;
+export const AUNTIE_PATH: [Pt, Pt] = ISO_AUNTIE_PATH;
+export const ITEM_POS = ISO_ITEM_POS;
+export const MINIMART_ZONE = ISO_MINIMART_ZONE;
 
 export function isWalkable(x: number, y: number): boolean {
-  if (!insidePolygon(x, y, WALK_AREA)) return false;
-  for (const [cx, cy, rx, ry] of BLOCK_ELLIPSES) {
-    if (((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 < 1) return false;
-  }
-  for (const [x0, y0, x1, y1] of BLOCK_BOXES) {
-    if (x >= x0 && x <= x1 && y >= y0 && y <= y1) return false;
-  }
-  return true;
+  return isWorldPointWalkable(x, y);
 }
 
 /** Facing for a movement vector in screen space (8-way). */
@@ -128,58 +46,125 @@ export function directionFor(dx: number, dy: number): Direction {
   return dirs[(Math.round(a / (Math.PI / 4)) + 8) % 8];
 }
 
-// ---------- Background ----------
+// ---------- Asset Manifest & Image Cache ----------
 
-const backgrounds = new Map<string, HTMLImageElement>();
+interface TileManifestEntry {
+  day: string;
+  night: string;
+  w: number;
+  h: number;
+}
+
+interface PropManifestEntry extends TileManifestEntry {
+  ax: number;
+  ay: number;
+}
+
+interface IsoManifest {
+  tiles: Record<string, TileManifestEntry>;
+  props: Record<string, PropManifestEntry>;
+}
+
+let manifest: IsoManifest | null = null;
+let manifestLoading = false;
+
+function ensureManifest() {
+  if (manifest || manifestLoading) return;
+  manifestLoading = true;
+  fetch('/assets/iso/manifest.json')
+    .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
+    .then((data: IsoManifest) => {
+      manifest = data;
+      // Preload day tiles and props immediately
+      for (const t of Object.values(data.tiles)) prepareImage(t.day);
+      for (const p of Object.values(data.props)) prepareImage(p.day);
+    })
+    .catch(console.error);
+}
+ensureManifest();
+
+const images = new Map<string, HTMLImageElement>();
 const loading = new Set<string>();
-function prepareImage(path: string) {
+function prepareImage(path: string): HTMLImageElement | undefined {
   if (!loading.has(path)) {
     loading.add(path);
-    loadImage(path).then((img) => backgrounds.set(path, img)).catch(console.error);
+    loadImage(path).then((img) => images.set(path, img)).catch(console.error);
   }
-  return backgrounds.get(path);
-}
-for (const district of DISTRICTS) {
-  prepareImage(districtArt(district, false));
+  return images.get(path);
 }
 
-const patterns = new WeakMap<HTMLImageElement, CanvasPattern>();
-function groundPattern(ctx: CanvasRenderingContext2D, src: string, fallback: string) {
-  const image = prepareImage(src);
-  if (!image) return fallback;
-  let pattern = patterns.get(image);
-  if (!pattern) {
-    pattern = ctx.createPattern(image, 'repeat') ?? undefined;
-    if (pattern) {
-      pattern.setTransform(new DOMMatrix().scale(ART_SCALE));
-      patterns.set(image, pattern);
+const ITEM_SPRITE_PATH: Record<keyof typeof ITEM_POS, string> = {
+  ezlink: '/assets/ui/item-ezlink.png',
+  kopi: '/assets/ui/item-kopi.png',
+  chope: '/assets/ui/item-chope.png',
+};
+Object.values(ITEM_SPRITE_PATH).forEach(prepareImage);
+
+// ---------- Topological Isometric Depth Sort ----------
+
+interface RenderItem {
+  cMin: number;
+  cMax: number;
+  rMin: number;
+  rMax: number;
+  tieDepth: number;
+  draw: () => void;
+}
+
+function sortIsoItems(items: RenderItem[]): RenderItem[] {
+  const n = items.length;
+  if (n <= 1) return items;
+
+  // Sort by depth baseline first so tie-breaks are naturally ordered
+  items.sort((a, b) => a.tieDepth - b.tieDepth);
+
+  const adj: number[][] = Array.from({ length: n }, () => []);
+  const indeg = new Int32Array(n);
+
+  for (let i = 0; i < n; i++) {
+    const a = items[i];
+    for (let j = i + 1; j < n; j++) {
+      const b = items[j];
+      const aBehindB =
+        (a.cMax <= b.cMin + 0.04 && a.rMin < b.rMax - 0.04) ||
+        (a.rMax <= b.rMin + 0.04 && a.cMin < b.cMax - 0.04);
+      const bBehindA =
+        (b.cMax <= a.cMin + 0.04 && b.rMin < a.rMax - 0.04) ||
+        (b.rMax <= a.rMin + 0.04 && b.cMin < a.cMax - 0.04);
+
+      if (aBehindB && !bBehindA) {
+        adj[i].push(j);
+        indeg[j]++;
+      } else if (bBehindA && !aBehindB) {
+        adj[j].push(i);
+        indeg[i]++;
+      }
     }
   }
-  return pattern ?? fallback;
-}
 
-function drawConnectingPaths(ctx: CanvasRenderingContext2D, camera: Pt, night: boolean) {
-  const mode = night ? 'night' : 'day';
-  ctx.fillStyle = groundPattern(ctx, `/assets/expansion/verge-${mode}.png`, night ? '#30343b' : '#737449');
-  ctx.fillRect(camera.x, camera.y, CANVAS_W, CANVAS_H);
-  const paving = groundPattern(ctx, `/assets/expansion/linkway-${mode}.png`, night ? '#56505b' : '#b7a484');
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-  for (const path of NEIGHBOURHOOD_PATHS) {
-    ctx.beginPath();
-    path.points.forEach((pt, i) => (i ? ctx.lineTo(pt.x, pt.y) : ctx.moveTo(pt.x, pt.y)));
-    ctx.lineWidth = path.radius * 2 + 8;
-    ctx.strokeStyle = night ? '#3a383b' : '#938772';
-    ctx.stroke();
-    ctx.lineWidth = path.radius * 2;
-    ctx.strokeStyle = paving;
-    ctx.stroke();
+  const queue: number[] = [];
+  for (let i = 0; i < n; i++) {
+    if (indeg[i] === 0) queue.push(i);
   }
-  const garden = prepareImage(`/assets/expansion/north-link-garden-${mode}.png`);
-  if (garden) {
-    ctx.drawImage(garden, NORTH_LINK_GARDEN.x, NORTH_LINK_GARDEN.y,
-      garden.width * ART_SCALE, garden.height * ART_SCALE);
+
+  const out: RenderItem[] = [];
+  let head = 0;
+  while (head < queue.length) {
+    const u = queue[head++];
+    out.push(items[u]);
+    for (const v of adj[u]) {
+      if (--indeg[v] === 0) queue.push(v);
+    }
   }
+
+  if (out.length < n) {
+    // Fallback if any rare overlap caused a cycle
+    const seen = new Set(out);
+    for (const item of items) {
+      if (!seen.has(item)) out.push(item);
+    }
+  }
+  return out;
 }
 
 // ---------- Render ----------
@@ -192,124 +177,385 @@ export interface RenderState {
   npcs: (NPCEntity & { worldKey: string })[];
   items: { kind: keyof typeof ITEM_POS }[];
   hoveredTarget: string | null;
+  hoveredTile?: { col: number; row: number } | null;
   speech: { npcId: string; text: string; icon?: 'ezlink' | 'alert' | 'shop' } | null;
   walkTargetMarker: (Pt & { createdAt: number }) | null;
-  /** Visible horizontal slice of the canvas (phones crop the 16:9 scene). */
   viewX?: [number, number];
 }
 
 const INK = '#231a16';
 const DEBUG = typeof location !== 'undefined' && location.search.includes('debug');
 
+// Persistent SBS Bus 88 simulation along Ang Mo Kio Ave 3 (row 29.0, SE-bound)
+const busSim = {
+  col: 9,
+  speed: 2.2,
+  stopTimer: 0,
+  stoppedThisPass: false,
+  wheelPhase: 0,
+  lastTime: -1,
+};
+
+function stepBusSimulation(time: number, playerCol: number, playerRow: number) {
+  if (busSim.lastTime < 0) busSim.lastTime = time;
+  const dt = Math.max(0, Math.min(0.05, time - busSim.lastTime));
+  busSim.lastTime = time;
+
+  // Yield at West (col 21..22) or East (col 33..34) zebra crossing if player is crossing
+  const playerOnRoad = playerRow >= 27.0 && playerRow <= 32.5;
+  const yieldWest = playerOnRoad && playerCol >= 20.2 && playerCol <= 22.8 && busSim.col >= 16.0 && busSim.col <= 19.4;
+  const yieldEast = playerOnRoad && playerCol >= 32.2 && playerCol <= 34.8 && busSim.col >= 28.0 && busSim.col <= 31.4;
+
+  // Stop smoothly at Blk 260 Bus Stop 26019 (col 15.8..16.8) once per pass
+  if (busSim.stopTimer > 0) {
+    busSim.stopTimer = Math.max(0, busSim.stopTimer - dt);
+  } else if (!busSim.stoppedThisPass && busSim.col >= 15.8 && busSim.col <= 16.8 && !yieldWest && !yieldEast) {
+    busSim.stopTimer = 3.2;
+    busSim.stoppedThisPass = true;
+  }
+
+  const targetSpeed = busSim.stopTimer > 0 || yieldWest || yieldEast ? 0 : 2.3;
+  busSim.speed += (targetSpeed - busSim.speed) * Math.min(1, dt * 4.5);
+  if (targetSpeed === 0 && busSim.speed < 0.04) busSim.speed = 0;
+
+  busSim.col += busSim.speed * dt;
+  busSim.wheelPhase += busSim.speed * dt * 9.0;
+
+  if (busSim.col > 48.5) {
+    busSim.col = 3.0;
+    busSim.stoppedThisPass = false;
+  }
+}
+
 export function renderScene(ctx: CanvasRenderingContext2D, s: RenderState) {
+  ensureManifest();
   const night = s.timeOfDay === 'evening';
+  const mode = night ? 'night' : 'day';
   ctx.imageSmoothingEnabled = false;
+
+  // Cosy background outside the isometric diamond world
+  ctx.fillStyle = night ? '#1b2030' : '#647338';
+  ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
 
   ctx.save();
   ctx.translate(-s.camera.x, -s.camera.y);
-  drawConnectingPaths(ctx, s.camera, night);
-  const scenes = [];
-  for (const district of DISTRICTS) {
-    const origin = DISTRICT_ORIGINS[district];
-    const image = prepareImage(districtArt(district, night)) ?? backgrounds.get(districtArt(district, !night));
-    if (!image || origin.x + CANVAS_W < s.camera.x || origin.x > s.camera.x + CANVAS_W
-      || origin.y + CANVAS_H < s.camera.y || origin.y > s.camera.y + CANVAS_H) continue;
-    ctx.drawImage(image, origin.x, origin.y, CANVAS_W, CANVAS_H);
-    scenes.push({ district, origin, image });
+
+  // Visible tile range from camera viewport corners + generous margin for tall props
+  const corners = [
+    worldToIso(s.camera.x - 160, s.camera.y - 120),
+    worldToIso(s.camera.x + CANVAS_W + 160, s.camera.y - 120),
+    worldToIso(s.camera.x - 160, s.camera.y + CANVAS_H + 220),
+    worldToIso(s.camera.x + CANVAS_W + 160, s.camera.y + CANVAS_H + 220),
+  ];
+  const minCol = Math.max(0, Math.floor(Math.min(...corners.map((c) => c.col))) - 2);
+  const maxCol = Math.min(MAP_COLS - 1, Math.ceil(Math.max(...corners.map((c) => c.col))) + 2);
+  const minRow = Math.max(0, Math.floor(Math.min(...corners.map((c) => c.row))) - 2);
+  const maxRow = Math.min(MAP_ROWS - 1, Math.ceil(Math.max(...corners.map((c) => c.row))) + 2);
+
+  // 1. Ground Tile Pass
+  for (let row = minRow; row <= maxRow; row++) {
+    for (let col = minCol; col <= maxCol; col++) {
+      const tileId = TILES[row][col];
+      const pt = isoToWorld(col, row);
+      if (
+        pt.x + HALF_W < s.camera.x ||
+        pt.x - HALF_W > s.camera.x + CANVAS_W ||
+        pt.y + HALF_H < s.camera.y ||
+        pt.y - HALF_H > s.camera.y + CANVAS_H
+      ) {
+        continue;
+      }
+      const entry = manifest?.tiles[tileId];
+      const img = entry ? (prepareImage(entry[mode]) ?? prepareImage(entry.day)) : undefined;
+      if (img) {
+        ctx.drawImage(img, Math.round(pt.x - HALF_W), Math.round(pt.y - HALF_H), TILE_W, TILE_H);
+      } else {
+        drawFallbackDiamond(ctx, pt.x, pt.y, night ? '#2c3340' : '#7f8c46');
+      }
+    }
   }
 
+  // 2. Ground hover tile highlight (Habbo-style walkable cursor) + walk ripple + pixel pickups
+  if (s.hoveredTile && isTileWalkable(s.hoveredTile.col, s.hoveredTile.row)) {
+    const hp = isoToWorld(s.hoveredTile.col, s.hoveredTile.row);
+    drawIsoHoverTile(ctx, hp.x, hp.y);
+  }
   if (s.walkTargetMarker) drawWalkMarker(ctx, s.walkTargetMarker, s.time);
-  for (const item of s.items) drawPickup(ctx, worldPoint('block260', ITEM_POS[item.kind]), item.kind, s.time);
+  for (const item of s.items) drawPickup(ctx, ITEM_POS[item.kind], item.kind, s.time);
 
-  // Depth sort: lower on screen = closer to camera = drawn later.
-  type Actor = { y: number; draw: () => void };
-  const actors: Actor[] = s.npcs.map((npc) => ({
-    y: npc.y,
-    draw: () => {
-      const sheet = getSheet(npc.id);
-      if (!sheet) return;
-      drawShadow(ctx, npc.x, npc.y);
-      if (s.hoveredTarget === npc.worldKey) drawHoverRing(ctx, npc.x, npc.y);
-      drawCharacter(ctx, sheet, npc.x, npc.y, npc.dir, npc.walking ? s.time * 9 : null);
-    },
-  }));
-  const tree = prepareImage('/assets/expansion/linkway-tree.png');
-  if (tree) {
-    const size = tree.width * ART_SCALE;
-    for (const [i, root] of VERGE_TREES.entries()) {
-      if (root.x + size / 2 < s.camera.x || root.x - size / 2 > s.camera.x + CANVAS_W
-        || root.y < s.camera.y || root.y - size > s.camera.y + CANVAS_H) continue;
-      actors.push({
-        y: root.y,
-        draw: () => {
+  // 3. Depth-Sorted Actor, Prop & Canopy Pass
+  const renderItems: RenderItem[] = [];
+  const p = s.player;
+  const pIso = worldToIso(p.x, p.y);
+  stepBusSimulation(s.time, pIso.col, pIso.row);
+
+  for (const prop of WORLD_PROPS) {
+    if (
+      prop.col + prop.footCols < minCol - 2 ||
+      prop.col > maxCol + 2 ||
+      prop.row + prop.footRows < minRow - 2 ||
+      prop.row > maxRow + 2
+    ) {
+      continue;
+    }
+    const meta = manifest?.props[prop.id];
+    const img = meta ? (prepareImage(meta[mode]) ?? prepareImage(meta.day)) : undefined;
+    if (!meta || !img) continue;
+    const anchor = isoToWorld(prop.col, prop.row);
+    const drawX = Math.round(anchor.x - meta.ax * ART_SCALE);
+    const drawY = Math.round(anchor.y - meta.ay * ART_SCALE);
+    const drawW = meta.w * ART_SCALE;
+    const drawH = meta.h * ART_SCALE;
+    if (
+      drawX + drawW < s.camera.x &&
+      !prop.flipX ||
+      (!prop.flipX && drawX > s.camera.x + CANVAS_W) ||
+      drawY + drawH < s.camera.y ||
+      drawY > s.camera.y + CANVAS_H
+    ) {
+      continue;
+    }
+    const isOverhead = prop.layer === 'overhead';
+    const cMin = prop.col - 0.48;
+    const cMax = prop.col + prop.footCols - 0.52;
+    const rMin = prop.row - 0.48;
+    const rMax = prop.row + prop.footRows - 0.52;
+    renderItems.push({
+      cMin,
+      cMax,
+      rMin,
+      rMax,
+      tieDepth: cMax + rMax + (isOverhead ? 0.65 : 0),
+      draw: () => {
+        if (prop.solid) {
+          drawPropShadow(ctx, prop.col, prop.row, prop.footCols, prop.footRows);
+        }
+        if (prop.flipX) {
           ctx.save();
-          if (night) ctx.filter = 'brightness(0.53) saturate(0.77)';
-          ctx.translate(root.x, root.y);
-          if (i % 2) ctx.scale(-1, 1);
-          ctx.drawImage(tree, -size / 2, -size, size, size);
+          ctx.translate(Math.round(anchor.x), 0);
+          ctx.scale(-1, 1);
+          ctx.drawImage(img, -meta.ax * ART_SCALE, drawY, drawW, drawH);
           ctx.restore();
+        } else {
+          ctx.drawImage(img, drawX, drawY, drawW, drawH);
+        }
+      },
+    });
+  }
+
+  // Living Singapore street traffic: SBS Bus 88 with 4-frame spinning wheels & bus-stop pauses
+  const busFrame = Math.floor(busSim.wheelPhase) % 4;
+  const busMeta = manifest?.props[`sg_bus_f${busFrame}`] ?? manifest?.props.sg_bus;
+  const busImg = busMeta ? (prepareImage(busMeta[mode]) ?? prepareImage(busMeta.day)) : undefined;
+  if (busMeta && busImg) {
+    const busRow = 29.0;
+    const busAnchor = isoToWorld(busSim.col, busRow);
+    const bounce = busSim.speed > 0.45 ? (Math.floor(busSim.wheelPhase * 1.5) % 2 === 0 ? -1 : 0) : 0;
+    const drawX = Math.round(busAnchor.x - busMeta.ax * ART_SCALE);
+    const drawY = Math.round(busAnchor.y - busMeta.ay * ART_SCALE + bounce);
+    const drawW = busMeta.w * ART_SCALE;
+    const drawH = busMeta.h * ART_SCALE;
+    if (
+      drawX + drawW >= s.camera.x &&
+      drawX <= s.camera.x + CANVAS_W &&
+      drawY + drawH >= s.camera.y &&
+      drawY <= s.camera.y + CANVAS_H
+    ) {
+      const cMin = busSim.col - 0.48;
+      const cMax = busSim.col + 4 - 0.52;
+      const rMin = busRow - 0.48;
+      const rMax = busRow + 1 - 0.52;
+      renderItems.push({
+        cMin,
+        cMax,
+        rMin,
+        rMax,
+        tieDepth: cMax + rMax,
+        draw: () => {
+          drawPropShadow(ctx, busSim.col, busRow, 4, 1);
+          ctx.drawImage(busImg, drawX, drawY, drawW, drawH);
+          // Blinking amber hazard/stop indicator while halted at Bus Stop 26019
+          if (busSim.stopTimer > 0 && Math.floor(s.time * 4) % 2 === 0) {
+            ctx.fillStyle = '#ffbf3f';
+            ctx.fillRect(drawX + drawW - 22, drawY + drawH - 22, 5, 4);
+          }
         },
       });
     }
   }
-  const p = s.player;
-  actors.push({
-    y: p.y,
+
+  for (const npc of s.npcs) {
+    if (
+      npc.x + 64 < s.camera.x ||
+      npc.x - 64 > s.camera.x + CANVAS_W ||
+      npc.y + 32 < s.camera.y ||
+      npc.y - 160 > s.camera.y + CANVAS_H
+    ) {
+      continue;
+    }
+    const iso = worldToIso(npc.x, npc.y);
+    renderItems.push({
+      cMin: iso.col - 0.24,
+      cMax: iso.col + 0.24,
+      rMin: iso.row - 0.24,
+      rMax: iso.row + 0.24,
+      tieDepth: iso.col + iso.row,
+      draw: () => {
+        const sheet = getSheet(npc.id);
+        if (!sheet) return;
+        drawShadow(ctx, npc.x, npc.y);
+        if (s.hoveredTarget === npc.worldKey) drawHoverRing(ctx, npc.x, npc.y);
+        if (night) ctx.filter = 'brightness(0.84) saturate(0.92)';
+        drawCharacter(ctx, sheet, npc.x, npc.y, npc.dir, npc.walking ? s.time * 9 : null, 2, s.time);
+        ctx.filter = 'none';
+      },
+    });
+  }
+
+  renderItems.push({
+    cMin: pIso.col - 0.24,
+    cMax: pIso.col + 0.24,
+    rMin: pIso.row - 0.24,
+    rMax: pIso.row + 0.24,
+    tieDepth: pIso.col + pIso.row,
     draw: () => {
       const sheet = getPlayerSheet(p.avatar);
       if (!sheet) return;
       drawShadow(ctx, p.x, p.y);
-      drawCharacter(ctx, sheet, p.x, p.y, p.dir, p.isMoving ? p.walkPhase : null);
+      if (night) ctx.filter = 'brightness(0.86) saturate(0.94)';
+      drawCharacter(ctx, sheet, p.x, p.y, p.dir, p.isMoving ? p.walkPhase : null, 2, s.time);
+      ctx.filter = 'none';
     },
   });
 
-  // Painted props that stand in front of characters: redraw their shape from the
-  // background, sorted by their front edge like any other actor.
-  for (const { district, origin, image } of scenes) {
-    for (const fg of district === 'block260' ? FOREGROUND_PROPS : expansionForeground(district)) {
-      actors.push({
-        y: fg.frontY + origin.y,
-        draw: () => {
-          ctx.save();
-          ctx.filter = 'none';
-          ctx.translate(origin.x, origin.y);
-          ctx.beginPath();
-          fg.outline.forEach((pt, i) => (i ? ctx.lineTo(pt.x, pt.y) : ctx.moveTo(pt.x, pt.y)));
-          ctx.closePath();
-          ctx.clip();
-          ctx.drawImage(image, 0, 0, CANVAS_W, CANVAS_H);
-          ctx.restore();
-        },
-      });
-    }
+  for (const item of sortIsoItems(renderItems)) {
+    item.draw();
   }
 
-  // Dim sprites to sit in the night painting's lighting.
-  if (night) ctx.filter = 'brightness(0.82) saturate(0.9)';
-  actors.sort((a, b) => a.y - b.y).forEach((a) => a.draw());
-  ctx.filter = 'none';
+  // 4. Night Ambient Light Pools
+  if (night) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    for (const prop of WORLD_PROPS) {
+      if (!prop.light) continue;
+      if (
+        prop.col + prop.footCols < minCol - 2 ||
+        prop.col > maxCol + 2 ||
+        prop.row + prop.footRows < minRow - 2 ||
+        prop.row > maxRow + 2
+      ) {
+        continue;
+      }
+      const center = isoToWorld(prop.col + (prop.footCols - 1) * 0.5, prop.row + (prop.footRows - 1) * 0.5);
+      const radius = prop.id === 'sunhub_atrium' ? 165 : 135;
+      const grad = ctx.createRadialGradient(center.x, center.y - 16, 8, center.x, center.y - 16, radius);
+      grad.addColorStop(0, 'rgba(255, 214, 120, 0.22)');
+      grad.addColorStop(1, 'rgba(255, 214, 120, 0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(center.x, center.y - 16, radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
 
+  // 6. Living heartland birds (tiny white pigeons drifting over park & Blk 260)
+  drawHeartlandBirds(ctx, s.camera, s.time, night);
+
+  // 7. Player marker + NPC speech bubble + optional debug grid
   drawPlayerMarker(ctx, p.x, p.y - 132 + Math.sin(s.time * 4) * 3);
 
   if (s.speech) {
     const npc = s.npcs.find((n) => n.worldKey === `block260:${s.speech!.npcId}`);
-    if (npc) drawSpeechBubble(ctx, npc, s.speech.text, s.speech.icon, night, s.viewX ?? [0, CANVAS_W]);
+    if (npc) {
+      drawSpeechBubble(
+        ctx,
+        npc,
+        s.speech.text,
+        s.speech.icon,
+        night,
+        s.viewX ?? [s.camera.x, s.camera.x + CANVAS_W],
+      );
+    }
   }
 
-  if (DEBUG) {
-    ctx.save();
-    ctx.translate(DISTRICT_ORIGINS.block260.x, DISTRICT_ORIGINS.block260.y);
-    drawDebug(ctx);
-    ctx.restore();
-  }
+  if (DEBUG) drawDebug(ctx, minCol, maxCol, minRow, maxRow);
+  ctx.restore();
+}
+
+function drawFallbackDiamond(ctx: CanvasRenderingContext2D, cx: number, cy: number, color: string) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - HALF_H);
+  ctx.lineTo(cx + HALF_W, cy);
+  ctx.lineTo(cx, cy + HALF_H);
+  ctx.lineTo(cx - HALF_W, cy);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawIsoHoverTile(ctx: CanvasRenderingContext2D, cx: number, cy: number) {
+  ctx.save();
+  ctx.fillStyle = 'rgba(255, 232, 130, 0.22)';
+  ctx.strokeStyle = 'rgba(255, 232, 130, 0.85)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - HALF_H + 1);
+  ctx.lineTo(cx + HALF_W - 2, cy);
+  ctx.lineTo(cx, cy + HALF_H - 1);
+  ctx.lineTo(cx - HALF_W + 2, cy);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
   ctx.restore();
 }
 
 function drawShadow(ctx: CanvasRenderingContext2D, x: number, y: number) {
   ctx.fillStyle = 'rgba(20, 14, 12, 0.28)';
   ctx.beginPath();
-  ctx.ellipse(x, y - 2, 26, 9, 0, 0, Math.PI * 2);
+  ctx.ellipse(x, y - 2, 24, 9, 0, 0, Math.PI * 2);
   ctx.fill();
+}
+
+function drawPropShadow(ctx: CanvasRenderingContext2D, col: number, row: number, fc: number, fr: number) {
+  const ox = 8;
+  const oy = 5;
+  const p0 = isoToWorld(col - 0.45, row - 0.45);
+  const p1 = isoToWorld(col + fc - 0.55, row - 0.45);
+  const p2 = isoToWorld(col + fc - 0.55, row + fr - 0.55);
+  const p3 = isoToWorld(col - 0.45, row + fr - 0.55);
+  ctx.fillStyle = 'rgba(20, 16, 14, 0.18)';
+  ctx.beginPath();
+  ctx.moveTo(p0.x + ox, p0.y + oy);
+  ctx.lineTo(p1.x + ox, p1.y + oy);
+  ctx.lineTo(p2.x + ox, p2.y + oy);
+  ctx.lineTo(p3.x + ox, p3.y + oy);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawHeartlandBirds(ctx: CanvasRenderingContext2D, camera: Pt, time: number, night: boolean) {
+  if (night) return;
+  const flocks = [
+    { cx: 15, cy: 20, r: 3.5, speed: 0.42 },
+    { cx: 22, cy: 24, r: 3.2, speed: 0.35 },
+    { cx: 31, cy: 24, r: 3.5, speed: 0.38 },
+  ];
+  ctx.fillStyle = '#f8f6f0';
+  for (let i = 0; i < flocks.length; i++) {
+    const f = flocks[i];
+    for (let b = 0; b < 3; b++) {
+      const ang = time * f.speed + b * 0.8 + i * 2.1;
+      const pos = isoToWorld(f.cx + Math.cos(ang) * f.r, f.cy + Math.sin(ang) * (f.r * 0.65));
+      if (pos.x < camera.x - 40 || pos.x > camera.x + CANVAS_W + 40 || pos.y < camera.y - 40 || pos.y > camera.y + CANVAS_H + 40) continue;
+      const flap = Math.sin(time * 11 + b * 2) > 0 ? 1 : 0;
+      const bx = Math.round(pos.x);
+      const by = Math.round(pos.y - 120 - b * 8);
+      ctx.fillRect(bx - 3, by - flap, 2, 2);
+      ctx.fillRect(bx - 1, by, 2, 2);
+      ctx.fillRect(bx + 1, by - flap, 2, 2);
+    }
+  }
 }
 
 function drawHoverRing(ctx: CanvasRenderingContext2D, x: number, y: number) {
@@ -320,7 +566,6 @@ function drawHoverRing(ctx: CanvasRenderingContext2D, x: number, y: number) {
   ctx.stroke();
 }
 
-/** Green "you are here" arrow above the player, as in the concept art. */
 function drawPlayerMarker(ctx: CanvasRenderingContext2D, x: number, y: number) {
   ctx.fillStyle = '#4fc76a';
   ctx.strokeStyle = INK;
@@ -349,51 +594,34 @@ function drawWalkMarker(ctx: CanvasRenderingContext2D, m: Pt & { createdAt: numb
 
 function drawPickup(ctx: CanvasRenderingContext2D, p: Pt, kind: keyof typeof ITEM_POS, time: number) {
   const pulse = 0.65 + 0.35 * Math.sin(time * 4);
-  const bob = Math.sin(time * 3) * 2;
+  const bob = Math.round(Math.sin(time * 3) * 3);
+
+  ctx.fillStyle = 'rgba(20, 14, 12, 0.28)';
+  ctx.beginPath();
+  ctx.ellipse(p.x, p.y + 1, 18, 7, 0, 0, Math.PI * 2);
+  ctx.fill();
+
   ctx.strokeStyle = `rgba(255, 224, 102, ${pulse})`;
   ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.ellipse(p.x, p.y, 22, 10, 0, 0, Math.PI * 2);
+  ctx.ellipse(p.x, p.y, 24, 10, 0, 0, Math.PI * 2);
   ctx.stroke();
 
-  // Sparkle
+  const img = prepareImage(ITEM_SPRITE_PATH[kind]);
+  if (img) {
+    const size = 36;
+    ctx.drawImage(img, Math.round(p.x - size / 2), Math.round(p.y - size + 2 + bob), size, size);
+  } else {
+    ctx.fillStyle = '#5eb8a8';
+    ctx.fillRect(p.x - 12, p.y - 20 + bob, 24, 16);
+  }
+
+  // Pixel sparkle
   ctx.fillStyle = `rgba(255, 248, 200, ${pulse})`;
-  const sx = p.x + 16;
-  const sy = p.y - 26 + bob;
+  const sx = Math.round(p.x + 17);
+  const sy = Math.round(p.y - 28 + bob);
   ctx.fillRect(sx - 1, sy - 6, 2, 12);
   ctx.fillRect(sx - 6, sy - 1, 12, 2);
-
-  ctx.save();
-  ctx.translate(p.x, p.y - 8 + bob);
-  ctx.strokeStyle = INK;
-  ctx.lineWidth = 2;
-  if (kind === 'ezlink') {
-    ctx.rotate(-0.25);
-    ctx.fillStyle = '#5eb8a8';
-    ctx.fillRect(-14, -9, 28, 18);
-    ctx.strokeRect(-14, -9, 28, 18);
-    ctx.fillStyle = '#8ee0cf';
-    ctx.fillRect(-12, -7, 24, 4);
-    ctx.fillStyle = '#f5d76e';
-    ctx.fillRect(-9, 0, 7, 5);
-  } else if (kind === 'kopi') {
-    ctx.fillStyle = '#7a4a2c';
-    ctx.fillRect(-8, -16, 16, 18);
-    ctx.strokeRect(-8, -16, 16, 18);
-    ctx.fillStyle = '#d1433b';
-    ctx.fillRect(-8, -16, 16, 4);
-    ctx.strokeStyle = '#f4eee4';
-    ctx.beginPath();
-    ctx.arc(0, -18, 6, Math.PI, 0);
-    ctx.stroke();
-  } else {
-    ctx.fillStyle = '#f7f4ec';
-    ctx.fillRect(-11, -7, 22, 13);
-    ctx.strokeRect(-11, -7, 22, 13);
-    ctx.fillStyle = '#4f82b8';
-    ctx.fillRect(-10, -2, 20, 4);
-  }
-  ctx.restore();
 }
 
 function drawSpeechBubble(
@@ -402,23 +630,21 @@ function drawSpeechBubble(
   text: string,
   icon: 'ezlink' | 'alert' | 'shop' | undefined,
   night: boolean,
-  [viewL, viewR]: [number, number]
+  [viewL, viewR]: [number, number],
 ) {
   const boxW = 252;
   const boxH = 70;
   const tipX = npc.x - 8;
   const left = Math.round(Math.max(viewL + 8, Math.min(viewR - boxW - 8, tipX - boxW / 2)));
-  const top = npc.y - 150 - boxH;
+  const top = Math.round(npc.y - 150 - boxH);
   const fill = night ? '#dcd6ea' : '#f5efe6';
-  const P = 2; // one art pixel on the 2x canvas
+  const P = 2;
 
-  // Notched pixel frame: ink body, then fill inset by 2 art pixels
   pxBox(ctx, left, top, boxW, boxH, P * 2, INK);
   pxBox(ctx, left + P * 2, top + P * 2, boxW - P * 4, boxH - P * 4, P * 2, fill);
-  ctx.fillStyle = night ? '#bdb5d1' : '#e2d6c2'; // bottom shade row
+  ctx.fillStyle = night ? '#bdb5d1' : '#e2d6c2';
   ctx.fillRect(left + P * 3, top + boxH - P * 4, boxW - P * 6, P);
 
-  // Stepped tail
   for (let i = 0; i < 5; i++) {
     const half = (5 - i) * P * 1.5;
     ctx.fillStyle = INK;
@@ -469,18 +695,22 @@ function drawSpeechBubble(
   lines.slice(0, 3).forEach((ln, i) => ctx.fillText(ln, left + 68, startY + i * 20));
 }
 
-/** Filled rectangle with square-notched corners, like a pixel-art panel. */
 function pxBox(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, notch: number, color: string) {
   ctx.fillStyle = color;
   ctx.fillRect(x + notch, y, w - notch * 2, h);
   ctx.fillRect(x, y + notch, w, h - notch * 2);
 }
 
-function drawDebug(ctx: CanvasRenderingContext2D) {
-  ctx.fillStyle = 'rgba(0, 255, 120, 0.25)';
-  for (let y = 0; y < CANVAS_H; y += 8) {
-    for (let x = 0; x < CANVAS_W; x += 8) {
-      if (isWalkable(x, y)) ctx.fillRect(x, y, 8, 8);
+function drawDebug(ctx: CanvasRenderingContext2D, minCol: number, maxCol: number, minRow: number, maxRow: number) {
+  for (let r = minRow; r <= maxRow; r++) {
+    for (let c = minCol; c <= maxCol; c++) {
+      const pt = isoToWorld(c, r);
+      drawFallbackDiamond(
+        ctx,
+        pt.x,
+        pt.y,
+        isTileWalkable(c, r) ? 'rgba(0, 255, 120, 0.22)' : 'rgba(255, 60, 60, 0.25)',
+      );
     }
   }
   ctx.strokeStyle = '#ff00ff';
