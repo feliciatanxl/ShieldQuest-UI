@@ -12,7 +12,7 @@ export function TouchJoystick({ movement, onStart }: {
   const baseRef = useRef<HTMLDivElement>(null);
   const gesture = useRef<{ id: number; armed: boolean } | null>(null);
   const [knob, setKnob] = useState({ x: 0, y: 0 });
-  const [armed, setArmed] = useState(false);
+  const [sprintCue, setSprintCue] = useState<'hidden' | 'approaching' | 'ready'>('hidden');
   const [locked, setLocked] = useState(false);
 
   useEffect(() => {
@@ -21,7 +21,7 @@ export function TouchJoystick({ movement, onStart }: {
       gesture.current = null;
       movement.current = IDLE;
       setKnob(IDLE);
-      setArmed(false);
+      setSprintCue('hidden');
       setLocked(false);
     };
     window.addEventListener('blur', reset);
@@ -44,8 +44,9 @@ export function TouchJoystick({ movement, onStart }: {
     const distance = Math.hypot(x, y);
     const radius = rect.width * 0.28;
     const scale = distance > radius ? radius / distance : 1;
-    drag.armed = y < -rect.height * 0.62 && Math.abs(x) < -y * 0.55;
-    setArmed(drag.armed);
+    const pullingUp = y < -rect.height * 0.16 && Math.abs(x) < -y * 0.55;
+    drag.armed = pullingUp && y < -rect.height * 0.62;
+    setSprintCue(drag.armed ? 'ready' : pullingUp ? 'approaching' : 'hidden');
     setKnob({ x: x * scale, y: y * scale });
     movement.current = distance > 7
       ? { x: x / distance, y: y / distance, running: drag.armed }
@@ -59,23 +60,24 @@ export function TouchJoystick({ movement, onStart }: {
     gesture.current = null;
     movement.current = lock ? { x: 0, y: -1, running: true } : IDLE;
     setKnob(IDLE);
-    setArmed(false);
+    setSprintCue('hidden');
     setLocked(lock);
   };
 
   return (
-    <div className="touch-controls">
+    <div className="touch-controls" data-sprint={locked ? 'locked' : sprintCue}>
       <button
         type="button"
         className="touch-sprint"
+        aria-label="Stop sprint"
+        aria-hidden={!locked}
         disabled={!locked}
-        data-armed={armed}
         onClick={() => {
           movement.current = IDLE;
           setLocked(false);
         }}
       >
-        {locked ? 'Stop sprint' : armed ? 'Release to lock' : '↑ Sprint lock'}
+        <span className="touch-sprint-lock" aria-hidden="true" />
       </button>
       <div
         ref={baseRef}

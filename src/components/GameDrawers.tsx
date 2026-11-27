@@ -612,7 +612,7 @@ const SettingsPanel: React.FC<GameDrawersProps> = ({
     </SettingRow>
     <SettingRow title="Touch controls">
       <span className="cream-muted">
-        Drag the joystick to move. Swipe up past its rim and release to lock sprint. Tap Stop sprint or grab the joystick to stop.
+        Drag the joystick to move. Pull up until the lock icon lights up, then release to sprint. Tap the lock or grab the joystick to stop.
       </span>
     </SettingRow>
     <SettingRow title="Interact">

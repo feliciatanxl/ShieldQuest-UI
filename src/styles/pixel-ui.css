@@ -970,25 +970,77 @@ button.px-wood.is-active {
     left: max(12px, env(safe-area-inset-left));
     display: grid;
     justify-items: center;
-    width: max(100px, var(--joystick-size));
-    gap: 6px;
+    width: var(--joystick-size);
     touch-action: none;
     user-select: none;
   }
   .touch-sprint {
-    width: 100%;
-    min-height: 44px;
-    padding: 4px 8px;
+    position: absolute;
+    bottom: calc(100% + 12px);
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    padding: 0;
     border: 2px solid #d3a962;
-    border-radius: 8px;
+    border-radius: 50%;
     background: #161a24ed;
     color: #fff4dc;
-    font: 700 12px var(--font-display);
-    opacity: 1;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(12px) scale(0.8);
+    transition: opacity 140ms ease, transform 160ms ease, background-color 120ms ease;
   }
-  .touch-sprint[data-armed="true"], .touch-sprint:enabled {
+  .touch-controls:not([data-sprint="hidden"]) .touch-sprint {
+    opacity: 1;
+    transform: none;
+  }
+  .touch-controls[data-sprint="ready"] .touch-sprint,
+  .touch-controls[data-sprint="locked"] .touch-sprint {
     background: #f3c46b;
     color: #161a24;
+  }
+  .touch-controls[data-sprint="locked"] .touch-sprint {
+    pointer-events: auto;
+    cursor: pointer;
+  }
+  .touch-sprint-lock {
+    position: relative;
+    width: 16px;
+    height: 11px;
+    margin-top: 6px;
+    border-radius: 2px;
+    background: currentColor;
+    pointer-events: none;
+  }
+  .touch-sprint-lock::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 4px;
+    width: 8px;
+    height: 9px;
+    border: 2px solid currentColor;
+    border-bottom: 0;
+    border-radius: 6px 6px 0 0;
+    transform: translateX(3px) rotate(22deg);
+    transform-origin: right bottom;
+    transition: transform 120ms ease;
+  }
+  .touch-controls[data-sprint="locked"] .touch-sprint-lock::before {
+    transform: none;
+  }
+  .touch-controls[data-sprint="locked"] .touch-sprint-lock {
+    animation: sprint-lock-snap 220ms ease-out;
+  }
+  @keyframes sprint-lock-snap {
+    45% { transform: scale(1.18); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .touch-controls .touch-sprint, .touch-controls .touch-sprint-lock, .touch-sprint-lock::before {
+      transition: none;
+      animation: none;
+    }
   }
   .touch-joystick {
     width: var(--joystick-size);
