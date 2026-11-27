@@ -10,6 +10,8 @@ import {
   SHIRT_COLORS,
   SKIN_TONES,
 } from '../data/gameData';
+import { DISTRICT_NAMES, DistrictId, districtArt, districtExits } from '../data/districts';
+import { expansionLandmarks } from '../game/expansionGeometry';
 import {
   AvatarConfig,
   DrawerType,
@@ -37,7 +39,9 @@ interface GameDrawersProps {
   onToggleSound: () => void;
   squadCode: string;
   playerPos: { x: number; y: number };
+  district: DistrictId;
   onWalkToLandmark: (target: { x: number; y: number }) => void;
+  onWalkToQuest: (target: { x: number; y: number }) => void;
   onStartLookoutMission: () => void;
   onReturnToTitle: () => void;
   wallet: Wallet;
@@ -379,36 +383,43 @@ const WardrobePanel: React.FC<GameDrawersProps> = ({ avatar, setAvatar, wallet }
 
 // ---------- Area map ----------
 
-const MapPanel: React.FC<GameDrawersProps> = ({ clock, playerPos, onWalkToLandmark, onClose }) => {
+const MapPanel: React.FC<GameDrawersProps> = ({ clock, playerPos, district, onWalkToLandmark, onClose }) => {
   const pct = (p: { x: number; y: number }) => ({ left: `${(p.x / 1280) * 100}%`, top: `${(p.y / 720) * 100}%` });
+  const landmarks = district === 'block260' ? MAP_LANDMARKS : expansionLandmarks(district);
+  const exits = districtExits(district);
+  const markers = [...landmarks, ...exits.map(({ at, district: to, hint }) => ({
+    ...at, id: to, name: DISTRICT_NAMES[to], detail: hint, color: '#6bb09e', exit: true,
+  }))];
+  const walk = (point: { x: number; y: number }) => {
+    sfx.click();
+    onWalkToLandmark(point);
+    onClose();
+  };
   return (
     <div style={{ display: 'grid', gap: 12 }}>
       <span className="pill" style={{ justifySelf: 'start' }}>
-        📍 Block 260, Sunshine Estate
+        📍 {DISTRICT_NAMES[district]}
       </span>
       <div className="cream-card" style={{ padding: 10 }}>
         <div className="area-map">
           <img
-            src={`/assets/scenes/${clock.timeOfDay === 'evening' ? 'street-night' : 'street-day'}.png`}
-            alt="Block 260 street: bus stop, void deck and Sunshine Minimart"
+            src={districtArt(district, clock.timeOfDay === 'evening')}
+            alt={DISTRICT_NAMES[district]}
           />
-          {MAP_LANDMARKS.map((loc) => (
+          {markers.map((loc) => (
             <button
               key={loc.id}
               type="button"
               className="map-marker"
               style={pct(loc)}
               title={`Walk to ${loc.name}`}
-              onClick={() => {
-                sfx.click();
-                onWalkToLandmark(loc);
-                onClose();
-              }}
+              aria-label={`Walk to ${loc.name}`}
+              onClick={() => walk(loc)}
             >
               <span className="map-dot" style={{ background: loc.color }}>
-                {loc.name[0]}
+                {'exit' in loc ? '↗' : loc.name[0]}
               </span>
-              <span className="map-label">{loc.name}</span>
+              {!('exit' in loc) && <span className="map-label">{loc.name}</span>}
             </button>
           ))}
           <div className="map-you" style={pct(playerPos)} aria-label="You are here">
@@ -421,7 +432,7 @@ const MapPanel: React.FC<GameDrawersProps> = ({ clock, playerPos, onWalkToLandma
         <span>
           <span className="map-you map-you-inline">YOU</span> You
         </span>
-        {MAP_LANDMARKS.map((loc) => (
+        {landmarks.map((loc) => (
           <span key={loc.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
             <span className="map-dot" style={{ background: loc.color, position: 'static' }}>
               {loc.name[0]}
@@ -429,6 +440,25 @@ const MapPanel: React.FC<GameDrawersProps> = ({ clock, playerPos, onWalkToLandma
             {loc.name}
           </span>
         ))}
+      </div>
+      <div className="cream-card" style={{ padding: 10 }}>
+        <div className="panel-section">Neighbourhood connections</div>
+        <ul style={{ margin: 0, paddingLeft: 20 }}>
+          {(Object.keys(DISTRICT_NAMES) as DistrictId[]).map((area) => (
+            <li key={area} aria-current={area === district ? 'location' : undefined}>
+              <strong>{DISTRICT_NAMES[area]}</strong>{' · '}
+              {districtExits(area).map((exit) => DISTRICT_NAMES[exit.district]).join(' / ')}
+            </li>
+          ))}
+        </ul>
+        <div className="panel-section">Walk from here</div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          {exits.map((exit) => (
+            <button key={exit.district} className="teal-btn" type="button" onClick={() => walk(exit.at)}>
+              {exit.hint} → {DISTRICT_NAMES[exit.district]}
+            </button>
+          ))}
+        </div>
       </div>
       <div className="cream-muted">Tap a marker to walk there.</div>
     </div>
@@ -440,7 +470,7 @@ const MapPanel: React.FC<GameDrawersProps> = ({ clock, playerPos, onWalkToLandma
 const QuestPanel: React.FC<GameDrawersProps> = ({
   questId,
   ezLinkPickedUp,
-  onWalkToLandmark,
+  onWalkToQuest,
   onStartLookoutMission,
   onClose,
 }) => (
@@ -461,7 +491,7 @@ const QuestPanel: React.FC<GameDrawersProps> = ({
           className="pixel-secondary-btn"
           onClick={() => {
             sfx.click();
-            onWalkToLandmark(ezLinkPickedUp ? { x: 600, y: 480 } : { x: 790, y: 478 });
+            onWalkToQuest(ezLinkPickedUp ? { x: 600, y: 480 } : { x: 790, y: 478 });
             onClose();
           }}
         >

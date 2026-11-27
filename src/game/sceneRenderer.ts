@@ -1,5 +1,7 @@
 import { AvatarConfig, Direction, NPCEntity, TimeOfDay } from '../types/game';
 import { drawCharacter, getPlayerSheet, getSheet, loadImage } from './sprites';
+import { DISTRICT_NAMES, DistrictId, ExpansionId, districtArt, districtExits } from '../data/districts';
+import { expansionForeground } from './expansionGeometry';
 
 // The street scene is one 640x360 PixelLab painting shown at 2x on a 1280x720 canvas.
 export const CANVAS_W = 1280;
@@ -116,19 +118,24 @@ export function directionFor(dx: number, dy: number): Direction {
 
 // ---------- Background ----------
 
-const backgrounds: Partial<Record<TimeOfDay, HTMLImageElement>> = {};
-for (const [tod, file] of [
-  ['afternoon', 'street-day.png'],
-  ['evening', 'street-night.png'],
-] as const) {
-  loadImage(`/assets/scenes/${file}`)
-    .then((img) => (backgrounds[tod] = img))
-    .catch((err) => console.error(err));
+const backgrounds = new Map<string, HTMLImageElement>();
+const loading = new Set<string>();
+function prepareScene(district: DistrictId, timeOfDay: TimeOfDay) {
+  const path = districtArt(district, timeOfDay === 'evening');
+  if (!loading.has(path)) {
+    loading.add(path);
+    loadImage(path).then((img) => backgrounds.set(path, img)).catch(console.error);
+  }
+  return backgrounds.get(path);
 }
+prepareScene('block260', 'afternoon');
+prepareScene('block260', 'evening');
 
 // ---------- Render ----------
 
 export interface RenderState {
+  district: DistrictId;
+  arrivalFade: number;
   time: number;
   timeOfDay: TimeOfDay;
   player: Pt & { dir: Direction; isMoving: boolean; walkPhase: number; avatar: AvatarConfig };
@@ -148,7 +155,9 @@ export function renderScene(ctx: CanvasRenderingContext2D, s: RenderState) {
   const night = s.timeOfDay === 'evening';
   ctx.imageSmoothingEnabled = false;
 
-  const bg = backgrounds[s.timeOfDay];
+  const bg = prepareScene(s.district, s.timeOfDay);
+  const exits = districtExits(s.district);
+  for (const exit of exits) prepareScene(exit.district, s.timeOfDay);
   if (bg) ctx.drawImage(bg, 0, 0, bg.width * ART_SCALE, bg.height * ART_SCALE);
   else {
     ctx.fillStyle = '#161a24';
@@ -184,7 +193,7 @@ export function renderScene(ctx: CanvasRenderingContext2D, s: RenderState) {
   // Painted props that stand in front of characters: redraw their shape from the
   // background, sorted by their front edge like any other actor.
   if (bg) {
-    for (const fg of FOREGROUND_PROPS) {
+    for (const fg of s.district === 'block260' ? FOREGROUND_PROPS : expansionForeground(s.district as ExpansionId)) {
       actors.push({
         y: fg.frontY,
         draw: () => {
@@ -213,7 +222,31 @@ export function renderScene(ctx: CanvasRenderingContext2D, s: RenderState) {
     if (npc) drawSpeechBubble(ctx, npc, s.speech.text, s.speech.icon, night, s.viewX ?? [0, CANVAS_W]);
   }
 
-  if (DEBUG) drawDebug(ctx);
+  for (const exit of exits) {
+    if (Math.hypot(exit.at.x - p.x, exit.at.y - p.y) > 168) continue;
+    ctx.save();
+    ctx.font = 'bold 15px monospace';
+    ctx.textAlign = 'center';
+    const label = DISTRICT_NAMES[exit.district];
+    const width = ctx.measureText(label).width + 20;
+    const x = Math.max(width / 2 + 4, Math.min(CANVAS_W - width / 2 - 4, exit.at.x));
+    const y = exit.at.y - 25;
+    ctx.fillStyle = '#231a16e8';
+    ctx.fillRect(x - width / 2, y - 21, width, 28);
+    ctx.fillStyle = '#ffdd92';
+    ctx.fillText(label, x, y - 3);
+    ctx.beginPath();
+    ctx.moveTo(exit.at.x - 5, exit.at.y - 11);
+    ctx.lineTo(exit.at.x + 5, exit.at.y - 11);
+    ctx.lineTo(exit.at.x, exit.at.y - 3);
+    ctx.fill();
+    ctx.restore();
+  }
+  if (DEBUG && s.district === 'block260') drawDebug(ctx);
+  if (s.arrivalFade > 0) {
+    ctx.fillStyle = `rgba(22,26,36,${s.arrivalFade})`;
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+  }
 }
 
 function drawShadow(ctx: CanvasRenderingContext2D, x: number, y: number) {

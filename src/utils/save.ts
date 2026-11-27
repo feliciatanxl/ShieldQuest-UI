@@ -1,5 +1,6 @@
 import { DEFAULT_AVATAR, INITIAL_INVENTORY, INITIAL_SHIELD_SKILLS, REWARDS, SHOP_ITEMS } from '../data/gameData';
 import { AvatarConfig, InventoryItem, QuestId, ShieldLetter, ShieldSkillState } from '../types/game';
+import { DistrictId, readDistrict } from '../data/districts';
 
 /** Progress inside the street scene (owned by GameWorld). */
 export interface WorldSave {
@@ -11,6 +12,7 @@ export interface WorldSave {
   confidencePct: number;
   energyPct: number;
   player: { x: number; y: number };
+  district?: DistrictId;
 }
 
 /** Coins plus which one-time rewards were claimed and which shop items are owned. */
@@ -96,6 +98,7 @@ export function loadSave(): SaveData | null {
       confidencePct: Math.max(0, Math.min(100, num(w.confidencePct, 78))),
       energyPct: Math.max(0, Math.min(100, num(w.energyPct, 66))),
       player: { x: num(p.x, NaN), y: num(p.y, NaN) },
+      district: readDistrict(w.district),
     };
   }
 
