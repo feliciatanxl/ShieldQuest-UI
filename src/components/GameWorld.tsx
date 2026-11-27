@@ -29,6 +29,7 @@ import { sfx } from '../utils/sound';
 import { GameDrawers } from './GameDrawers';
 import { GameHUD } from './GameHUD';
 import { LookoutDilemmaModal } from './LookoutDilemmaModal';
+import { TouchJoystick, type TouchMovement } from './TouchJoystick';
 
 interface GameWorldProps {
   avatar: AvatarConfig;
@@ -133,6 +134,7 @@ export const GameWorld: React.FC<GameWorldProps> = ({
 
   // Mutable simulation refs for smooth 60fps loop without re-renders
   const keysPressed = useRef<Set<string>>(new Set());
+  const touchMovement = useRef<TouchMovement>({ x: 0, y: 0, running: false });
   const playerRef = useRef({
     ...(start && isWalkable(start.player.x, start.player.y) ? start.player : PLAYER_START),
     dir: 'north-east' as Direction,
@@ -250,6 +252,8 @@ export const GameWorld: React.FC<GameWorldProps> = ({
 
   // Keyboard listeners
   useEffect(() => {
+    const clearKeys = () => keysPressed.current.clear();
+    clearKeys();
     const onKeyDown = (e: KeyboardEvent) => {
       if (activeDrawer || showLookoutModal) return;
       const k = e.key.toLowerCase();
@@ -264,9 +268,11 @@ export const GameWorld: React.FC<GameWorldProps> = ({
     };
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
+    window.addEventListener('blur', clearKeys);
     return () => {
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
+      window.removeEventListener('blur', clearKeys);
     };
   }, [activeDrawer, showLookoutModal]);
 
@@ -301,7 +307,9 @@ export const GameWorld: React.FC<GameWorldProps> = ({
         isWalkable(nx, ny) && clearOfSolids(nx, ny, p.x, p.y, solids);
 
       const keys = keysPressed.current;
-      const running = keys.has('shift');
+      const paused = !!activeDrawer || showLookoutModal;
+      const touch = touchMovement.current;
+      const running = keys.has('shift') || touch.running;
       const speed = running ? RUN_SPEED : WALK_SPEED;
 
       let dx = 0;
@@ -311,7 +319,13 @@ export const GameWorld: React.FC<GameWorldProps> = ({
       if (keys.has('a') || keys.has('arrowleft')) dx -= 1;
       if (keys.has('d') || keys.has('arrowright')) dx += 1;
 
-      if (dx === 0 && dy === 0 && p.target) {
+      if (paused) {
+        dx = dy = 0;
+      } else if (dx === 0 && dy === 0) {
+        ({ x: dx, y: dy } = touch);
+      }
+
+      if (!paused && dx === 0 && dy === 0 && p.target) {
         dx = p.target.x - p.x;
         dy = p.target.y - p.y;
         if (Math.hypot(dx, dy) < 6) {
@@ -535,15 +549,7 @@ export const GameWorld: React.FC<GameWorldProps> = ({
         : 'All Block 260 Quests Done!';
 
   return (
-    <div
-      style={{
-        position: 'relative',
-        width: '100vw',
-        height: '100vh',
-        overflow: 'hidden',
-        background: '#161a24',
-      }}
-    >
+    <div className="game-world">
       {/* Full-viewport pixel-art scene */}
       <canvas
         ref={canvasRef}
@@ -574,11 +580,10 @@ export const GameWorld: React.FC<GameWorldProps> = ({
 
       {toastMsg && (
         <div
-          className="px-dark"
+          className="px-dark game-toast"
           role="status"
           style={{
             position: 'absolute',
-            top: 22,
             left: '50%',
             transform: 'translateX(-50%)',
             padding: '8px 18px',
@@ -588,7 +593,6 @@ export const GameWorld: React.FC<GameWorldProps> = ({
             lineHeight: 1.1,
             color: '#fff4dc',
             pointerEvents: 'none',
-            whiteSpace: 'nowrap',
             maxWidth: '90vw',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
@@ -596,6 +600,16 @@ export const GameWorld: React.FC<GameWorldProps> = ({
         >
           {toastMsg}
         </div>
+      )}
+
+      {!activeDrawer && !showLookoutModal && (
+        <TouchJoystick
+          movement={touchMovement}
+          onStart={() => {
+            playerRef.current.target = null;
+            walkMarkerRef.current = null;
+          }}
+        />
       )}
 
       <GameDrawers

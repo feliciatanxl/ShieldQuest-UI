@@ -783,10 +783,10 @@
   transform: none;
 }
 
-@media (max-width: 640px), (max-height: 500px) {
+@media (pointer: coarse), (max-width: 640px), (max-height: 500px) {
   .hud-top-right {
-    top: 10px;
-    right: 10px;
+    top: max(10px, env(safe-area-inset-top));
+    right: max(10px, env(safe-area-inset-right));
     gap: 8px;
   }
   .px-wood.hud-coins {

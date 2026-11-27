@@ -610,6 +610,11 @@ const SettingsPanel: React.FC<GameDrawersProps> = ({
       <span className="cream-muted">Hold</span>
       <span className="keycap">Shift</span>
     </SettingRow>
+    <SettingRow title="Touch controls">
+      <span className="cream-muted">
+        Drag the joystick to move. Swipe up past its rim and release to lock sprint. Tap Stop sprint or grab the joystick to stop.
+      </span>
+    </SettingRow>
     <SettingRow title="Interact">
       <span className="cream-muted">Click a neighbour or glowing item</span>
     </SettingRow>

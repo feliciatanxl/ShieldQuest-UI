@@ -467,6 +467,7 @@ button:focus-visible {
   position: relative;
   width: 100vw;
   height: 100vh;
+  height: 100dvh;
   overflow-x: hidden;
   overflow-y: auto;
   background: #1b1f2a;
@@ -849,6 +850,24 @@ button.px-wood.is-active {
   }
 }
 
+.game-world {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background: #161a24;
+}
+
+.game-toast {
+  top: 22px;
+  text-align: center;
+}
+
+.touch-controls {
+  display: none;
+}
+
 /* ---------- HUD layout ---------- */
 .hud-top-left {
   position: absolute;
@@ -942,10 +961,60 @@ button.px-wood.is-active {
 }
 
 /* Compact HUD for phones (portrait or landscape). Icons drop to their native 32px so pixels stay square. */
-@media (max-width: 640px), (max-height: 500px) {
+@media (pointer: coarse), (max-width: 640px), (max-height: 500px) {
+  .touch-controls {
+    --joystick-size: clamp(76px, 22vmin, 110px);
+    position: absolute;
+    z-index: 12;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    left: max(12px, env(safe-area-inset-left));
+    display: grid;
+    justify-items: center;
+    width: max(100px, var(--joystick-size));
+    gap: 6px;
+    touch-action: none;
+    user-select: none;
+  }
+  .touch-sprint {
+    width: 100%;
+    min-height: 44px;
+    padding: 4px 8px;
+    border: 2px solid #d3a962;
+    border-radius: 8px;
+    background: #161a24ed;
+    color: #fff4dc;
+    font: 700 12px var(--font-display);
+    opacity: 1;
+  }
+  .touch-sprint[data-armed="true"], .touch-sprint:enabled {
+    background: #f3c46b;
+    color: #161a24;
+  }
+  .touch-joystick {
+    width: var(--joystick-size);
+    height: var(--joystick-size);
+    display: grid;
+    place-items: center;
+    border: 2px solid #d3a962;
+    border-radius: 50%;
+    background: #161a24b8;
+    cursor: grab;
+  }
+  .touch-joystick-knob {
+    width: 44%;
+    height: 44%;
+    border: 2px solid #fff4dc;
+    border-radius: 50%;
+    background: #a67841;
+    pointer-events: none;
+  }
+  .game-toast {
+    top: calc(max(10px, env(safe-area-inset-top)) + 94px);
+    width: max-content;
+  }
   .hud-top-left {
-    top: 10px;
-    left: 10px;
+    top: max(10px, env(safe-area-inset-top));
+    left: max(10px, env(safe-area-inset-left));
     gap: 10px;
   }
   .hud-portrait {
@@ -980,9 +1049,12 @@ button.px-wood.is-active {
     height: 16px;
   }
   .hud-buttons {
-    right: 10px;
-    bottom: 10px;
-    gap: 8px;
+    right: max(10px, env(safe-area-inset-right));
+    bottom: max(10px, env(safe-area-inset-bottom));
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    max-width: calc(100% - 130px);
+    gap: 6px;
   }
   .hud-btn {
     width: 44px;
@@ -993,8 +1065,9 @@ button.px-wood.is-active {
     height: 32px;
   }
   .hud-quest {
-    left: 10px;
-    bottom: 10px;
+    top: calc(max(10px, env(safe-area-inset-top)) + 48px);
+    left: max(10px, env(safe-area-inset-left));
+    bottom: auto;
     min-width: 0;
     gap: 8px;
     padding: 7px 10px 7px 8px;
@@ -1011,12 +1084,7 @@ button.px-wood.is-active {
   }
 }
 
-/* Narrow portrait: stack the quest box above the buttons */
 @media (max-width: 640px) {
-  .hud-quest {
-    bottom: 68px;
-    max-width: calc(100% - 20px);
-  }
   .landing-content {
     padding-top: 76px;
   }
